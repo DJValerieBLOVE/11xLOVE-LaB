@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
-import { Home, BookOpen, Users, CheckSquare, User, Settings, LogOut, Mail, Bell, Coins, Calendar, Rss } from 'lucide-react';
+import { Home, BookOpen, Users, CheckSquare, User, Settings, LogOut, Mail, Bell, Coins, Calendar, Rss, Target, Lock, MessageSquare } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,21 +21,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const logout = useLogout();
 
   const navigation = [
-    { name: 'Home', href: '/', icon: Home, mobileOnly: false },
-    { name: 'Big Dreams', href: '/big-dreams', icon: Home, mobileOnly: false },
-    { name: 'Experiments', href: '/experiments', icon: BookOpen, mobileOnly: false },
-    { name: 'Events', href: '/events', icon: Calendar, mobileOnly: false },
-    { name: 'Tribe', href: '/tribe', icon: Users, mobileOnly: false },
-    { name: 'Vault', href: '/vault', icon: Home, mobileOnly: false },
-    { name: 'Feed', href: '/feed', icon: Rss, mobileOnly: false },
+    { name: 'Big Dreams', href: '/big-dreams', icon: Target },
+    { name: 'Experiments', href: '/experiments', icon: BookOpen },
+    { name: 'Events', href: '/events', icon: Calendar },
+    { name: 'Tribe', href: '/tribe', icon: Users },
+    { name: 'Love Board', href: '/love-board', icon: MessageSquare },
+    { name: 'Vault', href: '/vault', icon: Lock },
+    { name: 'Feed', href: '/feed', icon: Rss },
   ];
 
   // Mobile nav shows only 5 core items
   const mobileNav = [
-    { name: 'Home', href: '/', icon: Home },
+    { name: 'Dreams', href: '/big-dreams', icon: Target },
     { name: 'Experiments', href: '/experiments', icon: BookOpen },
     { name: 'Events', href: '/events', icon: Calendar },
-    { name: 'Vault', href: '/vault', icon: Home },
+    { name: 'Vault', href: '/vault', icon: Lock },
     { name: 'Feed', href: '/feed', icon: Rss },
   ];
 
@@ -50,9 +50,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Desktop Left Sidebar */}
       <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
-        {/* Logo */}
+        {/* Logo - Links to Big Dreams */}
         <div className="flex h-16 items-center border-b px-6">
-          <Link to="/" className="flex items-center">
+          <Link to="/big-dreams" className="flex items-center">
             <img src="/logo.png" alt="11x LOVE LaB" className="h-10" />
           </Link>
         </div>
@@ -82,8 +82,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {/* Top Bar */}
         <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex h-16 items-center justify-between px-4 md:px-6">
-            {/* Mobile Logo (shows on mobile only) */}
-            <Link to="/" className="flex md:hidden items-center">
+            {/* Mobile Logo (shows on mobile only) - Links to Big Dreams */}
+            <Link to="/big-dreams" className="flex md:hidden items-center">
               <img src="/logo.png" alt="11x LOVE LaB" className="h-8" />
             </Link>
 

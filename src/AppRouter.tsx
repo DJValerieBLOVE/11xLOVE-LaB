@@ -6,6 +6,7 @@ import BigDreams from "./pages/BigDreams";
 import Experiments from "./pages/Experiments";
 import Events from "./pages/Events";
 import Tribe from "./pages/Tribe";
+import LoveBoard from "./pages/LoveBoard";
 import Vault from "./pages/Vault";
 import Feed from "./pages/Feed";
 import Profile from "./pages/Profile";
@@ -17,11 +18,13 @@ export function AppRouter() {
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/* Redirect / to Big Dreams (default home) */}
+        <Route path="/" element={<BigDreams />} />
         <Route path="/big-dreams" element={<BigDreams />} />
         <Route path="/experiments" element={<Experiments />} />
         <Route path="/events" element={<Events />} />
         <Route path="/tribe" element={<Tribe />} />
+        <Route path="/love-board" element={<LoveBoard />} />
         <Route path="/vault" element={<Vault />} />
         <Route path="/feed" element={<Feed />} />
         <Route path="/profile" element={<Profile />} />
