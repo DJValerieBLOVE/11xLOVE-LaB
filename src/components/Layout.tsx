@@ -1,18 +1,29 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
-import { Home, BookOpen, Users, CheckSquare, User } from 'lucide-react';
+import { Home, BookOpen, Users, CheckSquare, User, Settings, LogOut } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { genUserName } from '@/lib/genUserName';
+import { useLogout } from '@/hooks/useLogout';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { user } = useCurrentUser();
+  const logout = useLogout();
 
   const navigation = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Experiments', href: '/experiments', icon: BookOpen },
     { name: 'Tribe', href: '/tribe', icon: Users },
     { name: 'Tracker', href: '/tracker', icon: CheckSquare },
-    { name: 'Profile', href: '/profile', icon: User },
   ];
 
   const isActive = (href: string) => {
@@ -54,9 +65,52 @@ export function Layout({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          {/* Login Area */}
+          {/* User Menu or Login */}
           <div className="flex items-center">
-            <LoginArea className="max-w-60" />
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="focus:outline-none">
+                  <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
+                    <AvatarImage src={user.metadata?.picture} alt={user.metadata?.name || genUserName(user.pubkey)} />
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {(user.metadata?.name || genUserName(user.pubkey)).slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user.metadata?.name || genUserName(user.pubkey)}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.pubkey.slice(0, 8)}...{user.pubkey.slice(-8)}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive focus:text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <LoginArea className="max-w-60" />
+            )}
           </div>
         </div>
       </header>

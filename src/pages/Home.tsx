@@ -19,21 +19,21 @@ const Home = () => {
       title: 'Experiments',
       description: 'Sequential lessons designed to transform your life',
       href: '/experiments',
-      gradient: 'from-pink-500 to-purple-500',
+      gradient: 'from-pink to-pink-light',
     },
     {
       icon: Users,
       title: 'Tribe',
       description: 'Connect with like-minded souls on the journey',
       href: '/tribe',
-      gradient: 'from-purple-500 to-indigo-500',
+      gradient: 'from-pink-light to-pink',
     },
     {
       icon: CheckSquare,
       title: 'Daily Tracker',
       description: 'Build streaks and track your daily experiments',
       href: '/tracker',
-      gradient: 'from-orange-500 to-pink-500',
+      gradient: 'from-pink to-pink-light',
     },
   ];
 
@@ -43,7 +43,7 @@ const Home = () => {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
-            <Sparkles className="h-12 w-12 text-primary" />
+            <Sparkles className="h-12 w-12 text-pink" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Welcome to the 11x LOVE LaB
