@@ -11,26 +11,19 @@
 
 ### The 11 Dimensions Color Palette
 
-#### GOD (Center/Heart)
-- **GOD/Spirituality** — `#eb00a8` Hot Pink
-
-#### PURPOSE (Top of Pyramid)
-- **Purpose/IKIGAI** — `#a2f005` Lime Green
-
-#### HEALTH (Body, Mind, Soul)
-- **Body** — `#6600ff` Purple (PRIMARY BRAND COLOR)
-- **Mind** — `#9900ff` Purple
-- **Soul** — `#cc00ff` Magenta
-
-#### PEOPLE (Romance, Family, Community)
-- **Romance** — `#e60023` Red
-- **Family** — `#ff6600` Orange
-- **Community** — `#ffdf00` Yellow
-
-#### WEALTH (Money, Time, Environment)
-- **Money** — `#00d81c` Matrix Green
-- **Time** — `#00ccff` Cyan
-- **Environment** — `#0033ff` Blue
+| # | Dimension | Hex | Color Name | RGB | CSS Variable |
+|---|-----------|-----|------------|-----|--------------|
+| 1 | **GOD/LOVE** | `#eb00a8` | Hot Pink | 235, 0, 168 | `--dimension-god` |
+| 2 | **Soul** | `#cc00ff` | Magenta | 204, 0, 255 | `--dimension-soul` |
+| 3 | **Mind** | `#9900ff` | Purple | 153, 0, 255 | `--dimension-mind` |
+| 4 | **Body** | `#6600ff` | Purple (PRIMARY) | 102, 0, 255 | `--dimension-body` |
+| 5 | **Romance** | `#e60023` | Red | 230, 0, 35 | `--dimension-romance` |
+| 6 | **Family** | `#ff6600` | Orange | 255, 102, 0 | `--dimension-family` |
+| 7 | **Community** | `#ffdf00` | Yellow | 255, 223, 0 | `--dimension-community` |
+| 8 | **Mission** | `#a2f005` | Lime Green | 162, 240, 5 | `--dimension-mission` |
+| 9 | **Money** | `#00d81c` | Matrix Green | 0, 216, 28 | `--dimension-money` |
+| 10 | **Time** | `#00ccff` | Cyan | 0, 204, 255 | `--dimension-time` |
+| 11 | **Environment** | `#0033ff` | Blue | 0, 51, 255 | `--dimension-environment` |
 
 ### UI System Colors
 

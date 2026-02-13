@@ -27,26 +27,42 @@ The **11x LOVE LaB** (Lessons AND Blessings) is a **$1,000/year selective coachi
 
 The **Human Operating System (HOS)** — LOVE at the center, connecting 11 Dimensions across 5 Pillars:
 
-### GOD (The Center/Heart)
-1. **GOD/Spirituality** — `#eb00a8` Hot Pink
+| # | Dimension | Hex | Color Name | RGB |
+|---|-----------|-----|------------|-----|
+| 1 | **GOD/LOVE** | `#eb00a8` | Hot Pink | 235, 0, 168 |
+| 2 | **Soul** | `#cc00ff` | Magenta | 204, 0, 255 |
+| 3 | **Mind** | `#9900ff` | Purple | 153, 0, 255 |
+| 4 | **Body** | `#6600ff` | Purple (PRIMARY) | 102, 0, 255 |
+| 5 | **Romance** | `#e60023` | Red | 230, 0, 35 |
+| 6 | **Family** | `#ff6600` | Orange | 255, 102, 0 |
+| 7 | **Community** | `#ffdf00` | Yellow | 255, 223, 0 |
+| 8 | **Mission** | `#a2f005` | Lime Green | 162, 240, 5 |
+| 9 | **Money** | `#00d81c` | Matrix Green | 0, 216, 28 |
+| 10 | **Time** | `#00ccff` | Cyan | 0, 204, 255 |
+| 11 | **Environment** | `#0033ff` | Blue | 0, 51, 255 |
 
-### PURPOSE (Top of Pyramid)
-2. **Purpose/IKIGAI** — `#a2f005` Lime Green
+### The 5 Pillars (Prosperity Pyramid)
 
-### HEALTH (Body, Mind, Soul)
-3. **Body** — `#6600ff` Purple (PRIMARY BRAND COLOR)
-4. **Mind** — `#9900ff` Purple
-5. **Soul** — `#cc00ff` Magenta
+**GOD (The Center/Heart):**
+- 1. GOD/LOVE — `#eb00a8` Hot Pink
 
-### PEOPLE (Romance, Family, Community)
-6. **Romance** — `#e60023` Red
-7. **Family** — `#ff6600` Orange
-8. **Community** — `#ffdf00` Yellow
+**HEALTH (Body, Mind, Soul):**
+- 2. Soul — `#cc00ff` Magenta
+- 3. Mind — `#9900ff` Purple
+- 4. Body — `#6600ff` Purple (PRIMARY BRAND COLOR)
 
-### WEALTH (Money, Time, Environment)
-9. **Money** — `#00d81c` Matrix Green
-10. **Time** — `#00ccff` Cyan
-11. **Environment** — `#0033ff` Blue
+**PEOPLE (Romance, Family, Community):**
+- 5. Romance — `#e60023` Red
+- 6. Family — `#ff6600` Orange
+- 7. Community — `#ffdf00` Yellow
+
+**PURPOSE (Mission/IKIGAI):**
+- 8. Mission — `#a2f005` Lime Green
+
+**WEALTH (Money, Time, Environment):**
+- 9. Money — `#00d81c` Matrix Green
+- 10. Time — `#00ccff` Cyan
+- 11. Environment — `#0033ff` Blue
 
 ---
 

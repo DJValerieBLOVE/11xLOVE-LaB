@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Purple primary color #6600ff */
+    /* Purple primary color #6600ff (Body dimension - PRIMARY BRAND COLOR) */
     --primary: 252 100% 50%;
     --primary-foreground: 0 0% 100%;
 
@@ -36,20 +36,26 @@
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* 11x LOVE LaB — The 11 Dimensions Color Palette */
+    --dimension-god: #eb00a8;        /* 1. GOD/LOVE - Hot Pink */
+    --dimension-soul: #cc00ff;       /* 2. Soul - Magenta */
+    --dimension-mind: #9900ff;       /* 3. Mind - Purple */
+    --dimension-body: #6600ff;       /* 4. Body - Purple (PRIMARY) */
+    --dimension-romance: #e60023;    /* 5. Romance - Red */
+    --dimension-family: #ff6600;     /* 6. Family - Orange */
+    --dimension-community: #ffdf00;  /* 7. Community - Yellow */
+    --dimension-mission: #a2f005;    /* 8. Mission - Lime Green */
+    --dimension-money: #00d81c;      /* 9. Money - Matrix Green */
+    --dimension-time: #00ccff;       /* 10. Time - Cyan */
+    --dimension-environment: #0033ff;/* 11. Environment - Blue */
   }
 
   .dark {
