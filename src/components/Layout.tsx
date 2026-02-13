@@ -54,8 +54,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(item.href) ? 'text-primary' : 'text-muted-foreground'
+                  className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-[#eb00a8] ${
+                    isActive(item.href) ? 'text-[#eb00a8]' : 'text-muted-foreground'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -70,9 +70,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger className="focus:outline-none">
-                  <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
+                  <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-[#eb00a8]/20 hover:ring-[#eb00a8]/40 transition-all">
                     <AvatarImage src={user.metadata?.picture} alt={user.metadata?.name || genUserName(user.pubkey)} />
-                    <AvatarFallback className="bg-primary/10 text-primary">
+                    <AvatarFallback className="bg-[#eb00a8]/10 text-[#eb00a8]">
                       {(user.metadata?.name || genUserName(user.pubkey)).slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -130,7 +130,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 key={item.name}
                 to={item.href}
                 className={`flex flex-col items-center justify-center py-2 px-1 transition-colors ${
-                  isActive(item.href) ? 'text-primary' : 'text-muted-foreground'
+                  isActive(item.href) ? 'text-[#eb00a8]' : 'text-muted-foreground'
                 }`}
               >
                 <Icon className="h-5 w-5" />
