@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
-import { Home, BookOpen, Users, CheckSquare, User, Settings, LogOut, Mail, Bell, Coins, Calendar } from 'lucide-react';
+import { Home, BookOpen, Users, CheckSquare, User, Settings, LogOut, Mail, Bell, Coins, Calendar, Rss } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +26,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { name: 'Events', href: '/events', icon: Calendar },
     { name: 'Tribe', href: '/tribe', icon: Users },
     { name: 'Tracker', href: '/tracker', icon: CheckSquare },
+    { name: 'Feed', href: '/feed', icon: Rss },
   ];
 
   const isActive = (href: string) => {
@@ -158,7 +159,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background">
-        <div className="grid grid-cols-5 gap-1">
+        <div className="grid grid-cols-6 gap-1">
           {navigation.map((item) => {
             const Icon = item.icon;
             return (
