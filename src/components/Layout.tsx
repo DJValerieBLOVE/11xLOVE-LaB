@@ -21,11 +21,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const logout = useLogout();
 
   const navigation = [
+    { name: 'Home', href: '/', icon: Home, mobileOnly: false },
+    { name: 'Big Dreams', href: '/big-dreams', icon: Home, mobileOnly: false },
+    { name: 'Experiments', href: '/experiments', icon: BookOpen, mobileOnly: false },
+    { name: 'Events', href: '/events', icon: Calendar, mobileOnly: false },
+    { name: 'Tribe', href: '/tribe', icon: Users, mobileOnly: false },
+    { name: 'Vault', href: '/vault', icon: Home, mobileOnly: false },
+    { name: 'Feed', href: '/feed', icon: Rss, mobileOnly: false },
+  ];
+
+  // Mobile nav shows only 5 core items
+  const mobileNav = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Experiments', href: '/experiments', icon: BookOpen },
     { name: 'Events', href: '/events', icon: Calendar },
-    { name: 'Tribe', href: '/tribe', icon: Users },
-    { name: 'Tracker', href: '/tracker', icon: CheckSquare },
+    { name: 'Vault', href: '/vault', icon: Home },
     { name: 'Feed', href: '/feed', icon: Rss },
   ];
 
@@ -159,8 +169,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background">
-        <div className="grid grid-cols-6 gap-1">
-          {navigation.map((item) => {
+        <div className="grid grid-cols-5 gap-1">
+          {mobileNav.map((item) => {
             const Icon = item.icon;
             return (
               <Link

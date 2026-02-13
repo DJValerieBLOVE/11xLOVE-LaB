@@ -2,10 +2,11 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
 
 import Home from "./pages/Home";
+import BigDreams from "./pages/BigDreams";
 import Experiments from "./pages/Experiments";
 import Events from "./pages/Events";
 import Tribe from "./pages/Tribe";
-import Tracker from "./pages/Tracker";
+import Vault from "./pages/Vault";
 import Feed from "./pages/Feed";
 import Profile from "./pages/Profile";
 import { NIP19Page } from "./pages/NIP19Page";
@@ -17,10 +18,11 @@ export function AppRouter() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/big-dreams" element={<BigDreams />} />
         <Route path="/experiments" element={<Experiments />} />
         <Route path="/events" element={<Events />} />
         <Route path="/tribe" element={<Tribe />} />
-        <Route path="/tracker" element={<Tracker />} />
+        <Route path="/vault" element={<Vault />} />
         <Route path="/feed" element={<Feed />} />
         <Route path="/profile" element={<Profile />} />
         {/* NIP-19 route for npub1, note1, naddr1, nevent1, nprofile1 */}
