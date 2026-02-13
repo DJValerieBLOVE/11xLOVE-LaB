@@ -32,9 +32,9 @@ export default {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
-        pink: {
-          DEFAULT: "#eb00a8",
-          light: "#ff3dbf",
+        purple: {
+          DEFAULT: "#6600ff",
+          light: "#8c4dff",
         },
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',

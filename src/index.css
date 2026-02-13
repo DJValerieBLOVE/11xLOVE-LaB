@@ -13,8 +13,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Pink primary color #eb00a8 - HSL(326, 100%, 46%) */
-    --primary: 326 100% 46%;
+    /* Purple primary color #6600ff */
+    --primary: 252 100% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
@@ -31,7 +31,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 326 100% 46%;
+    --ring: 252 100% 50%;
 
     --radius: 0.75rem;
 

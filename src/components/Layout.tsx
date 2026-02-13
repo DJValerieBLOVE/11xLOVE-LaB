@@ -41,31 +41,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
         {/* Logo */}
         <div className="flex h-16 items-center border-b px-6">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-3xl">💜</span>
-            <div className="flex flex-col">
-              <span className="font-bold text-xl leading-none">11x LOVE</span>
-              <span className="text-sm text-muted-foreground">LaB</span>
-            </div>
+          <Link to="/" className="flex items-center">
+            <img src="/logo.png" alt="11x LOVE LaB" className="h-10" />
           </Link>
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 px-4 py-6 space-y-2">
+        <nav className="flex-1 px-4 py-6 space-y-1">
           {navigation.map((item) => {
-            const Icon = item.icon;
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center space-x-3 px-4 py-3 text-base font-medium transition-colors ${
+                className={`block px-4 py-3 text-base font-medium transition-colors ${
                   isActive(item.href)
-                    ? 'text-[#eb00a8]'
-                    : 'text-gray-400 hover:text-[#eb00a8]'
+                    ? 'text-[#6600ff]'
+                    : 'text-gray-600 hover:text-[#6600ff]'
                 }`}
               >
-                <Icon className="h-5 w-5" />
-                <span>{item.name}</span>
+                {item.name}
               </Link>
             );
           })}
@@ -78,12 +72,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex h-16 items-center justify-between px-4 md:px-6">
             {/* Mobile Logo (shows on mobile only) */}
-            <Link to="/" className="flex md:hidden items-center space-x-2">
-              <span className="text-2xl">💜</span>
-              <div className="flex flex-col">
-                <span className="font-bold text-lg leading-none">11x LOVE</span>
-                <span className="text-xs text-muted-foreground">LaB</span>
-              </div>
+            <Link to="/" className="flex md:hidden items-center">
+              <img src="/logo.png" alt="11x LOVE LaB" className="h-8" />
             </Link>
 
             {/* Desktop: Empty spacer */}
@@ -93,28 +83,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center space-x-3">
               {user ? (
                 <>
+                  {/* Sats Balance */}
+                  <Button variant="ghost" className="text-[#ff9500] hover:text-[#ff9500] hidden md:flex items-center gap-1 bg-[#fff4e6] hover:bg-[#ffe8cc] rounded-full px-4">
+                    <Coins className="h-4 w-4" />
+                    <span className="font-medium">1</span>
+                    <span className="text-sm">Sats</span>
+                  </Button>
+
                   {/* Mail */}
-                  <Button variant="ghost" size="icon" className="text-gray-400 hover:text-[#eb00a8]">
+                  <Button variant="ghost" size="icon" className="text-gray-400 hover:text-[#6600ff]">
                     <Mail className="h-5 w-5" />
                   </Button>
 
                   {/* Notifications */}
-                  <Button variant="ghost" size="icon" className="text-gray-400 hover:text-[#eb00a8]">
+                  <Button variant="ghost" size="icon" className="text-gray-400 hover:text-[#6600ff] relative">
                     <Bell className="h-5 w-5" />
-                  </Button>
-
-                  {/* Sats Balance */}
-                  <Button variant="ghost" className="text-gray-400 hover:text-[#eb00a8] hidden md:flex">
-                    <Coins className="h-5 w-5 mr-2" />
-                    <span className="font-medium">0</span>
+                    <span className="absolute top-2 right-2 h-2 w-2 bg-[#6600ff] rounded-full"></span>
                   </Button>
 
                   {/* User Avatar Menu */}
                   <DropdownMenu>
                     <DropdownMenuTrigger className="focus:outline-none">
-                      <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-[#eb00a8]/20 hover:ring-[#eb00a8]/40 transition-all">
+                      <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-[#6600ff]/20 hover:ring-[#6600ff]/40 transition-all">
                         <AvatarImage src={user.metadata?.picture} alt={user.metadata?.name || genUserName(user.pubkey)} />
-                        <AvatarFallback className="bg-[#eb00a8]/10 text-[#eb00a8]">
+                        <AvatarFallback className="bg-[#6600ff]/10 text-[#6600ff]">
                           {(user.metadata?.name || genUserName(user.pubkey)).slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -174,7 +166,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 key={item.name}
                 to={item.href}
                 className={`flex flex-col items-center justify-center py-2 px-1 transition-colors ${
-                  isActive(item.href) ? 'text-[#eb00a8]' : 'text-gray-400'
+                  isActive(item.href) ? 'text-[#6600ff]' : 'text-gray-400'
                 }`}
               >
                 <Icon className="h-5 w-5" />
