@@ -37,7 +37,10 @@ const Tribe = () => {
   return (
     <Layout>
       <div className="container px-4 py-8">
-        <h1 className="mb-6">🔥 11x LOVE Tribe</h1>
+        <div className="flex items-center gap-3 mb-6">
+          <Users className="h-8 w-8 text-gray-400" />
+          <h1 className="mb-0">11x LOVE Tribe</h1>
+        </div>
         <p className="text-muted-foreground mb-8">
           Your private community of souls on the transformation journey.
         </p>
