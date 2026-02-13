@@ -2,6 +2,7 @@ import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EQVisualizer } from '@/components/EQVisualizer';
 import { Lock } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -69,6 +70,21 @@ const BigDreams = () => {
     );
   }
 
+  // Mock levels for EQ Visualizer (will come from relay data)
+  const eqLevels = {
+    1: 85,  // GOD/LOVE
+    2: 60,  // Soul
+    3: 75,  // Mind
+    4: 70,  // Body
+    5: 60,  // Romance
+    6: 75,  // Family
+    7: 90,  // Community
+    8: 50,  // Mission
+    9: 55,  // Money
+    10: 65, // Time
+    11: 70, // Environment
+  };
+
   return (
     <Layout>
       <div className="container px-4 py-8">
@@ -76,6 +92,19 @@ const BigDreams = () => {
         <p className="text-muted-foreground italic mb-8">
           "The future belongs to those who believe in the beauty of their dreams."
         </p>
+
+        {/* EQ Visualizer - Your Progress Dashboard */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-center">Your Divine Masterpiece EQ</CardTitle>
+            <p className="text-sm text-muted-foreground text-center">
+              Raise your vibes, rock your dreams — track your progress across all 11 Dimensions
+            </p>
+          </CardHeader>
+          <CardContent>
+            <EQVisualizer levels={eqLevels} showLabels />
+          </CardContent>
+        </Card>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content - Left/Center */}

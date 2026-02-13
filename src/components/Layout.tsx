@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
+import { CompactEQVisualizer } from '@/components/EQVisualizer';
 import { Home, BookOpen, Users, CheckSquare, User, Settings, LogOut, Mail, Bell, Coins, Calendar, Rss, Target, Lock, MessageSquare } from 'lucide-react';
 import {
   DropdownMenu,
@@ -87,8 +88,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <img src="/logo.png" alt="11x LOVE LaB" className="h-8" />
             </Link>
 
-            {/* Desktop: Empty spacer */}
-            <div className="hidden md:block"></div>
+            {/* Desktop: EQ Visualizer */}
+            <div className="hidden md:flex items-center justify-center flex-1 max-w-md mx-auto">
+              <CompactEQVisualizer />
+            </div>
 
             {/* Right side: Mail, Notifications, Sats, User */}
             <div className="flex items-center space-x-3">
