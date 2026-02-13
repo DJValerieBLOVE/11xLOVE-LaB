@@ -3,6 +3,7 @@ import { ScrollToTop } from "./components/ScrollToTop";
 
 import Home from "./pages/Home";
 import Experiments from "./pages/Experiments";
+import Events from "./pages/Events";
 import Tribe from "./pages/Tribe";
 import Tracker from "./pages/Tracker";
 import Profile from "./pages/Profile";
@@ -16,6 +17,7 @@ export function AppRouter() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/experiments" element={<Experiments />} />
+        <Route path="/events" element={<Events />} />
         <Route path="/tribe" element={<Tribe />} />
         <Route path="/tracker" element={<Tracker />} />
         <Route path="/profile" element={<Profile />} />

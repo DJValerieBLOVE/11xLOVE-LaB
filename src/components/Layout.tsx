@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
-import { Home, BookOpen, Users, CheckSquare, User, Settings, LogOut, Mail, Bell, Coins } from 'lucide-react';
+import { Home, BookOpen, Users, CheckSquare, User, Settings, LogOut, Mail, Bell, Coins, Calendar } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +23,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navigation = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Experiments', href: '/experiments', icon: BookOpen },
+    { name: 'Events', href: '/events', icon: Calendar },
     { name: 'Tribe', href: '/tribe', icon: Users },
     { name: 'Tracker', href: '/tracker', icon: CheckSquare },
   ];
@@ -57,10 +58,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium transition-all ${
+                className={`flex items-center space-x-3 px-4 py-3 text-base font-medium transition-colors ${
                   isActive(item.href)
-                    ? 'bg-[#eb00a8]/10 text-[#eb00a8]'
-                    : 'text-gray-400 hover:text-[#eb00a8] hover:bg-gray-50'
+                    ? 'text-[#eb00a8]'
+                    : 'text-gray-400 hover:text-[#eb00a8]'
                 }`}
               >
                 <Icon className="h-5 w-5" />
@@ -165,7 +166,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background">
-        <div className="grid grid-cols-4 gap-1">
+        <div className="grid grid-cols-5 gap-1">
           {navigation.map((item) => {
             const Icon = item.icon;
             return (
