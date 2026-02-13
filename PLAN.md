@@ -1,87 +1,74 @@
-# 11x LOVE LaB - Build Plan & Specification
+# SHAKESPEARE.DIY — 11x LOVE LaB Platform Build Spec
 
-> **Project**: Private coaching platform on Nostr  
-> **Private Relay**: `wss://nostr-rs-relay-production-1569.up.railway.app`  
-> **Admin Pubkey**: `3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767`  
-> **Pricing**: $1,000/year selective coaching community
+> **Private coaching platform on Nostr. Build chunk by chunk. Test each chunk before moving to the next.**
 
 ---
 
-## 🎯 Core Concept
+## STATUS: PRE-FLIGHT COMPLETE ✅
 
-Build a Nostr-native personal growth platform with sequential Experiments (courses), a private Tribe (community), daily tracking, zapping, and an admin dashboard — all powered by a **private Nostr relay on Railway** for persistent, cross-device user data.
-
-**CRITICAL**: Build chunk by chunk. Test each chunk before moving to the next. Do NOT build everything at once.
-
----
-
-## 🏗️ Architecture: Private Relay IS the Database
-
-### The Core Insight
-- **NO** Cloudflare Workers, D1, or PostgreSQL needed for beta
-- **YES** Private Nostr relay on Railway = single source of truth for ALL user data
-- Every user action publishes an **encrypted Nostr event** to the private relay
-- Users log in from ANY device → relay reconstructs their full state
-- No localStorage dependency. The relay IS the backend.
-
-### Data Flow Example
-
-**User Completes a Lesson:**
-```
-1. User clicks "Mark Complete" on Lesson 3
-2. App creates kind:30078 event with encrypted progress
-3. Event published to private Railway relay
-4. Cached in browser IndexedDB for speed
-5. Progress now persists across ALL devices
-```
-
-**User Logs In From New Device:**
-```
-1. User authenticates with Nostr key
-2. App queries private relay for all user events
-3. Relay returns encrypted progress events
-4. App decrypts and reconstructs full state
-5. User sees all progress restored
-```
+- **Private Nostr relay deployed on Railway** (Feb 13, 2026)
+- **Relay URL:** `wss://nostr-rs-relay-production-1569.up.railway.app`
+- **Admin pubkey:** `3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767`
+- **Auth:** NIP-42 whitelist mode — only admin pubkey can publish
+- **Relay software:** nostr-rs-relay (Rust, SQLite-based)
+- **Ready for:** Chunk 1 — Basic App Shell + Nostr Login
 
 ---
 
-## 📖 Terminology (REQUIRED)
+## CONTEXT: What This Is
 
-| ✅ USE THIS | ❌ NOT THIS |
-|-------------|-------------|
+A $1,000/year selective coaching community platform called **11x LOVE LaB** ("Lessons and Blessings") built on Nostr. Light mode default, pink accent (#eb00a8), mobile-first PWA. The private relay IS the database — no PostgreSQL, no Cloudflare Workers, no D1.
+
+---
+
+## TERMINOLOGY (USE THESE — NOT Alternatives)
+
+| ✅ Correct Term | ❌ Do NOT Use |
+|---|---|
 | **Experiments** | Courses, lessons, modules |
 | **Tribes** | Communities, groups |
-| **LaB** (capital L, lowercase a, capital B) | Lab, LAB |
+| **Big Dream** | Goal |
 | **Sats** | Points, coins |
 | **Zap** | Tip, donate |
 | **Bitcoin** | Crypto |
 | **Membership** | Subscription |
 | **Value for Value (V4V)** | Free |
+| **LaB** (capital L, lowercase a, capital B) | Lab, LAB |
 
 ---
 
-## 🛠️ Tech Stack
+## TECH STACK
 
 | Layer | Technology | Notes |
-|-------|------------|-------|
-| **Frontend** | React + Tailwind CSS | Shakespeare MKStack template |
-| **Identity** | Nostr (NIP-07/NIP-46) | User owns keys |
-| **Data Persistence** | Private Nostr relay (Railway) | All progress as Nostr events |
-| **Local Cache** | IndexedDB | Speed layer only |
-| **Private Community** | NIP-29 group | Authenticated access |
-| **Zaps** | NIP-57 | Non-custodial Lightning |
-| **Encryption** | NIP-44 | Private data encrypted |
+|---|---|---|
+| **Frontend** | React + Tailwind CSS | MKStack template — already set up |
+| **Identity** | Nostr login (NIP-07 / NIP-46) | User owns keys |
+| **Data Persistence** | Private Nostr relay on Railway | All progress stored as Nostr events — persists across devices/browsers |
+| **Local Cache** | IndexedDB (browser) | Speed layer only — relay is source of truth |
+| **Private Community** | NIP-29 group on relay | Authenticated access, private by default |
+| **Zaps / V4V** | NIP-57 | Non-custodial — user's own wallet |
+| **Encryption** | NIP-44 | Private data encrypted with user's Nostr key |
 
 ---
 
-## 🔐 Custom Nostr Event Kinds
+## ENVIRONMENT VARIABLES
 
-Use `kind: 30078` (replaceable app-specific data) for all user progress.
+```bash
+RELAY_URL=wss://nostr-rs-relay-production-1569.up.railway.app
+ADMIN_NPUB=3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767
+```
 
-### Event Structures
+No database connection strings. No API keys. Relay + Nostr handle everything.
 
-**Experiment Completion:**
+---
+
+## CUSTOM NOSTR EVENT KINDS
+
+Use `kind: 30078` (replaceable app-specific data) for all user progress events.
+
+### Event Tag Structure
+
+**Experiment (lesson) completion:**
 ```javascript
 {
   kind: 30078,
@@ -92,15 +79,15 @@ Use `kind: 30078` (replaceable app-specific data) for all user progress.
     ["lesson", "module-1-lesson-3"],
     ["completed_at", "2026-02-11T18:00:00Z"]
   ],
-  content: nip44.encrypt({
+  content: nip44.encrypt(JSON.stringify({
     experimentId: "11x-love-code",
     lessonId: "module-1-lesson-3",
     completedAt: "2026-02-11T18:00:00Z"
-  })
+  }), userKey)
 }
 ```
 
-**Daily Check-in:**
+**Daily check-in:**
 ```javascript
 {
   kind: 30078,
@@ -110,52 +97,52 @@ Use `kind: 30078` (replaceable app-specific data) for all user progress.
     ["date", "2026-02-11"],
     ["experiment_name", "drink-8-glasses-water"]
   ],
-  content: nip44.encrypt({
+  content: nip44.encrypt(JSON.stringify({
     date: "2026-02-11",
     experiment: "drink-8-glasses-water",
     completed: true,
     notes: "Felt great today!"
-  })
+  }), userKey)
 }
 ```
 
-**Streak Update (Replaceable):**
+**Streak update (replaceable — always current):**
 ```javascript
 {
   kind: 30078,
   pubkey: "user_npub",
   tags: [["d", "streak-current"]],
-  content: nip44.encrypt({
+  content: nip44.encrypt(JSON.stringify({
     currentStreak: 7,
     longestStreak: 14,
     lastCheckIn: "2026-02-11"
-  })
+  }), userKey)
 }
 ```
 
 ---
 
-## 🎨 Design Standards
+## DESIGN DIRECTION
 
 ### Color Palette
 ```javascript
 colors: {
-  background: '#1a1a2e',      // Deep dark navy
-  surface: '#16213e',          // Card backgrounds
-  surfaceLight: '#0f3460',     // Hover states
+  background: '#ffffff',       // Light mode default
+  surface: '#f9f9f9',          // Card backgrounds
+  surfaceLight: '#ffffff',     // Lighter surfaces
   primary: '#eb00a8',          // PINK accent (brand)
   primaryLight: '#ff3dbf',     // Light pink hover
   secondary: '#e94560',        // Red/pink alerts
   accent: '#f39c12',           // Gold - streaks
   success: '#2ecc71',          // Green - completions
-  text: '#ffffff',             // Primary text
-  textMuted: '#a0a0b0',       // Secondary text
-  border: '#2a2a4a',          // Subtle borders
+  text: '#1a1a1a',             // Primary text
+  textMuted: '#666666',        // Secondary text
+  border: '#e5e5e5',           // Subtle borders
 }
 ```
 
 ### Design Principles
-- **Light mode default** (spec requirement)
+- **Light mode default** (per spec)
 - **Pink accent** (#eb00a8)
 - **Clean, modern, mobile-first**
 - **Celebration animations** on completions
@@ -166,7 +153,7 @@ colors: {
 
 ### Typography
 - Headings: Inter Bold
-- Body: Inter Regular
+- Body: Inter Regular  
 - Base: 16px mobile, scale up for desktop
 
 ### Key Animations
@@ -178,7 +165,7 @@ colors: {
 
 ---
 
-## 🔨 Build Chunks (Sequential Order)
+## BUILD CHUNKS (Sequential Order)
 
 ### ✅ Chunk 1: Basic App Shell + Nostr Login
 **Build:**
@@ -278,7 +265,7 @@ colors: {
 
 ---
 
-## 📋 After Each Chunk - Checklist
+## AFTER EACH CHUNK — CHECKLIST
 
 - [ ] Loads without errors?
 - [ ] Feature works as expected?
@@ -291,18 +278,7 @@ colors: {
 
 ---
 
-## 🌐 Environment Variables
-
-```bash
-RELAY_URL=wss://nostr-rs-relay-production-1569.up.railway.app
-ADMIN_NPUB=3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767
-```
-
-No database strings. No API keys. Relay + Nostr handle everything.
-
----
-
-## 🎓 Experiment System Details
+## EXPERIMENT SYSTEM DETAILS
 
 ### Sequential Unlock Logic
 ```javascript
@@ -333,7 +309,7 @@ const experiments = [
         id: "module-1-lesson-1",
         title: "Welcome to the 11x LOVE Code",
         type: "video",
-        content: "## Welcome, Beautiful Soul!...",
+        content: "## Welcome, Beautiful Soul!\n\nThis is where your transformation begins...",
         videoUrl: "https://youtube.com/embed/XXXXX",
         duration: "5 min"
       },
@@ -345,7 +321,7 @@ const experiments = [
 
 ---
 
-## 👥 Tribe (NIP-29) Details
+## TRIBE (NIP-29) DETAILS
 
 - **NIP-29** = relay-based groups with access control
 - Private relay enforces authentication
@@ -353,15 +329,9 @@ const experiments = [
 - Messages stored on relay (persistent)
 - Admin adds/removes members via relay config
 
-### Tribe Features
-1. Group chat feed
-2. Member list
-3. Admin controls (your npub only)
-4. Zap support on messages
-
 ---
 
-## ⚡ Zapping (NIP-57) Details
+## ZAPPING (NIP-57) DETAILS
 
 - Non-custodial Lightning tips
 - User clicks ⚡ on lesson/message
@@ -378,12 +348,7 @@ const experiments = [
 
 ---
 
-## 👑 Admin Dashboard Details
-
-### How It Works
-- You control private relay
-- Query ALL events from ALL users
-- Display aggregated analytics
+## ADMIN DASHBOARD DETAILS
 
 ### Admin Access Check
 ```javascript
@@ -418,7 +383,7 @@ const userHistory = await relay.query([{
 
 ---
 
-## 📱 PWA Setup
+## PWA SETUP
 
 ```json
 {
@@ -426,14 +391,14 @@ const userHistory = await relay.query([{
   "short_name": "11x LOVE",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
+  "background_color": "#ffffff",
   "theme_color": "#eb00a8"
 }
 ```
 
 ---
 
-## ✅ Success Criteria for Beta
+## SUCCESS CRITERIA FOR BETA
 
 - [ ] User logs in with Nostr
 - [ ] User browses Experiment catalog
@@ -450,7 +415,7 @@ const userHistory = await relay.query([{
 
 ---
 
-## 🚫 NOT in Beta (Future Phases)
+## NOT IN BETA (Future Phases)
 
 - ❌ AI Learning Buddy
 - ❌ Customizable dashboard canvas
@@ -462,79 +427,34 @@ const userHistory = await relay.query([{
 - ❌ Plugin system
 - ❌ Multi-community support
 
-**Focus**: Can people log in, take Experiments, track progress, chat in Tribe, and zap — with admin visibility? If yes → beta success.
-
 ---
 
-## 🎯 Key Nostr Implementation Notes
-
-### Admin/Moderation Security
-- **CRITICAL**: Nostr is permissionless — anyone can publish any event
-- **ALWAYS** filter by `authors` field when querying admin/trusted actions
-- Example: Admin queries MUST include `authors: [ADMIN_PUBKEY]`
-
-### Efficient Query Design
-- Minimize separate queries (avoid rate limiting)
-- Combine kinds: `kinds: [1, 6, 16]` instead of 3 queries
-- Filter in JavaScript after receiving results
-
-### Event Validation
-- Validate events with required tags/content
-- Filter through validator functions
-- Especially important for custom kinds (30078)
-
----
-
-## 📚 Railway Relay Configuration
-
-**Relay URL**: `wss://nostr-rs-relay-production-1569.up.railway.app`
-
-**Allowed Event Kinds**:
-- `kind: 1` - Text notes (Tribe messages)
-- `kind: 7` - Reactions
-- `kind: 9735` - Zap receipts
-- `kind: 30078` - App-specific data (progress, check-ins, streaks)
-- `kind: 39000-39002` - NIP-29 group events
-
-**Environment Variables**:
-- `RELAY_NAME` = "11x LOVE Private Relay"
-- `RELAY_DESCRIPTION` = "Private relay for the 11x LOVE platform"
-- `ADMIN_PUBKEY` = "3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767"
-- `NIP42_AUTH` = "true"
-
-**Cost**: ~$5-10/month for <100 users
-
----
-
-## 📝 Git Commit Strategy
+## GIT COMMIT STRATEGY
 
 After each chunk completion:
 ```bash
 git add .
 git commit -m "Chunk X: [Feature Name] - [Brief description]"
-```
-
-Example:
-```bash
-git commit -m "Chunk 1: Basic App Shell + Nostr Login - Navigation, NIP-07/46 auth, profile display"
+git push origin main
 ```
 
 ---
 
-## 🔄 Current Status
+## CURRENT STATUS
 
-**Last Updated**: February 13, 2026
+**Last Updated:** February 13, 2026
 
-**Completed**:
+**Completed:**
 - ✅ Railway private relay deployed and configured
 - ✅ NIP-42 authentication enabled
 - ✅ Admin pubkey whitelisted
 - ✅ Planning document created
+- ✅ GitHub repository connected
 
-**In Progress**:
+**In Progress:**
 - 🚧 Chunk 1: Basic App Shell + Nostr Login
 
-**Next Up**:
+**Next Up:**
 - ⏭️ Chunk 2: Connect to Private Relay
 
 ---
