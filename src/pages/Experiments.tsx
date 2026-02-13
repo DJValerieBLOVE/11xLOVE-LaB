@@ -2,7 +2,7 @@ import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock } from 'lucide-react';
+import { Lock, BookOpen } from 'lucide-react';
 
 const Experiments = () => {
   const { user } = useCurrentUser();
@@ -46,7 +46,7 @@ const Experiments = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <span>💜</span>
+                <BookOpen className="h-5 w-5 text-gray-400" />
                 <span>The 11x LOVE Code</span>
               </CardTitle>
               <CardDescription>

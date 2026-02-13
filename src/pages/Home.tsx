@@ -43,7 +43,7 @@ const Home = () => {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
-            <Sparkles className="h-16 w-16 md:h-20 md:w-20 text-pink" />
+            <Sparkles className="h-16 w-16 md:h-20 md:w-20 text-gray-300" />
           </div>
           <h1 className="mb-6">
             Welcome to the 11x LOVE LaB
@@ -70,8 +70,8 @@ const Home = () => {
                 <Link key={feature.title} to={feature.href}>
                   <Card className="h-full hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer">
                     <CardHeader>
-                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4`}>
-                        <Icon className="h-6 w-6 text-white" />
+                      <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center mb-4">
+                        <Icon className="h-6 w-6 text-gray-400" />
                       </div>
                       <CardTitle>{feature.title}</CardTitle>
                       <CardDescription>{feature.description}</CardDescription>
