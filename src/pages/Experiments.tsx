@@ -37,7 +37,7 @@ const Experiments = () => {
   return (
     <Layout>
       <div className="container px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Your Experiments</h1>
+        <h1 className="mb-6">Your Experiments</h1>
         <p className="text-muted-foreground mb-8">
           Sequential lessons designed to transform your life. Complete each lesson to unlock the next.
         </p>

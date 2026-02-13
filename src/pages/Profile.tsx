@@ -43,7 +43,7 @@ const Profile = () => {
   return (
     <Layout>
       <div className="container px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Your Profile</h1>
+        <h1 className="mb-6">Your Profile</h1>
 
         <div className="max-w-2xl space-y-6">
           {/* Profile Card */}

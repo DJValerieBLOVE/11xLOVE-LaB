@@ -42,13 +42,13 @@ const Home = () => {
       <div className="container px-4 py-8 md:py-12">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <Sparkles className="h-12 w-12 text-pink" />
+          <div className="flex justify-center mb-6">
+            <Sparkles className="h-16 w-16 md:h-20 md:w-20 text-pink" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="mb-6">
             Welcome to the 11x LOVE LaB
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             {user ? (
               <>
                 Hey there, beautiful soul! 💜 Ready to continue your transformation journey?

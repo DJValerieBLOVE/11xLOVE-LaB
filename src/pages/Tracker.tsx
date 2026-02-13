@@ -37,7 +37,7 @@ const Tracker = () => {
   return (
     <Layout>
       <div className="container px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">🧪 Daily Experiment Tracker</h1>
+        <h1 className="mb-6">🧪 Daily Experiment Tracker</h1>
         <p className="text-muted-foreground mb-8">
           Build your streak with daily check-ins and experiments.
         </p>

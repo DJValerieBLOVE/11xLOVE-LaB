@@ -39,10 +39,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between px-4">
           <Link to="/" className="flex items-center space-x-2">
-            <span className="text-2xl">💜</span>
+            <span className="text-3xl md:text-4xl">💜</span>
             <div className="flex flex-col">
-              <span className="font-bold text-lg leading-none">11x LOVE</span>
-              <span className="text-xs text-muted-foreground">LaB</span>
+              <span className="font-bold text-xl md:text-2xl leading-none">11x LOVE</span>
+              <span className="text-sm md:text-base text-muted-foreground">LaB</span>
             </div>
           </Link>
 
@@ -54,7 +54,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-[#eb00a8] ${
+                  className={`flex items-center space-x-1 text-base font-medium transition-colors hover:text-[#eb00a8] ${
                     isActive(item.href) ? 'text-[#eb00a8]' : 'text-muted-foreground'
                   }`}
                 >
