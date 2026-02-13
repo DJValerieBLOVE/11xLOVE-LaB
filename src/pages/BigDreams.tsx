@@ -6,34 +6,8 @@ import { Lock } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 
-const BigDreams = () => {
-  const { user } = useCurrentUser();
-
-  useSeoMeta({
-    title: 'Big Dreams - 11x LOVE LaB',
-    description: 'Update your vision for each dimension',
-  });
-
-  if (!user) {
-    return (
-      <Layout>
-        <div className="container px-4 py-8">
-          <div className="max-w-md mx-auto">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center space-x-2">
-                  <Lock className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle>Login Required</CardTitle>
-                </div>
-              </CardHeader>
-            </Card>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  const dimensions = [
+// Data defined outside component
+const dimensions = [
     { id: 'god-love', title: 'GOD/LOVE', color: 'border-pink-500', realized: 85 },
     { id: 'romance', title: 'Romance', color: 'border-red-500', realized: 60 },
     { id: 'family', title: 'Family', color: 'border-orange-500', realized: 75 },
@@ -45,7 +19,15 @@ const BigDreams = () => {
     { id: 'body', title: 'Body', color: 'border-gray-200', realized: 0 },
     { id: 'mind', title: 'Mind', color: 'border-blue-500', realized: 0 },
     { id: 'spirit', title: 'Spirit', color: 'border-purple-500', realized: 0 },
-  ];
+];
+
+const BigDreams = () => {
+  const { user } = useCurrentUser();
+
+  useSeoMeta({
+    title: 'Big Dreams - 11x LOVE LaB',
+    description: 'Update your vision for each dimension',
+  });
 
   // Sample data (will come from relay)
   const currentStreak = 7;
@@ -67,6 +49,25 @@ const BigDreams = () => {
     { name: 'Sarah M.', streak: 14, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' },
     { name: 'Mike T.', streak: 7, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike' },
   ];
+
+  if (!user) {
+    return (
+      <Layout>
+        <div className="container px-4 py-8">
+          <div className="max-w-md mx-auto">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <Lock className="h-5 w-5 text-muted-foreground" />
+                  <CardTitle>Login Required</CardTitle>
+                </div>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
