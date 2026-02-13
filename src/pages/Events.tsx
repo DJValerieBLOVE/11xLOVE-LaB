@@ -2,13 +2,20 @@ import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Calendar, Clock, Users } from 'lucide-react';
+import { Lock, Clock, Users, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import { events } from '@/data/events';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from 'react';
+import { Calendar } from '@/components/ui/calendar';
 
 const Events = () => {
   const { user } = useCurrentUser();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTab, setSelectedTab] = useState('upcoming');
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
   useSeoMeta({
     title: 'Events - 11x LOVE LaB',
@@ -37,74 +44,145 @@ const Events = () => {
     );
   }
 
+  const filteredEvents = events.filter(
+    (event) =>
+      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Layout>
       <div className="container px-4 py-8">
-        <h1 className="mb-2">Events</h1>
-        <p className="text-muted-foreground mb-8">
-          Live workshops, community calls, and special gatherings
-        </p>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="mb-2">Meetings & Gatherings</h1>
+            <p className="text-muted-foreground">
+              Connect with the community in real-time
+            </p>
+          </div>
+          <Button size="lg">
+            + Create Event
+          </Button>
+        </div>
 
-        {/* Events Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {events.map((event) => (
-            <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer">
-              {/* Colored Header */}
-              <div className={`h-24 bg-gradient-to-br ${event.color} flex items-center justify-center px-6`}>
-                <h3 className="text-white text-xl font-bold text-center">
-                  {event.title}
-                </h3>
-              </div>
+        {/* Tabs */}
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
+          <TabsList className="bg-transparent border-b rounded-none w-full justify-start p-0 h-auto">
+            <TabsTrigger 
+              value="upcoming" 
+              className="rounded-full data-[state=active]:bg-[#6600ff] data-[state=active]:text-white"
+            >
+              Upcoming
+            </TabsTrigger>
+            <TabsTrigger value="nearby" className="rounded-full">
+              Nearby
+            </TabsTrigger>
+            <TabsTrigger value="past" className="rounded-full">
+              Past
+            </TabsTrigger>
+            <TabsTrigger value="yours" className="rounded-full">
+              Yours
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-              <CardHeader className="pb-3">
-                {/* Event Type Badge */}
-                <Badge variant="secondary" className="w-fit mb-2">
-                  {event.type}
-                </Badge>
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Events List */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Search */}
+            <Input
+              type="search"
+              placeholder="Search events..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-12"
+            />
 
-                <CardDescription className="text-base">
-                  {event.description}
-                </CardDescription>
+            {/* Event Cards */}
+            <div className="space-y-4">
+              {filteredEvents.map((event) => (
+                <Card key={event.id} className="hover:shadow-lg transition-all duration-200">
+                  <div className="flex gap-4 p-6">
+                    {/* Event Image/Color Block */}
+                    <div className={`w-32 h-32 rounded-lg bg-gradient-to-br ${event.color} flex-shrink-0 flex items-center justify-center`}>
+                      <span className="text-xs font-semibold text-white px-2 py-1 bg-black/20 rounded">
+                        TODAY
+                      </span>
+                    </div>
+
+                    {/* Event Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold mb-1">{event.title}</h3>
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
+                            <span>{event.time}</span>
+                            <span>•</span>
+                            <Badge variant="outline" className="text-xs">
+                              {event.type}
+                            </Badge>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-5 w-5 text-gray-400" />
+                        </Button>
+                      </div>
+
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {event.description}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Users className="h-4 w-4" />
+                          <span>+{event.attendees} going</span>
+                        </div>
+                        <Button size="lg">
+                          RSVP
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Sidebar - Calendar */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">February 2026</CardTitle>
               </CardHeader>
-
-              <CardContent className="space-y-4">
-                {/* Date & Time */}
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="font-medium">{event.date}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-400" />
-                    <span>{event.time}</span>
-                  </div>
-                </div>
-
-                {/* Duration and Attendees */}
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>{event.duration}</span>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>
-                      {event.attendees}
-                      {event.maxAttendees && ` / ${event.maxAttendees}`}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Host */}
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Hosted by </span>
-                  <span className="font-medium">{event.host}</span>
-                </div>
-
-                {/* Register Button */}
-                <Button className="w-full" size="lg">
-                  Register
+              <CardContent>
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  className="rounded-md"
+                />
+                <Button className="w-full mt-4">
+                  Today
                 </Button>
               </CardContent>
             </Card>
-          ))}
+
+            {/* Host an Event Card */}
+            <Card className="bg-purple-50">
+              <CardHeader>
+                <CardTitle>Host an Event?</CardTitle>
+                <CardDescription>
+                  Community members can host their own gatherings.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full" size="lg">
+                  Learn More
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </Layout>
