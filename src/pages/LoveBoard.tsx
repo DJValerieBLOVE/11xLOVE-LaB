@@ -147,4 +147,4 @@ const LoveBoard = () => {
   );
 };
 
-export default Tribe;
+export default LoveBoard;
