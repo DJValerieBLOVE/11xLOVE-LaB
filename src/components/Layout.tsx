@@ -56,7 +56,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 className={`block px-4 py-3 text-base font-medium transition-colors ${
                   isActive(item.href)
                     ? 'text-[#6600ff]'
-                    : 'text-gray-600 hover:text-[#6600ff]'
+                    : 'text-gray-400 hover:text-[#6600ff]'
                 }`}
               >
                 {item.name}
