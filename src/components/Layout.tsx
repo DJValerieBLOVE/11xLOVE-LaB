@@ -44,6 +44,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
     if (href === '/') {
       return location.pathname === '/';
     }
+    // Special case: /experiment/* should highlight "Experiments" nav
+    if (href === '/experiments' && location.pathname.startsWith('/experiment')) {
+      return true;
+    }
     return location.pathname.startsWith(href);
   };
 

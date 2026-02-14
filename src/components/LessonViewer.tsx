@@ -101,6 +101,11 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
     if (!passedQuizzes.includes(currentLesson.id)) {
       setPassedQuizzes([...passedQuizzes, currentLesson.id]);
     }
+    // Auto-complete lesson after passing quiz
+    if (!completedLessons.includes(currentLesson.id)) {
+      setCompletedLessons([...completedLessons, currentLesson.id]);
+      // TODO: Publish Nostr event (kind 30078)
+    }
   };
   
   const handleNextLesson = () => {
@@ -281,75 +286,44 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
             </CardContent>
           </Card>
 
-          {/* Quiz Section */}
-          {currentLesson.quiz && (
-            <>
-              {passedQuizzes.includes(currentLesson.id) ? (
-                /* Quiz Already Passed */
-                <Card className="border-2 border-green-200 bg-green-50/50">
-                  <CardContent className="p-6 text-center">
-                    <CheckCircle2 className="h-8 w-8 mx-auto text-green-600 mb-2" />
-                    <h3 className="font-semibold text-green-700">Quiz Passed!</h3>
-                    <p className="text-sm text-green-600 mt-1">
-                      You're ready to mark this lesson complete ✨
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                /* Quiz Not Taken Yet */
-                <Card className="border-2 border-purple-200 bg-purple-50/50">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Test Your Knowledge</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Complete this quiz to unlock lesson completion and reinforce your learning!
-                    </p>
-                    <div className="flex justify-center">
-                      <Button onClick={() => setQuizModalOpen(true)}>
-                        Take Quiz
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </>
+          {/* Quiz Section - Only show if not completed yet */}
+          {currentLesson.quiz && !isCompleted && (
+            <Card className="border-2 border-purple-200 bg-purple-50/50">
+              <CardHeader>
+                <CardTitle className="text-lg">Test Your Knowledge</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Complete this quiz to finish this lesson and move forward!
+                </p>
+                <div className="flex justify-center">
+                  <Button onClick={() => setQuizModalOpen(true)}>
+                    Take Quiz
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex flex-col items-center gap-3">
-            {!isCompleted ? (
-              <>
-                <Button 
-                  onClick={handleMarkComplete}
-                  disabled={!canMarkComplete}
-                  className="min-w-[200px]"
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Mark Complete
-                </Button>
-                {!canMarkComplete && (
-                  <p className="text-xs text-muted-foreground text-center">
-                    💡 Complete the quiz first to unlock
-                  </p>
-                )}
-              </>
-            ) : (
-              <div className="flex gap-3">
-                <Button variant="outline" disabled>
-                  <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
-                  <span>Completed</span>
-                  <Sparkles className="h-4 w-4 ml-1 text-green-500" />
-                </Button>
-                {hasNextLesson && (
-                  <Button onClick={handleNextLesson}>
-                    Next Lesson
-                    <ChevronRight className="h-4 w-4 ml-2" />
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
+          {/* Action Buttons - Only shows after quiz passed and lesson auto-completed */}
+          {isCompleted && hasNextLesson && (
+            <div className="flex justify-center">
+              <Button onClick={handleNextLesson}>
+                Next Lesson
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          )}
+          
+          {/* Experiment fully complete - no next lesson */}
+          {isCompleted && !hasNextLesson && (
+            <div className="text-center py-4">
+              <CheckCircle2 className="h-8 w-8 mx-auto text-green-500 mb-2" />
+              <p className="text-sm text-muted-foreground">
+                Last lesson complete! Check the celebration below. 🎉
+              </p>
+            </div>
+          )}
 
           {/* Share to Feed (ONLY after completing FULL experiment) */}
           {isExperimentComplete && (

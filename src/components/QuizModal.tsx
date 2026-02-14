@@ -230,9 +230,9 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
               {passed ? (
                 <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 space-y-3">
                   <Sparkles className="h-12 w-12 mx-auto text-green-600" />
-                  <h3 className="text-xl font-bold text-green-700">Awesome Work!</h3>
+                  <h3 className="text-xl font-bold text-green-700">Lesson Complete!</h3>
                   <p className="text-sm text-green-600">
-                    You've mastered this lesson. Ready to mark it complete!
+                    You mastered it! Ready for the next one?
                   </p>
                 </div>
               ) : (
@@ -254,7 +254,7 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
                   </Button>
                 )}
                 <Button onClick={onClose}>
-                  {passed ? 'Continue' : 'Review Lesson'}
+                  {passed ? 'Next Lesson' : 'Review Lesson'}
                 </Button>
               </div>
             </div>
