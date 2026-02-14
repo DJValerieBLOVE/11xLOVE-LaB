@@ -60,6 +60,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
   const totalLessons = allLessons.length;
   const completedCount = completedLessons.length;
   const progressPercentage = Math.round((completedCount / totalLessons) * 100);
+  const isExperimentComplete = completedCount === totalLessons;
   
   // Check if lesson is unlocked (sequential unlock)
   const isLessonUnlocked = (lessonId: string): boolean => {
@@ -94,8 +95,8 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
   
   return (
     <div className="flex min-h-[calc(100vh-4rem)]">
-      {/* LEFT COLUMN: Course Syllabus (20%) */}
-      <aside className="w-1/5 border-r bg-muted/30 hidden lg:flex flex-col">
+      {/* LEFT COLUMN: Course Syllabus (25%) */}
+      <aside className="w-1/4 border-r bg-muted/30 hidden lg:flex flex-col">
         <div className="p-4 border-b">
           <h2 className="font-bold text-lg mb-1">{experiment.title}</h2>
           <div className="flex items-center gap-2 mb-3">
@@ -151,8 +152,8 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
         </ScrollArea>
       </aside>
 
-      {/* MIDDLE COLUMN: Lesson Content (60%) */}
-      <main className="flex-1 lg:w-3/5 overflow-y-auto">
+      {/* MIDDLE COLUMN: Lesson Content (50%) */}
+      <main className="flex-1 lg:w-1/2 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-6 space-y-6">
           {/* Lesson Header */}
           <div>
@@ -219,22 +220,12 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
             </Card>
           )}
 
-          {/* Lesson Content */}
-          <Card>
-            <CardContent className="prose prose-lg max-w-none p-6">
-              <div 
-                className="whitespace-pre-wrap"
-                dangerouslySetInnerHTML={{ __html: currentLesson.content.replace(/\n/g, '<br />') }}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Downloadable Resources */}
+          {/* Downloadable Resources - MOVED HERE: Right after video, before content */}
           {currentLesson.resources && currentLesson.resources.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Download className="h-5 w-5" />
+            <Card className="bg-blue-50/50 border-blue-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Download className="h-4 w-4" />
                   Downloadable Resources
                 </CardTitle>
               </CardHeader>
@@ -244,10 +235,10 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                     key={resource.id}
                     href={resource.url}
                     download
-                    className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
+                    className="flex items-center justify-between p-3 rounded-lg border bg-white hover:bg-blue-50 transition-colors group"
                   >
                     <div>
-                      <p className="font-medium group-hover:text-primary transition-colors">
+                      <p className="font-medium group-hover:text-primary transition-colors text-sm">
                         {resource.title}
                       </p>
                       {resource.size && (
@@ -260,6 +251,16 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
               </CardContent>
             </Card>
           )}
+
+          {/* Lesson Content */}
+          <Card>
+            <CardContent className="prose prose-lg max-w-none p-6">
+              <div 
+                className="whitespace-pre-wrap"
+                dangerouslySetInnerHTML={{ __html: currentLesson.content.replace(/\n/g, '<br />') }}
+              />
+            </CardContent>
+          </Card>
 
           {/* Quiz Section */}
           {currentLesson.quiz && (
@@ -312,18 +313,27 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
             )}
           </div>
 
-          {/* Share to Feed (after completion) */}
-          {isCompleted && (
-            <Button variant="outline" className="w-full">
-              <Share2 className="h-4 w-4 mr-2" />
-              Share Completion to Public Feed
-            </Button>
+          {/* Share to Feed (ONLY after completing FULL experiment) */}
+          {isExperimentComplete && (
+            <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+              <CardContent className="p-6 text-center space-y-3">
+                <div className="text-4xl mb-2">🎉</div>
+                <h3 className="text-xl font-bold">Experiment Complete!</h3>
+                <p className="text-sm text-muted-foreground">
+                  You crushed it! Share your victory with the world.
+                </p>
+                <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share to Public Feed
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </div>
       </main>
 
-      {/* RIGHT COLUMN: Comments (20%) */}
-      <aside className="w-1/5 border-l bg-background hidden xl:flex flex-col">
+      {/* RIGHT COLUMN: Comments (25%) */}
+      <aside className="w-1/4 border-l bg-background hidden xl:flex flex-col">
         <div className="p-4 border-b">
           <h3 className="font-semibold flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
@@ -368,17 +378,21 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                   <p className="text-sm">
                     This morning ritual changed my life! Already feeling more energized. 🌅
                   </p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <button className="text-xs text-muted-foreground hover:text-red-500 flex items-center gap-1 transition-colors">
-                      <Heart className="h-3 w-3" />
-                      <span>12</span>
+                  <div className="flex items-center gap-4 mt-2">
+                    {/* Heart (Like) */}
+                    <button className="flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors group">
+                      <Heart className="h-4 w-4 group-hover:fill-red-500" />
+                      <span className="text-xs">12</span>
                     </button>
-                    <button className="text-xs text-muted-foreground hover:text-orange-500 flex items-center gap-1 transition-colors">
-                      <Zap className="h-3 w-3" />
-                      <span>Zap</span>
+                    
+                    {/* Zap (Send Sats) */}
+                    <button className="flex items-center gap-1 text-muted-foreground hover:text-orange-500 transition-colors">
+                      <Zap className="h-4 w-4" />
                     </button>
-                    <button className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                      Reply
+                    
+                    {/* Reply */}
+                    <button className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+                      <MessageSquare className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
