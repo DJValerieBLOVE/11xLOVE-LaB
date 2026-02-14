@@ -59,7 +59,7 @@ export function useOpenRouter(apiKey?: string) {
   // Chat completion function
   const sendChatMessage = useCallback(async (
     messages: ChatMessage[],
-    model: string = 'x-ai/grok-4.1-fast',
+    model: string = 'x-ai/grok-4.1-fast', // Default to Grok 4.1 Fast as requested
     options?: Partial<ChatCompletionRequest>
   ): Promise<ChatCompletionResponse> => {
     setIsLoading(true);
@@ -116,7 +116,7 @@ export function useOpenRouter(apiKey?: string) {
   // Streaming chat completion function
   const sendStreamingMessage = useCallback(async (
     messages: ChatMessage[],
-    model: string = 'x-ai/grok-4.1-fast',
+    model: string = 'x-ai/grok-4.1-fast', // Default to Grok 4.1 Fast as requested
     onChunk: (chunk: string) => void,
     options?: Partial<ChatCompletionRequest>
   ): Promise<void> => {

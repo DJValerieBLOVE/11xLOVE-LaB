@@ -65,19 +65,19 @@ const BigDreams = () => {
       return;
     }
 
-    setTestStatus('Testing...');
+    setTestStatus('Testing Railway relay connection...');
 
     try {
       const event = await publishEvent({
         kind: 1,
-        content: `Test event from 11x LOVE LaB - ${new Date().toISOString()}`,
-        tags: [['t', 'test'], ['client', '11xlove-lab']]
+        content: `🔒 PRIVATE TEST: 11x LOVE LaB on Railway relay - ${new Date().toISOString()}`,
+        tags: [['t', 'private-test'], ['client', '11xlove-lab'], ['private', 'true']]
       });
 
-      setTestStatus(`✅ Success! Event ID: ${event.id.slice(0, 8)}...`);
+      setTestStatus(`✅ Railway relay SUCCESS! Event ID: ${event.id.slice(0, 8)}... (Private post)`);
     } catch (error) {
-      console.error('Relay test failed:', error);
-      setTestStatus(`❌ Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Railway relay test failed:', error);
+      setTestStatus(`❌ Railway relay FAILED: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

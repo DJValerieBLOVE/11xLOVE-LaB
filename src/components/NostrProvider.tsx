@@ -1,9 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import { NostrEvent, NostrFilter, NPool, NRelay1, NMessage } from '@nostrify/nostrify';
 import { NostrContext } from '@nostrify/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppContext } from '@/hooks/useAppContext';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+
+// Import the UserContext from App.tsx
+const UserContext = React.createContext<any>(null);
 
 interface NostrProviderProps {
   children: React.ReactNode;
@@ -49,9 +51,9 @@ class AuthenticatedRelay extends NRelay1 {
 
       // Send AUTH response
       await this.send(['AUTH', authEvent]);
-      console.log('Sent AUTH response to relay:', this.url);
+      console.log('✅ Sent AUTH response to relay:', this.url);
     } catch (error) {
-      console.error('Failed to send AUTH response:', error);
+      console.error('❌ Failed to send AUTH response:', error);
     }
   }
 }
@@ -59,7 +61,7 @@ class AuthenticatedRelay extends NRelay1 {
 const NostrProvider: React.FC<NostrProviderProps> = (props) => {
   const { children } = props;
   const { config } = useAppContext();
-  const { user } = useCurrentUser();
+  const user = useContext(UserContext);
 
   const queryClient = useQueryClient();
 
@@ -75,10 +77,9 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
     queryClient.invalidateQueries({ queryKey: ['nostr'] });
   }, [config.relayMetadata, queryClient]);
 
-  // Update user in all relay instances when user changes
+  // Update user in relay instances when user changes
   useEffect(() => {
     if (pool.current) {
-      // Update user in existing relays
       pool.current.relays.forEach(relay => {
         if (relay instanceof AuthenticatedRelay) {
           relay.setUser(user);

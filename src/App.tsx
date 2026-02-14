@@ -18,6 +18,7 @@ import AppRouter from './AppRouter';
 // Add environment variables (in production these would be in env files)
 const RELAY_URL = 'wss://nostr-rs-relay-production-1569.up.railway.app';
 const ADMIN_PUBKEY = '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767';
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 
 const head = createHead({
   plugins: [
@@ -36,24 +37,40 @@ const queryClient = new QueryClient({
 });
 
 const defaultConfig: AppConfig = {
-  theme: "light",
+  theme: "dark",
   relayMetadata: {
     relays: [
       { url: 'wss://nostr-rs-relay-production-1569.up.railway.app', read: true, write: true },
-      { url: 'wss://relay.ditto.pub', read: true, write: true },
-      { url: 'wss://relay.primal.net', read: true, write: true },
-      { url: 'wss://relay.damus.io', read: true, write: true },
     ],
     updatedAt: 0,
   },
 };
+
+// User context for NIP-42 auth
+const UserContext = React.createContext<any>(null);
+
+// Component to provide user to context
+function UserContextProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <NostrLoginProvider storageKey='nostr:login'>
+      <UserContextProviderInner>
+        {children}
+      </UserContextProviderInner>
+    </NostrLoginProvider>
+  );
+}
+
+function UserContextProviderInner({ children }: { children: React.ReactNode }) {
+  const user = useCurrentUser(); // This will work inside NostrLoginProvider
+  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
+}
 
 export function App() {
   return (
     <UnheadProvider head={head}>
       <AppProvider storageKey="nostr:app-config" defaultConfig={defaultConfig}>
         <QueryClientProvider client={queryClient}>
-          <NostrLoginProvider storageKey='nostr:login'>
+          <UserContextProvider>
             <NostrProvider>
               <NostrSync />
               <NWCProvider>
@@ -65,7 +82,7 @@ export function App() {
                 </TooltipProvider>
               </NWCProvider>
             </NostrProvider>
-          </NostrLoginProvider>
+          </UserContextProvider>
         </QueryClientProvider>
       </AppProvider>
     </UnheadProvider>
