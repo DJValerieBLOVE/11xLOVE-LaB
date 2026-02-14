@@ -119,21 +119,12 @@ const Experiments = () => {
                     </div>
                   </div>
 
-                  {/* Rating and Instructor - Show BOTH styles for comparison */}
+                  {/* Rating and Instructor */}
                   <div className="flex items-center justify-between text-sm">
-                    {/* Option 1: Pink filled heart (first card shows this) */}
-                    {experiment.id === 'morning-miracle-3day' ? (
-                      <div className="flex items-center gap-1">
-                        <Heart className="h-4 w-4 fill-[#eb00a8] text-[#eb00a8]" />
-                        <span className="font-medium">{experiment.rating}</span>
-                      </div>
-                    ) : (
-                      /* Option 2: Gray outline heart (other cards show this) */
-                      <div className="flex items-center gap-1">
-                        <Heart className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{experiment.rating}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1">
+                      <Heart className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-semibold text-foreground">{experiment.rating}</span>
+                    </div>
                     <span className="text-muted-foreground text-xs truncate">by {experiment.instructor}</span>
                   </div>
 
