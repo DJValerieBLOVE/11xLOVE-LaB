@@ -39,7 +39,7 @@ const queryClient = new QueryClient({
 });
 
 const defaultConfig: AppConfig = {
-  theme: "dark",
+  theme: "light",
   relayMetadata: {
     relays: [
       { url: 'wss://nostr-rs-relay-production-1569.up.railway.app', read: true, write: true },
