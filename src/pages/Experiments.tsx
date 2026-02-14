@@ -66,10 +66,9 @@ const Experiments = () => {
         <div className="mb-8 max-w-2xl">
           <Input
             type="search"
-            placeholder="Search courses..."
+            placeholder="Search experiments..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-12"
           />
         </div>
 

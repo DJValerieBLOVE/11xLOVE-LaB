@@ -96,7 +96,6 @@ const Events = () => {
               placeholder="Search events..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-12"
             />
 
             {/* Event Cards */}
@@ -162,7 +161,7 @@ const Events = () => {
                   onSelect={setDate}
                   className="rounded-md"
                 />
-                <Button className="w-full mt-4">
+                <Button className="w-full mt-4" size="sm">
                   Today
                 </Button>
               </CardContent>
