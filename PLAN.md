@@ -472,45 +472,86 @@ git push origin main
 
 **Chunk 1: Basic App Shell + Nostr Login** — ✅ COMPLETE
 - ✅ React + Tailwind app shell
-- ✅ Layout component with desktop sidebar + mobile bottom nav
+- ✅ Layout component with desktop sidebar (reduced to 208px for more content space)
+- ✅ Mobile bottom nav
 - ✅ Navigation: Big Dreams (default home), Experiments, Events, Tribe, Love Board, Vault, Feed, Profile
 - ✅ Nostr login (NIP-07 + NIP-46) working
 - ✅ Display user profile after login
 - ✅ Logout button
 - ✅ Profile dropdown menu
 - ✅ LoginArea component for auth
+- ✅ EQ Visualizer in header (compact mode)
+- ✅ All buttons styled as pills (rounded-full) with consistent sizing
 
-### 🚧 Partially Complete (UI Scaffolding Only)
+**Chunk 3: Experiment Catalog + Lesson Viewer** — ✅ COMPLETE (LocalStorage Only)
+- ✅ Reusable experiment template system (TypeScript interfaces)
+- ✅ Test experiment: "Morning Miracle - 3 Day Challenge" (3 lessons)
+- ✅ **3-Column LMS Layout (25% | 50% | 25%)**:
+  - Left: Course syllabus with progress tracking, module/lesson navigation
+  - Middle: Video player, downloadable resources, lesson content, quiz section, action buttons
+  - Right: Comment section with Heart/Zap/Reply interactions
+- ✅ Sequential lesson unlock logic
+- ✅ Progress percentage tracking
+- ✅ YouTube/Vimeo video embed support
+- ✅ Audio player toggle (optional)
+- ✅ Downloadable resources section (PDFs, worksheets)
+- ✅ Quiz section with sats reward display
+- ✅ "Mark Complete" → saves to localStorage (relay integration pending)
+- ✅ "Next Lesson" button after completion
+- ✅ Share to Public Feed (only on FULL experiment completion)
+- ✅ Comment structure with Heart (like), Zap (sats), Reply buttons
+- ✅ Lesson status icons: ✅ Completed (green), 🔒 Locked (gray), ▶️ Available
+- ✅ Routes: `/experiment/:experimentId/:lessonId?`
 
-**Pages Built But Not Connected:**
-- 🚧 **Big Dreams** — UI exists, no Nostr data persistence
-- 🚧 **Experiments** — Card grid exists, static data, no lesson viewer
+**Design System** — ✅ COMPLETE
+- ✅ Official 11 Dimensions color system integrated
+- ✅ TypeScript dimension constants (`/src/lib/dimensions.ts`)
+- ✅ CSS custom properties for all 11 dimension colors
+- ✅ DimensionBadge component
+- ✅ EQ Visualizer component (full + compact versions)
+- ✅ Consistent button styling (pill-shaped, proper heights)
+- ✅ All icons are Lucide line icons (no emojis in UI)
+
+### 🚧 Partially Complete (UI Ready, No Data Persistence)
+
+**Pages Built But Not Connected to Relay:**
+- 🚧 **Big Dreams** — UI exists with EQ Visualizer, no Nostr data persistence
+- 🚧 **Experiments** — Shows test experiment, needs relay connection for progress
 - 🚧 **Events** — Calendar UI exists, static data
 - 🚧 **Tribe** — Tabs UI exists, placeholder content (waiting for NIP-29 in Chunk 5)
 - 🚧 **Love Board** — Tabs UI exists, empty state
 - 🚧 **Vault** — Placeholder page
-- 🚧 **Feed** — Post feed UI exists, no Nostr query
+- 🚧 **Feed** — Post feed UI exists, needs Nostr query
 
-**Static Data Files:**
-- ✅ `/src/data/experiments.ts` — Sample experiment data structure
-- ✅ `/src/data/events.ts` — Sample event data
-- ❌ No real curriculum content loaded yet
+**Data Files:**
+- ✅ `/src/data/test-experiment.ts` — Morning Miracle test experiment
+- ✅ `/src/types/experiment.ts` — Complete TypeScript interfaces
+- ✅ `/src/lib/dimensions.ts` — 11 Dimensions with colors and metadata
+- ❌ Full 11x LOVE Code curriculum (18 lessons) not loaded yet
 
-### ❌ Not Started
+### ❌ Not Started / Needs Nostr Integration
 
-**Chunk 2: Connect to Private Relay**
+**Chunk 2: Connect to Private Relay** — 🔜 NEXT PRIORITY
 - ❌ WebSocket connection to Railway relay
 - ❌ NIP-42 authentication handshake
-- ❌ Publish test event and read back
+- ❌ Publish completion events (kind:30078) instead of localStorage
+- ❌ Query user progress from relay
+- ❌ Sync progress across devices
 - ❌ IndexedDB caching
 
-**Chunk 3: Experiment Catalog + Lesson Viewer**
-- ❌ Full 11x LOVE Code curriculum loaded (Intro + 5 Modules + Bonus)
-- ❌ Lesson viewer with Markdown rendering
-- ❌ YouTube/audio embed support
-- ❌ "Mark Complete" → publishes kind:30078
-- ❌ Sequential unlock logic
-- ❌ Progress bar per experiment
+**Curriculum Content:**
+- ❌ Full 11x LOVE Code curriculum (18 lessons: Intro + 5 Modules + Bonus)
+- ✅ Template system ready — just needs lesson content loaded
+- ❌ Real worksheet PDFs uploaded and linked
+
+**Interactive Features:**
+- ❌ Quiz modal with multiple-choice + fill-in-blank questions
+- ❌ Quiz scoring and pass/fail logic
+- ❌ Sats rewards for quiz completion
+- ❌ Comment posting to Nostr (NIP-10 threaded replies)
+- ❌ Heart (reaction) events publishing (kind 7)
+- ❌ Zap integration for comments (NIP-57)
+- ❌ GIF support in comments
 
 **Chunk 4: Daily Experiment Tracker + Streaks**
 - ❌ Daily 5 V's practice form
@@ -548,34 +589,38 @@ git push origin main
 - ❌ Profile settings
 - ❌ Edit profile form
 
-**Design Improvements Needed:**
-- ❌ Implement correct 11 Dimension colors throughout UI
-- ❌ Add celebration animations (sparkles, confetti)
-- ❌ Build EQ Visualizer component (graphic equalizer for 11 Dimensions)
-- ❌ Improve header designs to be more immersive
-- ❌ Add micro-interactions and hover states
-- ❌ Replace placeholder content with brand-specific copy
+**Design Polish Needed:**
+- 🔜 Redesign EQ Visualizer to be more exciting/dynamic
+- 🔜 Add celebration animations for milestone achievements
+- 🔜 Improve page headers to be more immersive
+- 🔜 Enhanced micro-interactions and transitions
+- 🔜 Replace remaining placeholder content with brand copy
 
 ### 🎯 Immediate Next Steps
 
-**Priority 1: Connect to Relay (Chunk 2)**
-1. Configure relay connection in NostrProvider
-2. Implement NIP-42 authentication
-3. Test publish/read cycle with kind:30078 events
-4. Verify data persists across devices
+**Priority 1: Interactive Features**
+1. ✅ Build quiz modal with multiple-choice + fill-in-blank
+2. ✅ Connect comment system to Nostr (NIP-10 threading)
+3. ✅ Add Heart/Zap functionality to comments
 
-**Priority 2: Load Real Curriculum (Chunk 3)**
-1. Create experiment data files from full curriculum
-2. Build lesson viewer component
-3. Implement sequential unlock logic
-4. Add "Mark Complete" functionality
-5. Publish completion events to relay
+**Priority 2: Load Full Curriculum**
+1. ✅ Create full 11x LOVE Code data (18 lessons)
+2. ✅ All module content, videos, worksheets
+3. ✅ Quiz questions for each module
 
-**Priority 3: Daily Practice (Chunk 4)**
-1. Build 5 V's form component
-2. Implement streak tracking with kind:30078
-3. Add celebration animations
-4. Build 30-day history view
+**Priority 3: Connect to Railway Relay (Critical for Beta)**
+1. ❌ Configure relay connection to `wss://nostr-rs-relay-production-1569.up.railway.app`
+2. ❌ Implement NIP-42 authentication handshake
+3. ❌ Publish completion events (kind:30078) instead of localStorage
+4. ❌ Query user progress from relay
+5. ❌ Sync progress across devices
+6. ❌ Real sats balance tracking
+
+**Priority 4: Daily 5 V's Practice (Chunk 4)**
+1. ❌ Build 5 V's form component in Big Dreams
+2. ❌ Implement streak tracking with kind:30078
+3. ❌ Add celebration animations
+4. ❌ Build 30-day history view
 
 ---
 
