@@ -26,6 +26,7 @@ import {
   MessageSquare,
   Share2,
   Heart,
+  Zap,
   ChevronRight,
 } from 'lucide-react';
 import type { Experiment, Lesson, Module } from '@/types/experiment';
@@ -92,7 +93,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
   const hasNextLesson = currentIndex < allLessons.length - 1;
   
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="flex min-h-[calc(100vh-4rem)]">
       {/* LEFT COLUMN: Course Syllabus (20%) */}
       <aside className="w-1/5 border-r bg-muted/30 hidden lg:flex flex-col">
         <div className="p-4 border-b">
@@ -368,11 +369,15 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                     This morning ritual changed my life! Already feeling more energized. 🌅
                   </p>
                   <div className="flex items-center gap-3 mt-2">
-                    <button className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1">
+                    <button className="text-xs text-muted-foreground hover:text-red-500 flex items-center gap-1 transition-colors">
                       <Heart className="h-3 w-3" />
-                      12
+                      <span>12</span>
                     </button>
-                    <button className="text-xs text-muted-foreground hover:text-primary">
+                    <button className="text-xs text-muted-foreground hover:text-orange-500 flex items-center gap-1 transition-colors">
+                      <Zap className="h-3 w-3" />
+                      <span>Zap</span>
+                    </button>
+                    <button className="text-xs text-muted-foreground hover:text-primary transition-colors">
                       Reply
                     </button>
                   </div>

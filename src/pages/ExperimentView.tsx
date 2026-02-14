@@ -8,6 +8,7 @@
 import { useParams, Navigate } from 'react-router-dom';
 import { useSeoMeta } from '@unhead/react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { Layout } from '@/components/Layout';
 import { LessonViewer } from '@/components/LessonViewer';
 import { morningMiracleExperiment } from '@/data/test-experiment';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -37,21 +38,29 @@ export default function ExperimentView() {
   // Require login
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md">
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <Lock className="h-5 w-5 text-muted-foreground" />
-              <CardTitle>Login Required</CardTitle>
-            </div>
-            <CardDescription>
-              Please log in to access experiments and lessons.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+      <Layout>
+        <div className="container px-4 py-8">
+          <div className="max-w-md mx-auto">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <Lock className="h-5 w-5 text-muted-foreground" />
+                  <CardTitle>Login Required</CardTitle>
+                </div>
+                <CardDescription>
+                  Please log in to access experiments and lessons.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+      </Layout>
     );
   }
   
-  return <LessonViewer experiment={experiment} initialLessonId={lessonId} />;
+  return (
+    <Layout>
+      <LessonViewer experiment={experiment} initialLessonId={lessonId} />
+    </Layout>
+  );
 }
