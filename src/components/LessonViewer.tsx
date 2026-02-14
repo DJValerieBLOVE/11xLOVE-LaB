@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +19,9 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { QuizModal } from '@/components/QuizModal';
+import { JournalPromptModal } from '@/components/JournalPromptModal';
+import { CelebrationAnimation } from '@/components/CelebrationAnimation';
+import { getRandomCelebration, playCelebrationSound } from '@/lib/celebrations';
 import { 
   CheckCircle2, 
   Lock, 
@@ -31,6 +35,7 @@ import {
   ChevronRight,
   Sparkles,
   PartyPopper,
+  BookOpen,
 } from 'lucide-react';
 import type { Experiment, Lesson, Module } from '@/types/experiment';
 import { getDimensionColor } from '@/lib/dimensions';
@@ -60,6 +65,9 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
   const [showAudio, setShowAudio] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [quizModalOpen, setQuizModalOpen] = useState(false);
+  const [journalModalOpen, setJournalModalOpen] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [currentCelebration, setCurrentCelebration] = useState(getRandomCelebration());
   
   // Load quiz attempts from localStorage
   useEffect(() => {
@@ -101,10 +109,42 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
     if (!passedQuizzes.includes(currentLesson.id)) {
       setPassedQuizzes([...passedQuizzes, currentLesson.id]);
     }
-    // Auto-complete lesson after passing quiz
+    // Close quiz modal, open journal prompt
+    setQuizModalOpen(false);
+    setJournalModalOpen(true);
+  };
+
+  const handleJournalSave = () => {
+    // Auto-complete lesson after journal entry
     if (!completedLessons.includes(currentLesson.id)) {
       setCompletedLessons([...completedLessons, currentLesson.id]);
       // TODO: Publish Nostr event (kind 30078)
+    }
+    
+    // Close journal, show celebration
+    setJournalModalOpen(false);
+    
+    // Get random celebration
+    const celebration = getRandomCelebration();
+    setCurrentCelebration(celebration);
+    
+    // Play sound
+    playCelebrationSound(celebration.sound);
+    
+    // Show animation
+    setShowCelebration(true);
+  };
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    
+    // Auto-advance to next lesson
+    const currentIndex = allLessons.findIndex(l => l.id === currentLesson.id);
+    if (currentIndex < allLessons.length - 1) {
+      const nextLesson = allLessons[currentIndex + 1];
+      if (isLessonUnlocked(nextLesson.id)) {
+        setCurrentLesson(nextLesson);
+      }
     }
   };
   
@@ -132,9 +172,15 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
             <Progress value={progressPercentage} className="flex-1" />
             <span className="text-sm font-medium">{progressPercentage}%</span>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground mb-3">
             {completedCount} of {totalLessons} lessons complete
           </p>
+          <Link to={`/experiment/${experiment.id}/journal`}>
+            <Button variant="outline" size="sm" className="w-full">
+              <BookOpen className="h-4 w-4 mr-2" />
+              View My Journal
+            </Button>
+          </Link>
         </div>
         
         <ScrollArea className="flex-1">
@@ -430,6 +476,24 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
           open={quizModalOpen}
           onClose={() => setQuizModalOpen(false)}
           onPass={handleQuizPass}
+        />
+      )}
+
+      {/* Journal Prompt Modal */}
+      <JournalPromptModal
+        experiment={experiment}
+        lesson={currentLesson}
+        open={journalModalOpen}
+        onClose={() => setJournalModalOpen(false)}
+        onSave={handleJournalSave}
+      />
+
+      {/* Celebration Animation */}
+      {showCelebration && (
+        <CelebrationAnimation
+          animation={currentCelebration.animation}
+          onComplete={handleCelebrationComplete}
+          duration={2500}
         />
       )}
     </div>

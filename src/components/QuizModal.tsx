@@ -4,6 +4,8 @@
  * Interactive quiz with multiple-choice and fill-in-blank questions
  * Required to unlock "Mark Complete" button
  * One attempt per quiz (stored in localStorage for MVP, Nostr later)
+ * 
+ * NEW FLOW: Quiz → Results → (triggers journal prompt in parent)
  */
 
 import { useState } from 'react';
@@ -27,7 +29,7 @@ interface QuizModalProps {
   lessonId: string;
   open: boolean;
   onClose: () => void;
-  onPass: () => void;
+  onPass: () => void; // Called when quiz is passed (triggers journal prompt)
 }
 
 export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalProps) {
@@ -254,7 +256,7 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
                   </Button>
                 )}
                 <Button onClick={onClose}>
-                  {passed ? 'Next Lesson' : 'Review Lesson'}
+                  {passed ? 'Continue' : 'Review Lesson'}
                 </Button>
               </div>
             </div>

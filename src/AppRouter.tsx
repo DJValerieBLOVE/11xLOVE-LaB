@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import BigDreams from "./pages/BigDreams";
 import Experiments from "./pages/Experiments";
 import ExperimentView from "./pages/ExperimentView";
+import JournalView from "./pages/JournalView";
 import Events from "./pages/Events";
 import Tribe from "./pages/Tribe";
 import LoveBoard from "./pages/LoveBoard";
@@ -25,6 +26,7 @@ export function AppRouter() {
         <Route path="/experiments" element={<Experiments />} />
         <Route path="/experiment/:experimentId" element={<ExperimentView />} />
         <Route path="/experiment/:experimentId/:lessonId" element={<ExperimentView />} />
+        <Route path="/experiment/:experimentId/journal" element={<JournalView />} />
         <Route path="/events" element={<Events />} />
         <Route path="/tribe" element={<Tribe />} />
         <Route path="/love-board" element={<LoveBoard />} />
