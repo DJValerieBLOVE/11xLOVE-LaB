@@ -61,17 +61,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {/* Navigation Links */}
         <nav className="flex-1 px-4 py-6 space-y-1">
           {navigation.map((item) => {
+            const Icon = item.icon;
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`block px-4 py-3 text-base font-medium transition-colors ${
+                className={`flex items-center gap-3 px-4 py-3 text-base font-medium transition-colors rounded-lg ${
                   isActive(item.href)
-                    ? 'text-[#6600ff]'
-                    : 'text-gray-400 hover:text-[#6600ff]'
+                    ? 'text-[#6600ff] bg-purple-50'
+                    : 'text-gray-600 hover:text-[#6600ff] hover:bg-purple-50/50'
                 }`}
               >
-                {item.name}
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                <span>{item.name}</span>
               </Link>
             );
           })}
