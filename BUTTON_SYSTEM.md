@@ -18,14 +18,14 @@
 
 ## 📏 Button Sizes
 
-### **Default** (Most Common)
+### **Default** (Most Common - 95% of buttons)
 ```tsx
 <Button>Click Me</Button>
 // or explicitly:
 <Button size="default">Click Me</Button>
 ```
-- **Height:** 40px (`h-10`)
-- **Padding:** Left/Right 24px (`px-6`)
+- **Height:** 36px (`h-9`) ← Perfect height!
+- **Padding:** Left/Right 20px (`px-5`)
 - **Text:** Small (`text-sm`)
 - **Use for:** Primary actions, forms, cards, most buttons
 
@@ -38,14 +38,14 @@
 - **Text:** Small (`text-sm`)
 - **Use for:** Secondary actions, inline buttons, sidebars, compact UIs
 
-### **Large** (Hero CTAs)
+### **Large** (More Padding, Same Height)
 ```tsx
-<Button size="lg">Start Your Journey</Button>
+<Button size="lg">Important Action</Button>
 ```
-- **Height:** 44px (`h-11`)
-- **Padding:** Left/Right 32px (`px-8`)
-- **Text:** Base (`text-base`)
-- **Use for:** Primary CTAs, "Start Practice", "View Experiment", hero sections
+- **Height:** 36px (`h-9`) ← Same as default!
+- **Padding:** Left/Right 24px (`px-6`) ← Just more horizontal space
+- **Text:** Small (`text-sm`)
+- **Use for:** When you need extra breathing room around text
 
 ### **Icon Only**
 ```tsx
@@ -188,12 +188,12 @@ Before committing any page with buttons, verify:
 
 | Context | Size | Example |
 |---------|------|---------|
-| Primary CTA | `lg` | "Start Your Journey", "View Experiment" |
-| Form submit | `default` | "Save Vision", "Post Comment" |
-| Cancel/secondary | `sm` | "Cancel", "Skip" |
-| Card actions | `default` or `lg` | "Learn More", "View Details" |
-| Inline actions | `sm` | "+ Find a Buddy", "Reply" |
-| Icon only | `icon` | Mail icon, close button |
+| **Most buttons** | `default` | "Post", "Save Vision", "View Experiment", "Take Quiz" |
+| **More padding needed** | `lg` | "Mark Complete (+10 sats)", "Share to Public Feed" |
+| **Compact/secondary** | `sm` | "Cancel", "Skip", "+ Find a Buddy" |
+| **Icon only** | `icon` | Mail icon, notifications, close button |
+
+**Key Insight:** default and lg are the SAME HEIGHT (36px). lg just has more horizontal padding for longer text.
 
 ---
 
