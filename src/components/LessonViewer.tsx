@@ -280,7 +280,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                   Complete this quiz to earn {currentLesson.quiz.satsReward} sats and reinforce your learning!
                 </p>
                 <div className="flex justify-center">
-                  <Button size="lg">Take Quiz</Button>
+                  <Button>Take Quiz</Button>
                 </div>
               </CardContent>
             </Card>
@@ -289,25 +289,19 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
           {/* Action Buttons */}
           <div className="flex justify-center gap-3">
             {!isCompleted ? (
-              <Button 
-                size="lg"
-                onClick={handleMarkComplete}
-              >
+              <Button onClick={handleMarkComplete}>
                 <CheckCircle2 className="h-4 w-4 mr-2" />
                 Mark Complete {currentLesson.satsReward && `(+${currentLesson.satsReward} sats)`}
               </Button>
             ) : (
               <>
-                <Button size="lg" variant="outline" disabled>
+                <Button variant="outline" disabled>
                   <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
                   <span>Completed</span>
                   <Sparkles className="h-4 w-4 ml-1 text-green-500" />
                 </Button>
                 {hasNextLesson && (
-                  <Button 
-                    size="lg"
-                    onClick={handleNextLesson}
-                  >
+                  <Button onClick={handleNextLesson}>
                     Next Lesson
                     <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -326,7 +320,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                   You crushed it! Share your victory with the world.
                 </p>
                 <div className="flex justify-center">
-                  <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                  <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
                     <Share2 className="h-4 w-4 mr-2" />
                     Share to Public Feed
                   </Button>

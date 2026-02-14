@@ -78,31 +78,35 @@ const Experiments = () => {
             const totalLessons = experiment.modules.reduce((acc, mod) => acc + mod.lessons.length, 0);
             
             return (
-              <Card key={experiment.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer group">
+              <Card key={experiment.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer group flex flex-col h-full">
                 {/* Colored Header */}
-                <div className={`h-32 bg-gradient-to-br ${experiment.color} flex items-center justify-center`}>
-                  <h3 className="text-white text-2xl font-bold text-center px-4">
+                <div className={`h-32 bg-gradient-to-br ${experiment.color} flex items-center justify-center flex-shrink-0`}>
+                  <h3 className="text-white text-2xl font-bold text-center px-4 line-clamp-2">
                     {experiment.title}
                   </h3>
                 </div>
 
-                <CardHeader className="pb-3">
-                  {/* Level Badge */}
+                <CardHeader className="pb-3 flex-shrink-0">
+                  {/* Level Badges - Subtle gray style */}
                   <div className="flex gap-2 mb-3">
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-100">
+                    <Badge variant="outline" className="text-muted-foreground border-muted-foreground/30">
                       {experiment.level}
                     </Badge>
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-100">
+                    <Badge variant="outline" className="text-muted-foreground border-muted-foreground/30">
                       Value for Value
                     </Badge>
                   </div>
 
-                  <CardDescription className="text-base">
+                  {/* Description - Fixed 2 lines max */}
+                  <CardDescription className="text-sm line-clamp-2 min-h-[40px]">
                     {experiment.description}
                   </CardDescription>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
+                {/* Spacer to push button to bottom */}
+                <div className="flex-1" />
+
+                <CardContent className="space-y-4 pb-6 flex-shrink-0">
                   {/* Stats */}
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
@@ -121,12 +125,12 @@ const Experiments = () => {
                       <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                       <span className="font-medium">{experiment.rating}</span>
                     </div>
-                    <span className="text-muted-foreground">by {experiment.instructor}</span>
+                    <span className="text-muted-foreground text-xs truncate">by {experiment.instructor}</span>
                   </div>
 
-                  {/* View Course Button */}
+                  {/* View Experiment Button - Proper height */}
                   <Link to={`/experiment/${experiment.id}`}>
-                    <Button className="w-full" size="lg">
+                    <Button className="w-full">
                       View Experiment
                     </Button>
                   </Link>

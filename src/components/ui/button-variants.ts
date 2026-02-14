@@ -33,9 +33,9 @@ export const buttonVariants = cva(
         link: "text-[#6600ff] underline-offset-4 hover:underline rounded-none px-0",
       },
       size: {
-        default: "h-10 px-6 text-sm",
+        default: "h-9 px-5 text-sm",
         sm: "h-8 px-4 text-sm",
-        lg: "h-11 px-8 text-base",
+        lg: "h-9 px-6 text-sm",
         icon: "h-9 w-9 p-0",
       },
     },
