@@ -122,7 +122,9 @@ export function useSaveJournalEntry(experiment: Experiment) {
       lessonTitle: string;
       content: string;
     }) => {
-      if (!user?.signer) throw new Error('User must be logged in');
+      if (!user?.signer) {
+        throw new Error('You must be logged in to save journal entries');
+      }
 
       // Get existing journal
       const existingEvents = await nostr.query([
@@ -149,28 +151,40 @@ export function useSaveJournalEntry(experiment: Experiment) {
       const updatedContent = existingContent + newEntry;
 
       // Publish updated journal (kind 30023)
+      const tags = [
+        ['d', `journal-${experiment.id}`], // Addressable identifier
+        ['title', `${experiment.title} - My Journey`],
+        ['t', 'journal'],
+        ['t', 'experiment'],
+        ['t', `experiment-${experiment.id}`],
+      ];
+
+      // Add client tag if on HTTPS
+      if (location.protocol === 'https:') {
+        tags.push(['client', location.hostname]);
+      }
+
       const event = await user.signer.signEvent({
         kind: 30023,
         content: updatedContent,
-        tags: [
-          ['d', `journal-${experiment.id}`], // Addressable identifier
-          ['title', `${experiment.title} - My Journey`],
-          ['t', 'journal'],
-          ['t', 'experiment'],
-          ['t', `experiment-${experiment.id}`],
-        ],
+        tags,
         created_at: Math.floor(Date.now() / 1000),
       });
 
-      await nostr.event(event);
+      // Publish with timeout (5 seconds)
+      await nostr.event(event, { signal: AbortSignal.timeout(5000) });
 
       return event;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Journal entry saved successfully:', data.id);
       // Invalidate journal query to refetch
       queryClient.invalidateQueries({
         queryKey: ['experiment-journal', experiment.id, user?.pubkey],
       });
+    },
+    onError: (error) => {
+      console.error('Failed to save journal entry:', error);
     },
   });
 }

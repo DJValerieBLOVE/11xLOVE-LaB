@@ -20,8 +20,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, BookOpen, Sparkles, Loader2 } from 'lucide-react';
+import { ChevronDown, BookOpen, Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import { useExperimentJournal, useSaveJournalEntry } from '@/hooks/useExperimentJournal';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useToast } from '@/hooks/useToast';
 import type { Experiment, Lesson } from '@/types/experiment';
 
 interface JournalPromptModalProps {
@@ -42,12 +44,14 @@ export function JournalPromptModal({
   const [newEntry, setNewEntry] = useState('');
   const [expandedEntries, setExpandedEntries] = useState<Set<number>>(new Set());
 
+  const { user } = useCurrentUser();
   const { data: journal, isLoading } = useExperimentJournal(experiment);
   const { mutate: saveEntry, isPending } = useSaveJournalEntry(experiment);
+  const { toast } = useToast();
 
   const handleSave = () => {
     if (!newEntry.trim()) {
-      // User skipped journal entry
+      // User skipped journal entry - just continue
       onSave();
       return;
     }
@@ -60,8 +64,20 @@ export function JournalPromptModal({
       },
       {
         onSuccess: () => {
+          toast({
+            title: '✨ Journal Entry Saved!',
+            description: 'Your insights have been added to your knowledge vault.',
+          });
           setNewEntry('');
           onSave();
+        },
+        onError: (error) => {
+          console.error('Journal save error:', error);
+          toast({
+            title: '❌ Save Failed',
+            description: 'Could not save your journal entry. Please try again.',
+            variant: 'destructive',
+          });
         },
       }
     );
@@ -99,6 +115,19 @@ export function JournalPromptModal({
               <div className="text-center py-8 text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
                 <p className="text-sm">Loading your journal...</p>
+              </div>
+            )}
+
+            {/* Not Logged In Warning */}
+            {!user && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-orange-900">Login Required</p>
+                  <p className="text-sm text-orange-700 mt-1">
+                    You must be logged in to save journal entries to Nostr.
+                  </p>
+                </div>
               </div>
             )}
 
@@ -167,14 +196,14 @@ export function JournalPromptModal({
         <DialogFooter className="flex-row gap-2 sm:gap-0">
           <Button
             variant="ghost"
-            onClick={handleSave}
+            onClick={() => onSave()}
             disabled={isPending}
           >
             Skip for Now
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isPending}
+            disabled={isPending || (!user && newEntry.trim().length > 0)}
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
           >
             {isPending ? (
