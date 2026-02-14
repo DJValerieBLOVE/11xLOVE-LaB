@@ -28,6 +28,8 @@ import {
   Heart,
   Zap,
   ChevronRight,
+  Sparkles,
+  PartyPopper,
 } from 'lucide-react';
 import type { Experiment, Lesson, Module } from '@/types/experiment';
 import { getDimensionColor } from '@/lib/dimensions';
@@ -277,36 +279,37 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                 <p className="text-sm text-muted-foreground mb-4">
                   Complete this quiz to earn {currentLesson.quiz.satsReward} sats and reinforce your learning!
                 </p>
-                <Button className="w-full">Take Quiz</Button>
+                <div className="flex justify-center">
+                  <Button size="lg">Take Quiz</Button>
+                </div>
               </CardContent>
             </Card>
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="flex justify-center gap-3">
             {!isCompleted ? (
               <Button 
-                size="lg" 
-                className="flex-1"
+                size="lg"
                 onClick={handleMarkComplete}
               >
-                <CheckCircle2 className="h-5 w-5 mr-2" />
+                <CheckCircle2 className="h-4 w-4 mr-2" />
                 Mark Complete {currentLesson.satsReward && `(+${currentLesson.satsReward} sats)`}
               </Button>
             ) : (
               <>
-                <Button size="lg" variant="outline" className="flex-1" disabled>
-                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500" />
-                  Completed ✨
+                <Button size="lg" variant="outline" disabled>
+                  <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                  <span>Completed</span>
+                  <Sparkles className="h-4 w-4 ml-1 text-green-500" />
                 </Button>
                 {hasNextLesson && (
                   <Button 
-                    size="lg" 
-                    className="flex-1"
+                    size="lg"
                     onClick={handleNextLesson}
                   >
                     Next Lesson
-                    <ChevronRight className="h-5 w-5 ml-2" />
+                    <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
                 )}
               </>
@@ -317,15 +320,17 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
           {isExperimentComplete && (
             <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
               <CardContent className="p-6 text-center space-y-3">
-                <div className="text-4xl mb-2">🎉</div>
+                <PartyPopper className="h-12 w-12 mx-auto text-purple-600" />
                 <h3 className="text-xl font-bold">Experiment Complete!</h3>
                 <p className="text-sm text-muted-foreground">
                   You crushed it! Share your victory with the world.
                 </p>
-                <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share to Public Feed
-                </Button>
+                <div className="flex justify-center">
+                  <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share to Public Feed
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
