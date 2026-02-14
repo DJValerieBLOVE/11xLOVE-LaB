@@ -1,11 +1,13 @@
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EQVisualizer } from '@/components/EQVisualizer';
 import { Lock } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 // Data defined outside component
 const dimensions = [
@@ -24,6 +26,8 @@ const dimensions = [
 
 const BigDreams = () => {
   const { user } = useCurrentUser();
+  const { mutateAsync: publishEvent } = useNostrPublish();
+  const [testStatus, setTestStatus] = useState<string>('');
 
   useSeoMeta({
     title: 'Big Dreams - 11x LOVE LaB',
@@ -48,8 +52,31 @@ const BigDreams = () => {
 
   const accountabilityBuddies = [
     { name: 'Sarah M.', streak: 14, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' },
-    { name: 'Mike T.', streak: 7, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike' },
+    { name: 'Mike R.', streak: 8, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike' },
+    { name: 'Alex K.', streak: 22, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex' },
   ];
+
+  const testRelayConnection = async () => {
+    if (!user) {
+      setTestStatus('Please log in first');
+      return;
+    }
+
+    setTestStatus('Testing...');
+
+    try {
+      const event = await publishEvent({
+        kind: 1,
+        content: `Test event from 11x LOVE LaB - ${new Date().toISOString()}`,
+        tags: [['t', 'test'], ['client', '11xlove-lab']]
+      });
+
+      setTestStatus(`✅ Success! Event ID: ${event.id.slice(0, 8)}...`);
+    } catch (error) {
+      console.error('Relay test failed:', error);
+      setTestStatus(`❌ Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
 
   if (!user) {
     return (
@@ -286,11 +313,20 @@ const BigDreams = () => {
                 )}
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </div>
-    </Layout>
-  );
-};
+           </div>
+         </div>
+
+         {/* Test Relay Connection */}
+         <div className="mt-8 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+           <h3 className="text-lg font-semibold mb-2">Test Railway Relay Connection</h3>
+           <Button onClick={testRelayConnection} disabled={!user} className="mr-4">
+             Test Publish Event
+           </Button>
+           <span className="text-sm text-muted-foreground">{testStatus}</span>
+         </div>
+       </div>
+     </Layout>
+   );
+ };
 
 export default BigDreams;

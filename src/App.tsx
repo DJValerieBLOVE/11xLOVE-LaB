@@ -15,6 +15,10 @@ import { NWCProvider } from '@/contexts/NWCContext';
 import { AppConfig } from '@/contexts/AppContext';
 import AppRouter from './AppRouter';
 
+// Add environment variables (in production these would be in env files)
+const RELAY_URL = 'wss://nostr-rs-relay-production-1569.up.railway.app';
+const ADMIN_PUBKEY = '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767';
+
 const head = createHead({
   plugins: [
     InferSeoMetaPlugin(),
@@ -35,6 +39,7 @@ const defaultConfig: AppConfig = {
   theme: "light",
   relayMetadata: {
     relays: [
+      { url: 'wss://nostr-rs-relay-production-1569.up.railway.app', read: true, write: true },
       { url: 'wss://relay.ditto.pub', read: true, write: true },
       { url: 'wss://relay.primal.net', read: true, write: true },
       { url: 'wss://relay.damus.io', read: true, write: true },
