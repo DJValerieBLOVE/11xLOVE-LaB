@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Clock, Users, Star } from 'lucide-react';
+import { Lock, Clock, Users, Star, Heart } from 'lucide-react';
 import { experiments } from '@/data/experiments';
 import { morningMiracleExperiment } from '@/data/test-experiment';
 import { Badge } from '@/components/ui/badge';
@@ -78,9 +78,9 @@ const Experiments = () => {
             const totalLessons = experiment.modules.reduce((acc, mod) => acc + mod.lessons.length, 0);
             
             return (
-              <Card key={experiment.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer group flex flex-col h-full">
+              <Card key={experiment.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer group flex flex-col min-h-[420px]">
                 {/* Colored Header */}
-                <div className={`h-32 bg-gradient-to-br ${experiment.color} flex items-center justify-center flex-shrink-0`}>
+                <div className={`h-36 bg-gradient-to-br ${experiment.color} flex items-center justify-center flex-shrink-0`}>
                   <h3 className="text-white text-2xl font-bold text-center px-4 line-clamp-2">
                     {experiment.title}
                   </h3>
@@ -106,7 +106,7 @@ const Experiments = () => {
                 {/* Spacer to push button to bottom */}
                 <div className="flex-1" />
 
-                <CardContent className="space-y-4 pb-6 flex-shrink-0">
+                <CardContent className="space-y-5 pb-6 flex-shrink-0">
                   {/* Stats */}
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
@@ -119,17 +119,26 @@ const Experiments = () => {
                     </div>
                   </div>
 
-                  {/* Rating and Instructor */}
+                  {/* Rating and Instructor - Show BOTH styles for comparison */}
                   <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                      <span className="font-medium">{experiment.rating}</span>
-                    </div>
+                    {/* Option 1: Pink filled heart (first card shows this) */}
+                    {experiment.id === 'morning-miracle-3day' ? (
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-4 w-4 fill-[#eb00a8] text-[#eb00a8]" />
+                        <span className="font-medium">{experiment.rating}</span>
+                      </div>
+                    ) : (
+                      /* Option 2: Gray outline heart (other cards show this) */
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{experiment.rating}</span>
+                      </div>
+                    )}
                     <span className="text-muted-foreground text-xs truncate">by {experiment.instructor}</span>
                   </div>
 
-                  {/* View Experiment Button - Proper height */}
-                  <Link to={`/experiment/${experiment.id}`}>
+                  {/* View Experiment Button - Proper spacing */}
+                  <Link to={`/experiment/${experiment.id}`} className="block mt-3">
                     <Button className="w-full">
                       View Experiment
                     </Button>
