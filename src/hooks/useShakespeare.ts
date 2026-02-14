@@ -60,6 +60,7 @@ export interface ModelsResponse {
 
 // Configuration
 const SHAKESPEARE_API_URL = 'https://ai.shakespeare.diy/v1';
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1';
 
 // Helper function to create NIP-98 token
 async function createNIP98Token(
@@ -139,7 +140,7 @@ async function handleAPIError(response: Response) {
   }
 }
 
-export function useShakespeare() {
+export function useShakespeare(provider: 'shakespeare' | 'openrouter' = 'shakespeare', apiKey?: string) {
   const { user } = useCurrentUser();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -151,12 +152,12 @@ export function useShakespeare() {
 
   // Chat completion function
   const sendChatMessage = useCallback(async (
-    messages: ChatMessage[], 
-    model: string = 'shakespeare',
+    messages: ChatMessage[],
+    model: string = provider === 'openrouter' ? 'x-ai/grok-4.1-fast' : 'shakespeare',
     options?: Partial<ChatCompletionRequest>
   ): Promise<ChatCompletionResponse> => {
-    if (!user) {
-      throw new Error('User must be logged in to use AI features');
+    if (!user && provider === 'shakespeare') {
+      throw new Error('User must be logged in to use Shakespeare AI features');
     }
 
     setIsLoading(true);
@@ -169,21 +170,48 @@ export function useShakespeare() {
         ...options
       };
 
-      const token = await createNIP98Token(
-        'POST',
-        `${SHAKESPEARE_API_URL}/chat/completions`,
-        requestBody,
-        user
-      );
+      let response: Response;
 
-      const response = await fetch(`${SHAKESPEARE_API_URL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Nostr ${token}`,
+      if (provider === 'openrouter') {
+        // OpenRouter API
+        const headers: Record<string, string> = {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
+        };
+
+        if (apiKey) {
+          headers['Authorization'] = `Bearer ${apiKey}`;
+        } else {
+          // Use platform key (would be from environment variable in production)
+          const platformKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+          if (!platformKey) {
+            throw new Error('OpenRouter API key not configured');
+          }
+          headers['Authorization'] = `Bearer ${platformKey}`;
+        }
+
+        response = await fetch(`${OPENROUTER_API_URL}/chat/completions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(requestBody),
+        });
+      } else {
+        // Shakespeare AI
+        const token = await createNIP98Token(
+          'POST',
+          `${SHAKESPEARE_API_URL}/chat/completions`,
+          requestBody,
+          user
+        );
+
+        response = await fetch(`${SHAKESPEARE_API_URL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Nostr ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        });
+      }
 
       await handleAPIError(response);
       return await response.json();
@@ -212,13 +240,13 @@ export function useShakespeare() {
 
   // Streaming chat completion function
   const sendStreamingMessage = useCallback(async (
-    messages: ChatMessage[], 
-    model: string = 'shakespeare',
+    messages: ChatMessage[],
+    model: string = provider === 'openrouter' ? 'x-ai/grok-4.1-fast' : 'shakespeare',
     onChunk: (chunk: string) => void,
     options?: Partial<ChatCompletionRequest>
   ): Promise<void> => {
-    if (!user) {
-      throw new Error('User must be logged in to use AI features');
+    if (!user && provider === 'shakespeare') {
+      throw new Error('User must be logged in to use Shakespeare AI features');
     }
 
     setIsLoading(true);
@@ -232,21 +260,48 @@ export function useShakespeare() {
         ...options
       };
 
-      const token = await createNIP98Token(
-        'POST',
-        `${SHAKESPEARE_API_URL}/chat/completions`,
-        requestBody,
-        user
-      );
+      let response: Response;
 
-      const response = await fetch(`${SHAKESPEARE_API_URL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Nostr ${token}`,
+      if (provider === 'openrouter') {
+        // OpenRouter API
+        const headers: Record<string, string> = {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
+        };
+
+        if (apiKey) {
+          headers['Authorization'] = `Bearer ${apiKey}`;
+        } else {
+          // Use platform key
+          const platformKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+          if (!platformKey) {
+            throw new Error('OpenRouter API key not configured');
+          }
+          headers['Authorization'] = `Bearer ${platformKey}`;
+        }
+
+        response = await fetch(`${OPENROUTER_API_URL}/chat/completions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(requestBody),
+        });
+      } else {
+        // Shakespeare AI
+        const token = await createNIP98Token(
+          'POST',
+          `${SHAKESPEARE_API_URL}/chat/completions`,
+          requestBody,
+          user
+        );
+
+        response = await fetch(`${SHAKESPEARE_API_URL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Nostr ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        });
+      }
 
       await handleAPIError(response);
 
@@ -310,27 +365,50 @@ export function useShakespeare() {
 
   // Get available models
   const getAvailableModels = useCallback(async (): Promise<ModelsResponse> => {
-    if (!user) {
-      throw new Error('User must be logged in to use AI features');
+    if (!user && provider === 'shakespeare') {
+      throw new Error('User must be logged in to use Shakespeare AI features');
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const token = await createNIP98Token(
-        'GET',
-        `${SHAKESPEARE_API_URL}/models`,
-        undefined,
-        user
-      );
+      let response: Response;
 
-      const response = await fetch(`${SHAKESPEARE_API_URL}/models`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Nostr ${token}`,
-        },
-      });
+      if (provider === 'openrouter') {
+        // OpenRouter models endpoint
+        const headers: Record<string, string> = {};
+
+        if (apiKey) {
+          headers['Authorization'] = `Bearer ${apiKey}`;
+        } else {
+          const platformKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+          if (!platformKey) {
+            throw new Error('OpenRouter API key not configured');
+          }
+          headers['Authorization'] = `Bearer ${platformKey}`;
+        }
+
+        response = await fetch(`${OPENROUTER_API_URL}/models`, {
+          method: 'GET',
+          headers,
+        });
+      } else {
+        // Shakespeare AI
+        const token = await createNIP98Token(
+          'GET',
+          `${SHAKESPEARE_API_URL}/models`,
+          undefined,
+          user
+        );
+
+        response = await fetch(`${SHAKESPEARE_API_URL}/models`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Nostr ${token}`,
+          },
+        });
+      }
 
       await handleAPIError(response);
       return await response.json();
@@ -361,8 +439,8 @@ export function useShakespeare() {
     // State
     isLoading,
     error,
-    isAuthenticated: !!user,
-    
+    isAuthenticated: provider === 'shakespeare' ? !!user : true, // OpenRouter doesn't require auth
+
     // Actions
     sendChatMessage,
     sendStreamingMessage,
