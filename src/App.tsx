@@ -48,31 +48,14 @@ const defaultConfig: AppConfig = {
   },
 };
 
-// User context for NIP-42 auth
-const UserContext = React.createContext<any>(null);
 
-// Component to provide user to context
-function UserContextProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <NostrLoginProvider storageKey='nostr:login'>
-      <UserContextProviderInner>
-        {children}
-      </UserContextProviderInner>
-    </NostrLoginProvider>
-  );
-}
-
-function UserContextProviderInner({ children }: { children: React.ReactNode }) {
-  const user = useCurrentUser(); // This will work inside NostrLoginProvider
-  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
-}
 
 export function App() {
   return (
     <UnheadProvider head={head}>
       <AppProvider storageKey="nostr:app-config" defaultConfig={defaultConfig}>
         <QueryClientProvider client={queryClient}>
-          <UserContextProvider>
+          <NostrLoginProvider storageKey='nostr:login'>
             <NostrProvider>
               <NostrSync />
               <NWCProvider>
@@ -84,7 +67,7 @@ export function App() {
                 </TooltipProvider>
               </NWCProvider>
             </NostrProvider>
-          </UserContextProvider>
+          </NostrLoginProvider>
         </QueryClientProvider>
       </AppProvider>
     </UnheadProvider>

@@ -1,11 +1,9 @@
-import React, { useEffect, useRef, useContext } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NostrEvent, NostrFilter, NPool, NRelay1, NMessage } from '@nostrify/nostrify';
 import { NostrContext } from '@nostrify/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppContext } from '@/hooks/useAppContext';
-
-// Import the UserContext from App.tsx
-const UserContext = React.createContext<any>(null);
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 interface NostrProviderProps {
   children: React.ReactNode;
@@ -61,7 +59,7 @@ class AuthenticatedRelay extends NRelay1 {
 const NostrProvider: React.FC<NostrProviderProps> = (props) => {
   const { children } = props;
   const { config } = useAppContext();
-  const user = useContext(UserContext);
+  const { user } = useCurrentUser();
 
   const queryClient = useQueryClient();
 
