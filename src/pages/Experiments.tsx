@@ -1,13 +1,16 @@
 import { useSeoMeta } from '@unhead/react';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, Clock, Users, Star } from 'lucide-react';
 import { experiments } from '@/data/experiments';
+import { morningMiracleExperiment } from '@/data/test-experiment';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
+import type { Experiment } from '@/types/experiment';
 
 const Experiments = () => {
   const { user } = useCurrentUser();
@@ -40,7 +43,13 @@ const Experiments = () => {
     );
   }
 
-  const filteredExperiments = experiments.filter(exp =>
+  // Combine new template-based experiments with legacy static experiments
+  const allExperiments: Experiment[] = [
+    morningMiracleExperiment,
+    ...experiments,
+  ];
+
+  const filteredExperiments = allExperiments.filter(exp =>
     exp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     exp.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -117,9 +126,11 @@ const Experiments = () => {
                   </div>
 
                   {/* View Course Button */}
-                  <Button className="w-full" size="lg">
-                    View Course
-                  </Button>
+                  <Link to={`/experiment/${experiment.id}`}>
+                    <Button className="w-full" size="lg">
+                      View Experiment
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             );

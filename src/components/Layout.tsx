@@ -49,8 +49,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Desktop Left Sidebar */}
-      <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
+      {/* Desktop Left Sidebar - Reduced width for more content area */}
+      <aside className="hidden md:flex md:w-52 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
         {/* Logo - Links to Big Dreams */}
         <div className="flex h-16 items-center border-b px-6">
           <Link to="/big-dreams" className="flex items-center">
@@ -78,8 +78,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </nav>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 md:pl-64">
+      {/* Main Content Area - Adjusted for narrower sidebar */}
+      <div className="flex-1 md:pl-52">
         {/* Top Bar */}
         <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex h-16 items-center justify-between px-4 md:px-6">

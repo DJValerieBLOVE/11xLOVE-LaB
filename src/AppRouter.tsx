@@ -4,6 +4,7 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import BigDreams from "./pages/BigDreams";
 import Experiments from "./pages/Experiments";
+import ExperimentView from "./pages/ExperimentView";
 import Events from "./pages/Events";
 import Tribe from "./pages/Tribe";
 import LoveBoard from "./pages/LoveBoard";
@@ -22,6 +23,8 @@ export function AppRouter() {
         <Route path="/" element={<BigDreams />} />
         <Route path="/big-dreams" element={<BigDreams />} />
         <Route path="/experiments" element={<Experiments />} />
+        <Route path="/experiment/:experimentId" element={<ExperimentView />} />
+        <Route path="/experiment/:experimentId/:lessonId" element={<ExperimentView />} />
         <Route path="/events" element={<Events />} />
         <Route path="/tribe" element={<Tribe />} />
         <Route path="/love-board" element={<LoveBoard />} />

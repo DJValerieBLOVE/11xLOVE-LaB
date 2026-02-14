@@ -1,0 +1,393 @@
+/**
+ * LessonViewer Component
+ * 
+ * 3-Column LMS Layout:
+ * - Left (20%): Course syllabus with module/lesson navigation
+ * - Middle (60%): Lesson content (video, audio, text, resources, quiz)
+ * - Right (20%): Comments and discussion
+ */
+
+import { useState } from 'react';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  CheckCircle2, 
+  Lock, 
+  PlayCircle, 
+  Headphones, 
+  Download, 
+  MessageSquare,
+  Share2,
+  Heart,
+  ChevronRight,
+} from 'lucide-react';
+import type { Experiment, Lesson, Module } from '@/types/experiment';
+import { getDimensionColor } from '@/lib/dimensions';
+import { genUserName } from '@/lib/genUserName';
+
+interface LessonViewerProps {
+  experiment: Experiment;
+  initialLessonId?: string;
+}
+
+export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps) {
+  const { user } = useCurrentUser();
+  
+  // Get all lessons flattened for easy navigation
+  const allLessons = experiment.modules.flatMap((module) => 
+    module.lessons.map((lesson) => ({ ...lesson, moduleId: module.id, moduleTitle: module.title }))
+  );
+  
+  // Find initial lesson or default to first
+  const initialLesson = initialLessonId 
+    ? allLessons.find(l => l.id === initialLessonId) 
+    : allLessons[0];
+    
+  const [currentLesson, setCurrentLesson] = useState(initialLesson || allLessons[0]);
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [showAudio, setShowAudio] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  
+  // Calculate progress
+  const totalLessons = allLessons.length;
+  const completedCount = completedLessons.length;
+  const progressPercentage = Math.round((completedCount / totalLessons) * 100);
+  
+  // Check if lesson is unlocked (sequential unlock)
+  const isLessonUnlocked = (lessonId: string): boolean => {
+    const lessonIndex = allLessons.findIndex(l => l.id === lessonId);
+    if (lessonIndex === 0) return true; // First lesson always unlocked
+    
+    const previousLesson = allLessons[lessonIndex - 1];
+    return completedLessons.includes(previousLesson.id);
+  };
+  
+  const handleMarkComplete = () => {
+    if (!completedLessons.includes(currentLesson.id)) {
+      setCompletedLessons([...completedLessons, currentLesson.id]);
+      // TODO: Publish Nostr event (kind 30078)
+      // TODO: Award sats to user
+    }
+  };
+  
+  const handleNextLesson = () => {
+    const currentIndex = allLessons.findIndex(l => l.id === currentLesson.id);
+    if (currentIndex < allLessons.length - 1) {
+      const nextLesson = allLessons[currentIndex + 1];
+      if (isLessonUnlocked(nextLesson.id)) {
+        setCurrentLesson(nextLesson);
+      }
+    }
+  };
+  
+  const isCompleted = completedLessons.includes(currentLesson.id);
+  const currentIndex = allLessons.findIndex(l => l.id === currentLesson.id);
+  const hasNextLesson = currentIndex < allLessons.length - 1;
+  
+  return (
+    <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+      {/* LEFT COLUMN: Course Syllabus (20%) */}
+      <aside className="w-1/5 border-r bg-muted/30 hidden lg:flex flex-col">
+        <div className="p-4 border-b">
+          <h2 className="font-bold text-lg mb-1">{experiment.title}</h2>
+          <div className="flex items-center gap-2 mb-3">
+            <Progress value={progressPercentage} className="flex-1" />
+            <span className="text-sm font-medium">{progressPercentage}%</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {completedCount} of {totalLessons} lessons complete
+          </p>
+        </div>
+        
+        <ScrollArea className="flex-1">
+          <div className="p-4 space-y-4">
+            {experiment.modules.map((module, moduleIndex) => (
+              <div key={module.id}>
+                <h3 className="font-semibold text-sm mb-2 text-muted-foreground uppercase tracking-wide">
+                  Module {moduleIndex + 1}
+                </h3>
+                <div className="space-y-1">
+                  {module.lessons.map((lesson) => {
+                    const isUnlocked = isLessonUnlocked(lesson.id);
+                    const isCurrentLesson = lesson.id === currentLesson.id;
+                    const isLessonCompleted = completedLessons.includes(lesson.id);
+                    
+                    return (
+                      <button
+                        key={lesson.id}
+                        onClick={() => isUnlocked && setCurrentLesson({ ...lesson, moduleId: module.id, moduleTitle: module.title })}
+                        disabled={!isUnlocked}
+                        className={`
+                          w-full text-left px-3 py-2 rounded-lg text-sm transition-colors
+                          ${isCurrentLesson ? 'bg-primary/10 text-primary font-medium' : ''}
+                          ${!isUnlocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted cursor-pointer'}
+                        `}
+                      >
+                        <div className="flex items-center gap-2">
+                          {isLessonCompleted ? (
+                            <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          ) : !isUnlocked ? (
+                            <Lock className="h-4 w-4 flex-shrink-0" />
+                          ) : (
+                            <PlayCircle className="h-4 w-4 flex-shrink-0" />
+                          )}
+                          <span className="flex-1 truncate">{lesson.title}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </aside>
+
+      {/* MIDDLE COLUMN: Lesson Content (60%) */}
+      <main className="flex-1 lg:w-3/5 overflow-y-auto">
+        <div className="max-w-4xl mx-auto p-6 space-y-6">
+          {/* Lesson Header */}
+          <div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+              <span>{'moduleTitle' in currentLesson ? currentLesson.moduleTitle : 'Module'}</span>
+              <ChevronRight className="h-4 w-4" />
+              <span>{currentLesson.duration}</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">{currentLesson.title}</h1>
+            
+            <div className="flex items-center gap-2">
+              <Badge 
+                style={{ 
+                  backgroundColor: getDimensionColor(currentLesson.dimension),
+                  color: 'white',
+                }}
+              >
+                Dimension {currentLesson.dimension}
+              </Badge>
+              {currentLesson.satsReward && (
+                <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                  Earn {currentLesson.satsReward} sats ⚡
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Video Player */}
+          {currentLesson.video && (
+            <Card>
+              <CardContent className="p-0">
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <iframe
+                    className="absolute top-0 left-0 w-full h-full rounded-t-lg"
+                    src={currentLesson.video.url}
+                    title={currentLesson.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+                
+                {/* Audio Toggle */}
+                {currentLesson.audio && (
+                  <div className="p-3 border-t bg-muted/30">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAudio(!showAudio)}
+                      className="w-full justify-start"
+                    >
+                      <Headphones className="h-4 w-4 mr-2" />
+                      {showAudio ? 'Hide' : 'Show'} Audio Version
+                    </Button>
+                    
+                    {showAudio && currentLesson.audio && (
+                      <audio controls className="w-full mt-2">
+                        <source src={currentLesson.audio.url} />
+                        Your browser does not support audio playback.
+                      </audio>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Lesson Content */}
+          <Card>
+            <CardContent className="prose prose-lg max-w-none p-6">
+              <div 
+                className="whitespace-pre-wrap"
+                dangerouslySetInnerHTML={{ __html: currentLesson.content.replace(/\n/g, '<br />') }}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Downloadable Resources */}
+          {currentLesson.resources && currentLesson.resources.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Download className="h-5 w-5" />
+                  Downloadable Resources
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {currentLesson.resources.map((resource) => (
+                  <a
+                    key={resource.id}
+                    href={resource.url}
+                    download
+                    className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
+                  >
+                    <div>
+                      <p className="font-medium group-hover:text-primary transition-colors">
+                        {resource.title}
+                      </p>
+                      {resource.size && (
+                        <p className="text-xs text-muted-foreground">{resource.size}</p>
+                      )}
+                    </div>
+                    <Download className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </a>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Quiz Section */}
+          {currentLesson.quiz && (
+            <Card className="border-2 border-orange-200 bg-orange-50/50">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center justify-between">
+                  <span>Test Your Knowledge</span>
+                  <Badge className="bg-orange-500 text-white">
+                    Earn {currentLesson.quiz.satsReward} sats ⚡
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Complete this quiz to earn {currentLesson.quiz.satsReward} sats and reinforce your learning!
+                </p>
+                <Button className="w-full">Take Quiz</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            {!isCompleted ? (
+              <Button 
+                size="lg" 
+                className="flex-1"
+                onClick={handleMarkComplete}
+              >
+                <CheckCircle2 className="h-5 w-5 mr-2" />
+                Mark Complete {currentLesson.satsReward && `(+${currentLesson.satsReward} sats)`}
+              </Button>
+            ) : (
+              <>
+                <Button size="lg" variant="outline" className="flex-1" disabled>
+                  <CheckCircle2 className="h-5 w-5 mr-2 text-green-500" />
+                  Completed ✨
+                </Button>
+                {hasNextLesson && (
+                  <Button 
+                    size="lg" 
+                    className="flex-1"
+                    onClick={handleNextLesson}
+                  >
+                    Next Lesson
+                    <ChevronRight className="h-5 w-5 ml-2" />
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Share to Feed (after completion) */}
+          {isCompleted && (
+            <Button variant="outline" className="w-full">
+              <Share2 className="h-4 w-4 mr-2" />
+              Share Completion to Public Feed
+            </Button>
+          )}
+        </div>
+      </main>
+
+      {/* RIGHT COLUMN: Comments (20%) */}
+      <aside className="w-1/5 border-l bg-background hidden xl:flex flex-col">
+        <div className="p-4 border-b">
+          <h3 className="font-semibold flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Lesson Discussion
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Share insights with the Tribe
+          </p>
+        </div>
+
+        <ScrollArea className="flex-1 p-4">
+          {/* Comment Input */}
+          {user && (
+            <div className="mb-4">
+              <Textarea
+                placeholder="Share your thoughts..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                className="min-h-[80px] mb-2"
+              />
+              <Button size="sm" className="w-full">
+                Post Comment
+              </Button>
+            </div>
+          )}
+
+          {/* Sample Comments (will be from Nostr) */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.metadata?.picture} />
+                  <AvatarFallback>VIP</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-medium truncate">
+                      {user?.metadata?.name || 'VIP Member'}
+                    </span>
+                    <span className="text-xs text-muted-foreground">2h ago</span>
+                  </div>
+                  <p className="text-sm">
+                    This morning ritual changed my life! Already feeling more energized. 🌅
+                  </p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <button className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1">
+                      <Heart className="h-3 w-3" />
+                      12
+                    </button>
+                    <button className="text-xs text-muted-foreground hover:text-primary">
+                      Reply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            <p className="text-xs text-muted-foreground text-center py-4">
+              Comments will load from Nostr relay
+            </p>
+          </div>
+        </ScrollArea>
+      </aside>
+    </div>
+  );
+}
