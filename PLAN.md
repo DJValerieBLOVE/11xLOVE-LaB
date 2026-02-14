@@ -598,29 +598,61 @@ git push origin main
 
 ### 🎯 Immediate Next Steps
 
-**Priority 1: Interactive Features**
-1. ✅ Build quiz modal with multiple-choice + fill-in-blank
-2. ✅ Connect comment system to Nostr (NIP-10 threading)
-3. ✅ Add Heart/Zap functionality to comments
+**Priority 1: Experiments Page - Tabs & Organization** (30 min)
+1. ❌ Add 3 tabs: "My Experiments", "All Experiments", "Suggested"
+2. ❌ "My Experiments" tab (default): Shows enrolled experiments with progress
+3. ❌ "All Experiments" tab: Full catalog
+4. ❌ "Suggested" tab: Recommendations based on lowest EQ dimensions
+5. ❌ Search bar: Search by keyword
+6. ❌ Dimension filter dropdown: Filter by any of the 11 dimensions
+7. ❌ Tag system: Experiments tagged with dimensions for filtering
 
-**Priority 2: Load Full Curriculum**
-1. ✅ Create full 11x LOVE Code data (18 lessons)
-2. ✅ All module content, videos, worksheets
-3. ✅ Quiz questions for each module
+**Priority 2: Lab Notes System - Journaling** (45 min)
+1. ❌ Lab Notes section at end of each lesson (after quiz pass)
+2. ❌ Prompt: "What did you discover in this lesson?"
+3. ❌ Private journal entry (NIP-44 encrypted)
+4. ❌ Auto-saves as user types
+5. ❌ Optional - can skip to next lesson
+6. ❌ Nostr event structure:
+   - kind: 30078
+   - tags: ["d", "lab-note"], ["experiment", "id"], ["lesson", "id"], ["dimension", "X"]
+   - content: encrypted journal entry
+7. ❌ Each lesson = separate lab note entry
+8. ❌ Each experiment = collection of lesson notes
 
-**Priority 3: Connect to Railway Relay (Critical for Beta)**
+**Priority 3: Vault - Lab Notes View** (30 min)
+1. ❌ "Lab Notes" section in Vault
+2. ❌ Organized by experiment → lessons
+3. ❌ Accordion: Click experiment to expand all lesson notes
+4. ❌ Search lab notes by keyword
+5. ❌ Export to PDF option
+6. ❌ View growth over time
+
+**Priority 4: Load Full 11x LOVE Code Curriculum** (30 min)
+1. ❌ All 18 lessons: Intro + 5 Modules + Bonus
+2. ❌ Module content, lesson text, quiz questions
+3. ❌ Video placeholders (you'll add real URLs later)
+4. ❌ Worksheet download links
+
+**Priority 5: Connect to Railway Relay (Critical for Beta)** (2 hours)
 1. ❌ Configure relay connection to `wss://nostr-rs-relay-production-1569.up.railway.app`
 2. ❌ Implement NIP-42 authentication handshake
 3. ❌ Publish completion events (kind:30078) instead of localStorage
-4. ❌ Query user progress from relay
-5. ❌ Sync progress across devices
-6. ❌ Real sats balance tracking
+4. ❌ Publish lab note events (kind:30078, encrypted)
+5. ❌ Query user progress from relay
+6. ❌ Sync progress across devices
 
-**Priority 4: Daily 5 V's Practice (Chunk 4)**
+**Priority 6: Daily 5 V's Practice (Chunk 4)** (2 hours)
 1. ❌ Build 5 V's form component in Big Dreams
 2. ❌ Implement streak tracking with kind:30078
 3. ❌ Add celebration animations
 4. ❌ Build 30-day history view
+
+**PHASE 2 (On Hold):**
+- 🔮 Sats economy + membership tiers
+- 🔮 Payment integration
+- 🔮 Multi-tenant setup
+- 🔮 Gamification system
 
 ---
 
