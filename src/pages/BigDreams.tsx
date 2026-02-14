@@ -2,6 +2,7 @@ import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
+import { useOpenRouter } from '@/hooks/useOpenRouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EQVisualizer } from '@/components/EQVisualizer';
 import { Lock } from 'lucide-react';
@@ -27,7 +28,9 @@ const dimensions = [
 const BigDreams = () => {
   const { user } = useCurrentUser();
   const { mutateAsync: publishEvent } = useNostrPublish();
+  const { sendChatMessage } = useOpenRouter();
   const [testStatus, setTestStatus] = useState<string>('');
+  const [cacheTestStatus, setCacheTestStatus] = useState<string>('');
 
   useSeoMeta({
     title: 'Big Dreams - 11x LOVE LaB',
@@ -75,6 +78,61 @@ const BigDreams = () => {
     } catch (error) {
       console.error('Relay test failed:', error);
       setTestStatus(`❌ Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const testPromptCaching = async () => {
+    setCacheTestStatus('Testing prompt caching...');
+
+    try {
+      // System prompt (should be cached)
+      const systemMessage = {
+        role: 'system' as const,
+        content: 'You are Magic Mentor, a warm, wise AI life coach for the 11x LOVE platform. You help users achieve their big dreams through the 11 dimensions of prosperity.'
+      };
+
+      // User profile (should be cached)
+      const userProfile = {
+        role: 'user' as const,
+        content: 'USER PROFILE:\nName: Test User\nBig Dreams: [GOD, Mission, Body, Romance, Community]\nCompleted: Morning Miracle\nFocus: Body\nBuddies: @alice'
+      };
+
+      // Fresh message (never cached)
+      const freshMessage = {
+        role: 'user' as const,
+        content: 'Hello, can you give me one tip for improving my body dimension?'
+      };
+
+      const messages = [systemMessage, userProfile, freshMessage];
+
+      // Send first request
+      setCacheTestStatus('Sending first request...');
+      const response1 = await sendChatMessage(messages, 'x-ai/grok-4.1-fast');
+      const usage1 = response1.usage;
+      console.log('First request usage:', usage1);
+
+      // Wait a moment
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Send second request with same cached content
+      setCacheTestStatus('Sending second request (should use cache)...');
+      const response2 = await sendChatMessage(messages, 'x-ai/grok-4.1-fast');
+      const usage2 = response2.usage;
+      console.log('Second request usage:', usage2);
+
+      // Check if caching worked (input tokens should be lower)
+      const inputReduction = usage1.prompt_tokens - usage2.prompt_tokens;
+      const cacheWorked = inputReduction > 0;
+
+      setCacheTestStatus(
+        `✅ Cache test complete!\n` +
+        `First request: ${usage1.prompt_tokens} prompt tokens\n` +
+        `Second request: ${usage2.prompt_tokens} prompt tokens\n` +
+        `${cacheWorked ? '🎉 Caching working! Saved ' + inputReduction + ' tokens' : '❌ No caching detected'}`
+      );
+    } catch (error) {
+      console.error('Cache test failed:', error);
+      setCacheTestStatus(`❌ Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -316,13 +374,25 @@ const BigDreams = () => {
            </div>
          </div>
 
-         {/* Test Relay Connection */}
-         <div className="mt-8 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-           <h3 className="text-lg font-semibold mb-2">Test Railway Relay Connection</h3>
-           <Button onClick={testRelayConnection} disabled={!user} className="mr-4">
-             Test Publish Event
-           </Button>
-           <span className="text-sm text-muted-foreground">{testStatus}</span>
+         {/* Test Connections */}
+         <div className="mt-8 space-y-4">
+           {/* Test Relay Connection */}
+           <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+             <h3 className="text-lg font-semibold mb-2">Test Railway Relay Connection</h3>
+             <Button onClick={testRelayConnection} disabled={!user} className="mr-4">
+               Test Publish Event
+             </Button>
+             <span className="text-sm text-muted-foreground">{testStatus}</span>
+           </div>
+
+           {/* Test Prompt Caching */}
+           <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+             <h3 className="text-lg font-semibold mb-2">Test xAI Prompt Caching</h3>
+             <Button onClick={testPromptCaching} className="mr-4">
+               Test Cache
+             </Button>
+             <div className="text-sm text-muted-foreground whitespace-pre-line">{cacheTestStatus}</div>
+           </div>
          </div>
        </div>
      </Layout>
