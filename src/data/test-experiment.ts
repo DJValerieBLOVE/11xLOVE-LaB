@@ -32,7 +32,6 @@ export const morningMiracleExperiment: Experiment = {
           type: 'mixed',
           duration: '5 min',
           dimension: 4, // Body
-          satsReward: 10,
           
           content: `# Welcome to Your Morning Miracle! 🌅
 
@@ -91,7 +90,7 @@ Then come back and mark this lesson complete to earn your first 10 sats! ⚡`,
           
           quiz: {
             id: 'quiz-1',
-            satsReward: 50,
+            satsReward: 0, // Sats on hold for Phase 2
             passingScore: 70,
             questions: [
               {
@@ -137,7 +136,6 @@ Then come back and mark this lesson complete to earn your first 10 sats! ⚡`,
           type: 'mixed',
           duration: '7 min',
           dimension: 4, // Body
-          satsReward: 10,
           
           content: `# Day 2: Level Up Your Morning ☕
 
@@ -190,7 +188,6 @@ Mark complete to earn 10 more sats! ⚡`,
           type: 'mixed',
           duration: '11 min',
           dimension: 4, // Body
-          satsReward: 10,
           
           content: `# Day 3: Your Complete Morning Miracle 🎉
 
@@ -247,7 +244,7 @@ Mark this lesson complete to:
           
           quiz: {
             id: 'quiz-3',
-            satsReward: 100,
+            satsReward: 0, // Sats on hold for Phase 2
             passingScore: 80,
             questions: [
               {

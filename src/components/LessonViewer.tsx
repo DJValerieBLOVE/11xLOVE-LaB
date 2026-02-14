@@ -7,7 +7,7 @@
  * - Right (20%): Comments and discussion
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { QuizModal } from '@/components/QuizModal';
 import { 
   CheckCircle2, 
   Lock, 
@@ -55,14 +56,30 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
     
   const [currentLesson, setCurrentLesson] = useState(initialLesson || allLessons[0]);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [passedQuizzes, setPassedQuizzes] = useState<string[]>([]);
   const [showAudio, setShowAudio] = useState(false);
   const [commentText, setCommentText] = useState('');
+  const [quizModalOpen, setQuizModalOpen] = useState(false);
+  
+  // Load quiz attempts from localStorage
+  useEffect(() => {
+    const attemptData = localStorage.getItem(`quiz-attempt-${currentLesson.id}`);
+    if (attemptData) {
+      const { passed } = JSON.parse(attemptData);
+      if (passed && !passedQuizzes.includes(currentLesson.id)) {
+        setPassedQuizzes([...passedQuizzes, currentLesson.id]);
+      }
+    }
+  }, [currentLesson.id]);
   
   // Calculate progress
   const totalLessons = allLessons.length;
   const completedCount = completedLessons.length;
   const progressPercentage = Math.round((completedCount / totalLessons) * 100);
   const isExperimentComplete = completedCount === totalLessons;
+  
+  // Check if lesson can be marked complete
+  const canMarkComplete = !currentLesson.quiz || passedQuizzes.includes(currentLesson.id);
   
   // Check if lesson is unlocked (sequential unlock)
   const isLessonUnlocked = (lessonId: string): boolean => {
@@ -74,10 +91,15 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
   };
   
   const handleMarkComplete = () => {
-    if (!completedLessons.includes(currentLesson.id)) {
+    if (!completedLessons.includes(currentLesson.id) && canMarkComplete) {
       setCompletedLessons([...completedLessons, currentLesson.id]);
       // TODO: Publish Nostr event (kind 30078)
-      // TODO: Award sats to user
+    }
+  };
+  
+  const handleQuizPass = () => {
+    if (!passedQuizzes.includes(currentLesson.id)) {
+      setPassedQuizzes([...passedQuizzes, currentLesson.id]);
     }
   };
   
@@ -175,11 +197,6 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
               >
                 Dimension {currentLesson.dimension}
               </Badge>
-              {currentLesson.satsReward && (
-                <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                  Earn {currentLesson.satsReward} sats ⚡
-                </Badge>
-              )}
             </div>
           </div>
 
@@ -266,35 +283,59 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
 
           {/* Quiz Section */}
           {currentLesson.quiz && (
-            <Card className="border-2 border-orange-200 bg-orange-50/50">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center justify-between">
-                  <span>Test Your Knowledge</span>
-                  <Badge className="bg-orange-500 text-white">
-                    Earn {currentLesson.quiz.satsReward} sats ⚡
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Complete this quiz to earn {currentLesson.quiz.satsReward} sats and reinforce your learning!
-                </p>
-                <div className="flex justify-center">
-                  <Button>Take Quiz</Button>
-                </div>
-              </CardContent>
-            </Card>
+            <>
+              {passedQuizzes.includes(currentLesson.id) ? (
+                /* Quiz Already Passed */
+                <Card className="border-2 border-green-200 bg-green-50/50">
+                  <CardContent className="p-6 text-center">
+                    <CheckCircle2 className="h-8 w-8 mx-auto text-green-600 mb-2" />
+                    <h3 className="font-semibold text-green-700">Quiz Passed!</h3>
+                    <p className="text-sm text-green-600 mt-1">
+                      You're ready to mark this lesson complete ✨
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                /* Quiz Not Taken Yet */
+                <Card className="border-2 border-purple-200 bg-purple-50/50">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Test Your Knowledge</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Complete this quiz to unlock lesson completion and reinforce your learning!
+                    </p>
+                    <div className="flex justify-center">
+                      <Button onClick={() => setQuizModalOpen(true)}>
+                        Take Quiz
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
 
           {/* Action Buttons */}
-          <div className="flex justify-center gap-3">
+          <div className="flex flex-col items-center gap-3">
             {!isCompleted ? (
-              <Button onClick={handleMarkComplete}>
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Mark Complete {currentLesson.satsReward && `(+${currentLesson.satsReward} sats)`}
-              </Button>
-            ) : (
               <>
+                <Button 
+                  onClick={handleMarkComplete}
+                  disabled={!canMarkComplete}
+                  className="min-w-[200px]"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Mark Complete
+                </Button>
+                {!canMarkComplete && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    💡 Complete the quiz first to unlock
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="flex gap-3">
                 <Button variant="outline" disabled>
                   <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
                   <span>Completed</span>
@@ -306,7 +347,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                     <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
                 )}
-              </>
+              </div>
             )}
           </div>
 
@@ -406,6 +447,17 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
           </div>
         </ScrollArea>
       </aside>
+
+      {/* Quiz Modal */}
+      {currentLesson.quiz && (
+        <QuizModal
+          quiz={currentLesson.quiz}
+          lessonId={currentLesson.id}
+          open={quizModalOpen}
+          onClose={() => setQuizModalOpen(false)}
+          onPass={handleQuizPass}
+        />
+      )}
     </div>
   );
 }
