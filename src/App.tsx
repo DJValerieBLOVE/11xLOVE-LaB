@@ -13,6 +13,7 @@ import { NostrLoginProvider } from '@nostrify/react/login';
 import { AppProvider } from '@/components/AppProvider';
 import { NWCProvider } from '@/contexts/NWCContext';
 import { AppConfig } from '@/contexts/AppContext';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import AppRouter from './AppRouter';
 
 // Add environment variables (in production these would be in env files)
