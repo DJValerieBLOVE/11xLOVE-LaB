@@ -123,7 +123,7 @@ const Experiments = () => {
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-1">
                       <Heart className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold text-foreground">{experiment.rating}</span>
+                      <span>{experiment.rating}</span>
                     </div>
                     <span className="text-muted-foreground text-xs truncate">by {experiment.instructor}</span>
                   </div>
