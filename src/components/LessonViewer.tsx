@@ -271,7 +271,6 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
           </div>
 
   {/* Video Player */}
-  {console.log('Current lesson full object:', currentLesson)}
   {console.log('Current lesson video:', currentLesson.video)}
   {currentLesson.video && currentLesson.video.url && (
     <Card>
