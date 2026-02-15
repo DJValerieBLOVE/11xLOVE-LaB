@@ -245,16 +245,18 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
             </div>
             <h1 className="text-3xl md:text-4xl font-bold mb-4">{currentLesson.title}</h1>
             
-            <div className="flex items-center gap-2">
-              <Badge 
-                style={{ 
-                  backgroundColor: getDimensionColor(currentLesson.dimension),
-                  color: 'white',
-                }}
-              >
-                Dimension {currentLesson.dimension}
-              </Badge>
-            </div>
+            {currentLesson.dimension && (
+              <div className="flex items-center gap-2">
+                <Badge 
+                  style={{ 
+                    backgroundColor: getDimensionColor(currentLesson.dimension),
+                    color: 'white',
+                  }}
+                >
+                  Dimension {currentLesson.dimension}
+                </Badge>
+              </div>
+            )}
           </div>
 
           {/* Video Player */}
