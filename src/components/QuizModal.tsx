@@ -93,13 +93,8 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
       completedAt: new Date().toISOString(),
     }));
 
-    // If passed, auto-close after showing results for 2 seconds
-    if (quizPassed) {
-      setTimeout(() => {
-        onClose();
-        onPass();
-      }, 2000); // Show celebration for 2 seconds, then transition to journal
-    }
+    // Don't auto-trigger onPass - let user click "Continue" button
+    // This gives them time to see their score and celebrate!
   };
 
   const handleRetry = () => {
@@ -114,6 +109,8 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
   const handleClose = () => {
     if (passed) {
       onClose();
+      // Trigger journal prompt after closing
+      onPass();
     } else {
       // If failed, can retry or close
       if (confirm('You haven\'t passed the quiz yet. Are you sure you want to close?')) {
