@@ -93,8 +93,8 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
       completedAt: new Date().toISOString(),
     }));
 
-    // Don't auto-trigger onPass - let user click "Continue" button
-    // This gives them time to see their score and celebrate!
+    // Results screen will stay visible until user manually clicks "Continue"
+    // The handleClose function triggers onPass() when user clicks Continue
   };
 
   const handleRetry = () => {
