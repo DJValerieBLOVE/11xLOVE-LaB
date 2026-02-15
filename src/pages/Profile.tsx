@@ -1,10 +1,12 @@
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useProfileStats } from '@/hooks/useProfileStats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock, Edit3, Settings, Zap, Users, Heart, ExternalLink, Copy, Check, BookOpen, Calendar } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { genUserName } from '@/lib/genUserName';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -15,6 +17,9 @@ const Profile = () => {
   const currentUserData = useCurrentUser();
   const { user, metadata } = currentUserData;
   const [copied, setCopied] = useState(false);
+  
+  // Fetch real follower/following stats from Nostr
+  const { followers, following, isLoading: statsLoading } = useProfileStats(user?.pubkey);
 
   useSeoMeta({
     title: 'Profile - 11x LOVE LaB',
@@ -54,13 +59,13 @@ const Profile = () => {
   const lud16 = metadata?.lud16;
   const npub = nip19.npubEncode(user.pubkey);
 
-  // Sample stats (will come from Nostr queries)
+  // Stats - followers/following come from Nostr, others are placeholders for now
   const stats = {
-    following: 234,
-    followers: 1847,
-    zapsReceived: 125000,
-    experimentsCompleted: 3,
-    currentStreak: 7,
+    following,
+    followers,
+    zapsReceived: 0, // TODO: Calculate from zap receipts
+    experimentsCompleted: 0, // TODO: Calculate from completed experiments
+    currentStreak: 0, // TODO: Calculate from daily check-ins
   };
 
   const copyNpub = () => {
@@ -203,7 +208,11 @@ const Profile = () => {
             <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-100 hover:shadow-lg transition-shadow">
               <CardContent className="p-4 text-center">
                 <Users className="h-5 w-5 mx-auto mb-2 text-[#6600ff]" />
-                <p className="text-2xl md:text-3xl font-bold text-[#6600ff]">{stats.followers.toLocaleString()}</p>
+                {statsLoading ? (
+                  <Skeleton className="h-8 w-20 mx-auto mb-1" />
+                ) : (
+                  <p className="text-2xl md:text-3xl font-bold text-[#6600ff]">{stats.followers.toLocaleString()}</p>
+                )}
                 <p className="text-xs md:text-sm text-muted-foreground">Followers</p>
               </CardContent>
             </Card>
@@ -211,7 +220,11 @@ const Profile = () => {
             <Card className="bg-gradient-to-br from-pink-50 to-white border-pink-100 hover:shadow-lg transition-shadow">
               <CardContent className="p-4 text-center">
                 <Heart className="h-5 w-5 mx-auto mb-2 text-[#eb00a8]" />
-                <p className="text-2xl md:text-3xl font-bold text-[#eb00a8]">{stats.following.toLocaleString()}</p>
+                {statsLoading ? (
+                  <Skeleton className="h-8 w-16 mx-auto mb-1" />
+                ) : (
+                  <p className="text-2xl md:text-3xl font-bold text-[#eb00a8]">{stats.following.toLocaleString()}</p>
+                )}
                 <p className="text-xs md:text-sm text-muted-foreground">Following</p>
               </CardContent>
             </Card>
@@ -219,7 +232,9 @@ const Profile = () => {
             <Card className="bg-gradient-to-br from-orange-50 to-white border-orange-100 hover:shadow-lg transition-shadow">
               <CardContent className="p-4 text-center">
                 <Zap className="h-5 w-5 mx-auto mb-2 text-orange-500" />
-                <p className="text-2xl md:text-3xl font-bold text-orange-500">{(stats.zapsReceived / 1000).toFixed(0)}k</p>
+                <p className="text-2xl md:text-3xl font-bold text-orange-500">
+                  {stats.zapsReceived > 0 ? `${(stats.zapsReceived / 1000).toFixed(0)}k` : '—'}
+                </p>
                 <p className="text-xs md:text-sm text-muted-foreground">Sats Received</p>
               </CardContent>
             </Card>
@@ -227,7 +242,9 @@ const Profile = () => {
             <Card className="bg-gradient-to-br from-green-50 to-white border-green-100 hover:shadow-lg transition-shadow">
               <CardContent className="p-4 text-center">
                 <BookOpen className="h-5 w-5 mx-auto mb-2 text-green-600" />
-                <p className="text-2xl md:text-3xl font-bold text-green-600">{stats.experimentsCompleted}</p>
+                <p className="text-2xl md:text-3xl font-bold text-green-600">
+                  {stats.experimentsCompleted > 0 ? stats.experimentsCompleted : '—'}
+                </p>
                 <p className="text-xs md:text-sm text-muted-foreground">Experiments</p>
               </CardContent>
             </Card>
@@ -235,7 +252,9 @@ const Profile = () => {
             <Card className="bg-gradient-to-br from-red-50 to-white border-red-100 hover:shadow-lg transition-shadow col-span-2 sm:col-span-1">
               <CardContent className="p-4 text-center">
                 <span className="text-xl mb-2 block">🔥</span>
-                <p className="text-2xl md:text-3xl font-bold text-red-500">{stats.currentStreak}</p>
+                <p className="text-2xl md:text-3xl font-bold text-red-500">
+                  {stats.currentStreak > 0 ? stats.currentStreak : '—'}
+                </p>
                 <p className="text-xs md:text-sm text-muted-foreground">Day Streak</p>
               </CardContent>
             </Card>
