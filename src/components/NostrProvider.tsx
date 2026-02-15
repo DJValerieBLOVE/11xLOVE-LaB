@@ -30,6 +30,8 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
   if (!pool.current) {
     pool.current = new NPool({
       open(url: string) {
+        // NRelay1 automatically handles NIP-42 AUTH if the relay requires it
+        // It will listen for AUTH messages and sign/send the auth event
         return new NRelay1(url);
       },
       reqRouter(filters: NostrFilter[]) {
