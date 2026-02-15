@@ -3,6 +3,11 @@
  * 
  * CRITICAL: All LaB data stays on the private Railway relay.
  * Public relays are READ-ONLY for profiles, follows, etc.
+ * 
+ * PRIVACY LEVELS:
+ * 🔴 NEVER SHAREABLE - Tribe messages (encrypted, only group members can read)
+ * 🟡 PRIVATE BY DEFAULT - Big Dreams, Journals, Magic Mentor (optional share with warning)
+ * 🟢 SHAREABLE - Completion posts, Feed posts, Reactions
  */
 
 // The private Railway relay - ALL LaB data goes here
@@ -47,26 +52,34 @@ export function isPublicRelay(url: string): boolean {
 }
 
 /**
- * Event kinds that should ONLY go to the LaB relay (never public)
- * These are private/LaB-specific data
+ * 🔴 NEVER SHAREABLE - These CANNOT be shared to public under any circumstances
+ * Tribe/Group messages are encrypted and only group members can decrypt them
  */
-export const LAB_ONLY_KINDS = [
-  // LaB-specific data
-  30078, // App-specific data (experiments, progress, Big Dreams, etc.)
-  30023, // Long-form articles (journals) - when tagged with 't: journal'
-  
-  // NIP-29 Group events (Tribes)
+export const NEVER_SHAREABLE_KINDS = [
+  // NIP-29 Group events (Tribes) - LOCKED DOWN
   9,     // Group metadata
-  11,    // Group message
-  12,    // Group message reply
+  11,    // Group message - NEVER PUBLIC
+  12,    // Group message reply - NEVER PUBLIC
   
-  // Private encrypted data
-  4,     // Encrypted DMs (NIP-04) - when within LaB context
-  1059,  // Gift-wrapped events (NIP-17)
+  // NIP-17 Gift-wrapped events (encrypted DMs within groups)
+  1059,  // Gift-wrapped events
+  1060,  // Sealed sender
 ];
 
 /**
- * Event kinds that CAN go to public relays (user's choice)
+ * 🟡 PRIVATE BY DEFAULT - Can be shared with explicit user consent + warning
+ */
+export const PRIVATE_BY_DEFAULT_KINDS = [
+  // LaB-specific data
+  30078, // App-specific data (experiments, progress, Big Dreams, etc.)
+  30023, // Long-form articles (journals)
+  
+  // Encrypted personal data
+  4,     // Encrypted DMs (NIP-04)
+];
+
+/**
+ * 🟢 SHAREABLE - Can go to public relays (user's choice)
  */
 export const SHAREABLE_KINDS = [
   0,     // Profile metadata - user may want to sync
@@ -77,21 +90,82 @@ export const SHAREABLE_KINDS = [
 ];
 
 /**
+ * All LaB-only kinds (union of never shareable + private by default)
+ */
+export const LAB_ONLY_KINDS = [
+  ...NEVER_SHAREABLE_KINDS,
+  ...PRIVATE_BY_DEFAULT_KINDS,
+];
+
+/**
+ * Tags that indicate private LaB data (cannot be shared)
+ */
+export const PRIVATE_TAGS = [
+  'journal',
+  'lab-note', 
+  'big-dreams',
+  'daily-practice',
+  'experiment-progress',
+  'magic-mentor',
+  'tribe-message',
+  'group-chat',
+];
+
+/**
+ * Check if content can EVER be shared (some things can NEVER go public)
+ */
+export function canEverBeShared(kind: number, tags: string[][]): boolean {
+  // 🔴 Tribe messages can NEVER be shared - hardcoded block
+  if (NEVER_SHAREABLE_KINDS.includes(kind)) {
+    return false;
+  }
+  
+  // Check for tribe/group tags
+  const hasTribeTag = tags.some(([name, value]) => 
+    (name === 't' && (value === 'tribe-message' || value === 'group-chat')) ||
+    (name === 'h') // NIP-29 group identifier
+  );
+  
+  if (hasTribeTag) {
+    return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Check if content requires a warning before sharing
+ */
+export function requiresShareWarning(kind: number, tags: string[][]): boolean {
+  // Private by default kinds always need warning
+  if (PRIVATE_BY_DEFAULT_KINDS.includes(kind)) {
+    return true;
+  }
+  
+  // Check for private LaB tags
+  const hasPrivateTag = tags.some(([name, value]) => 
+    name === 't' && PRIVATE_TAGS.includes(value || '') ||
+    (name === 'd' && value?.startsWith('lab-')) ||
+    (name === 'd' && value?.startsWith('journal-')) ||
+    (name === 'd' && value?.startsWith('progress-')) ||
+    (name === 'd' && value?.startsWith('big-dreams-'))
+  );
+  
+  return hasPrivateTag;
+}
+
+/**
  * Determine if an event should go to public relays
  */
 export function shouldPublishToPublic(kind: number, tags: string[][]): boolean {
-  // Never publish LaB-only kinds to public
-  if (LAB_ONLY_KINDS.includes(kind)) {
+  // 🔴 NEVER shareable - blocked completely
+  if (!canEverBeShared(kind, tags)) {
     return false;
   }
   
   // Check for LaB-specific tags that indicate private data
   const hasLabTag = tags.some(([name, value]) => 
-    (name === 't' && value === 'journal') ||
-    (name === 't' && value === 'lab-note') ||
-    (name === 't' && value === 'big-dreams') ||
-    (name === 't' && value === 'daily-practice') ||
-    (name === 't' && value === 'experiment-progress') ||
+    (name === 't' && PRIVATE_TAGS.includes(value || '')) ||
     (name === 'd' && value?.startsWith('lab-')) ||
     (name === 'd' && value?.startsWith('journal-')) ||
     (name === 'd' && value?.startsWith('progress-'))

@@ -3,13 +3,24 @@
  * 
  * CRITICAL: This hook ensures LaB data stays on the private Railway relay.
  * Public relays are ONLY used when the user explicitly requests sharing.
+ * 
+ * PRIVACY LEVELS:
+ * 🔴 NEVER SHAREABLE - Tribe messages (blocked completely, no share button)
+ * 🟡 PRIVATE BY DEFAULT - Big Dreams, Journals (warning dialog before share)
+ * 🟢 SHAREABLE - Completions, Feed posts (share with optional confirmation)
  */
 
 import { useNostr } from "@nostrify/react";
 import { useMutation, type UseMutationResult } from "@tanstack/react-query";
 
 import { useCurrentUser } from "./useCurrentUser";
-import { getPublishRelays, LAB_RELAY_URL, shouldPublishToPublic } from "@/lib/relays";
+import { 
+  getPublishRelays, 
+  LAB_RELAY_URL, 
+  shouldPublishToPublic,
+  canEverBeShared,
+  NEVER_SHAREABLE_KINDS,
+} from "@/lib/relays";
 
 import type { NostrEvent } from "@nostrify/nostrify";
 
@@ -55,16 +66,25 @@ export function useLabPublish(): UseMutationResult<NostrEvent, Error, LabPublish
 
       // Determine where to publish
       const wantsPublic = options.shareToPublic ?? false;
+      const canShare = canEverBeShared(t.kind, tags);
       const canGoPublic = shouldPublishToPublic(t.kind, tags);
       
-      // Safety check: if they want public but event type doesn't allow it, warn
-      if (wantsPublic && !canGoPublic) {
+      // 🔴 HARD BLOCK: Tribe messages can NEVER be shared
+      if (wantsPublic && NEVER_SHAREABLE_KINDS.includes(t.kind)) {
+        console.error(
+          `[LaB Security] 🔴 BLOCKED: Kind ${t.kind} (Tribe message) can NEVER be shared publicly.`
+        );
+        // Still save to LaB relay, just don't publish to public
+      }
+      
+      // 🟡 SOFT BLOCK: Private content with warning
+      if (wantsPublic && !canGoPublic && canShare) {
         console.warn(
-          `[LaB Security] Event kind ${t.kind} cannot be shared publicly. Publishing to LaB relay only.`
+          `[LaB Security] 🟡 Event kind ${t.kind} is private by default. User confirmed share.`
         );
       }
 
-      const relays = getPublishRelays(t.kind, tags, wantsPublic && canGoPublic);
+      const relays = getPublishRelays(t.kind, tags, wantsPublic && canGoPublic && canShare);
       
       console.log(`[LaB Publish] Publishing kind ${t.kind} to:`, relays);
 
