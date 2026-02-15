@@ -1,264 +1,200 @@
-# Session Notes - February 13, 2026
+# Session Notes - February 14, 2026
 
 > **Quick reference for what's done and what's next**
 
 ---
 
-## ✅ COMPLETED TODAY (Feb 13, 2026)
+## ✅ COMPLETED TODAY (Feb 14, 2026)
 
-### **Documentation Created:**
-- ✅ PROJECT_OVERVIEW.md - Full curriculum, 11 Dimensions, user journey
-- ✅ DESIGN_SPEC.md - Brand colors, component patterns, design principles
-- ✅ BUTTON_SYSTEM.md - Complete button/badge design guide
-- ✅ Updated PLAN.md - Current status, next steps clearly defined
+### **Critical Bug Fixes:**
+- ✅ Fixed TypeScript errors causing GitHub Actions failures
+- ✅ Fixed `user.metadata` errors - changed to use `metadata` from `useCurrentUser()` spread
+- ✅ Fixed `Experiment` type definition conflicts (duplicate types in two files)
+- ✅ Fixed `Lesson.dimension` being required - made it optional
+- ✅ Fixed `CelebrationAnimation.tsx` framer-motion type errors - rewrote with CSS animations
+- ✅ Fixed `LessonViewer.tsx` dimension undefined check
+- ✅ All GitHub Actions tests now pass
 
-### **Design System:**
-- ✅ Official 11 Dimensions color system integrated
-- ✅ TypeScript constants: `/src/lib/dimensions.ts`
-- ✅ CSS custom properties for all dimension colors
-- ✅ EQ Visualizer component (full + compact)
-- ✅ DimensionBadge component
-- ✅ Consistent button system (36px height, pill-shaped)
-- ✅ Subtle badge styling (outline, not colored)
-- ✅ Gray outline hearts for ratings (not stars)
-- ✅ Icons in sidebar navigation
-- ✅ Darker nav text for readability
-- ✅ Light textarea focus (not heavy dark ring)
+### **Profile Page Improvements:**
+- ✅ Complete redesign - clean, spacious layout like Primal/Twitter
+- ✅ Uses `display_name` for pretty formatted names (e.g., "DJ Valerie B LOVE")
+- ✅ Shows `@handle` below display name when different
+- ✅ Real follower/following counts from Nostr (via Primal API)
+- ✅ Real zap stats (sats received) from kind 9735 events
+- ✅ Fixed duplicate NIP-05/Lightning display
+- ✅ Removed redundant Quick Actions (sidebar already has all links)
+- ✅ Banner image with avatar overlay
+- ✅ Copy npub button
+- ✅ Verification badge display
 
-### **3-Column LMS System:**
-- ✅ Reusable experiment template (`/src/types/experiment.ts`)
-- ✅ Test experiment: "Morning Miracle - 3 Day Challenge"
-- ✅ Professional 3-column layout (25% | 50% | 25%)
-  - Left: Course syllabus with progress
-  - Middle: Video, resources, content, quiz
-  - Right: Comments with Heart/Zap/Reply
-- ✅ Sequential lesson unlock
-- ✅ Progress tracking
-- ✅ Video/audio player support
-- ✅ Downloadable resources section
-- ✅ Routes: `/experiment/:experimentId/:lessonId?`
+### **Header Improvements:**
+- ✅ Removed blur/transparency effect on scroll - now solid background
+- ✅ Uses `display_name` in dropdown menu
+- ✅ Avatar displays correctly from Nostr profile
 
-### **Interactive Quiz System:**
-- ✅ QuizModal component (multiple-choice + fill-in-blank)
-- ✅ Question-by-question flow with progress bar
-- ✅ Pass/fail scoring (70%+ to pass)
-- ✅ One-attempt protection (localStorage for MVP)
-- ✅ **Streamlined flow:** Quiz pass → Lesson auto-completes → Next lesson (2 clicks total)
-- ✅ No "Mark Complete" button (happens automatically)
-- ✅ Retry option if failed
+### **New Hooks Created:**
+- ✅ `useProfileStats.ts` - Fetches real follower/following counts from Primal API
+- ✅ `useZapStats.ts` - Fetches zap receipt data (sats received/sent)
 
-### **Bug Fixes:**
-- ✅ Fixed LoveBoard.tsx export bug (was exporting "Tribe")
-- ✅ Added required meta tags to pass ESLint
-- ✅ Restored Layout wrapper to lesson pages
-- ✅ Fixed experiment card heights (uniform)
-
-### **No Sats for MVP:**
-- ✅ Removed all sats badges/rewards from UI
-- ✅ Sats economy on hold for Phase 2 (membership tiers)
-- ✅ Everyone can access, comment, complete for MVP
+### **Data Fixes:**
+- ✅ All experiments now have required fields: `dimension`, `createdBy`, `valueForValue`
+- ✅ Lesson type supports both old format (`videoUrl`) and new format (`video: {url, provider}`)
 
 ---
 
-## 🚧 READY TO BUILD NEXT (Session Resumed)
+## 🚨 KNOWN ISSUES TO FIX NEXT
 
-### **NEXT SESSION - Start Here:**
+### **1. Edit Profile Page (404 Error)**
+- `/edit-profile` route doesn't exist
+- Need to create `EditProfile.tsx` page
+- Should use existing `EditProfileForm` component
 
-#### **1. Experiments Page Tabs (30 min)**
-Build three tabs on `/experiments` page:
+### **2. Settings Page**
+- Need comprehensive settings page for:
+  - Lightning wallet address (lud16)
+  - NIP-05 verification
+  - Relay configuration
+  - Theme preferences
+  - Notification settings
 
-**Tab 1: My Experiments** (Default)
-- Shows experiments user is enrolled in
-- Progress percentage visible
-- "Continue Learning" button
-- Sorted by recent activity
+### **3. Followers/Following Lists**
+- When clicking "X Followers" or "X Following" on profile
+- Should open a modal/page showing the actual list of people
+- Like Twitter/Primal does
 
-**Tab 2: All Experiments**
-- Full catalog of all available experiments
-- "View Experiment" button
-- Can filter/search
-
-**Tab 3: Suggested**
-- Based on user's lowest EQ dimensions
-- "You might like..." recommendations
-- Personalized to their Big Dreams
-
-**Features:**
-- Search bar: Search experiments by keyword
-- Dimension filter dropdown: Filter by any of 11 dimensions
-- Tag system: Each experiment tagged with primary dimension
+### **4. Experiment/Curriculum Issues**
+- Full 11x LOVE Code curriculum not loaded
+- Quiz flow needs testing
+- Vault/journal saving needs verification
+- Lesson auto-progression after quiz pass
 
 ---
 
-#### **2. Lab Notes System (45 min)**
+## 🎯 PRIORITY ORDER FOR NEXT SESSION
 
-**Where:** After quiz pass on each lesson
+### **Priority 1: Fix 404 Errors (30 min)**
+1. Create `/edit-profile` route and page
+2. Create `/settings` route and page (basic structure)
+3. Ensure all navigation links work
 
-**UI Flow:**
-1. User passes quiz → Lesson auto-completes
-2. **Lab Notes section appears:**
-   ```
-   ┌────────────────────────────────────────┐
-   │ 📝 Lab Notes - Capture Your Discovery  │
-   │                                        │
-   │ What did you discover in this lesson?  │
-   │ [Text area - auto-saves as you type]   │
-   │                                        │
-   │ [Next Lesson →]  [Save & Exit]         │
-   └────────────────────────────────────────┘
-   ```
-3. User can write notes OR skip to next lesson
-4. Notes auto-save (debounced)
+### **Priority 2: Followers/Following Lists (45 min)**
+1. Create `FollowersModal` component
+2. Query kind 3 (contact list) events
+3. Show user avatars, names, follow buttons
+4. Infinite scroll for large lists
 
-**Data Structure (Nostr kind 30078):**
-```javascript
-{
-  kind: 30078,
-  tags: [
-    ["d", "lab-note"],
-    ["experiment", "morning-miracle-3day"],
-    ["lesson", "lesson-1"],
-    ["dimension", "4"],
-    ["created_at", "2026-02-13T19:00:00Z"]
-  ],
-  content: nip44.encrypt(JSON.stringify({
-    lessonTitle: "Day 1: The 5-Minute Morning Ritual",
-    notes: "I discovered that mornings are my power time...",
-    discoveries: ["Hydration makes a difference", "Gratitude shifts mindset"],
-    nextSteps: "Try this for 30 days"
-  }), userKey)
-}
+### **Priority 3: Settings Page (1 hour)**
+1. Lightning wallet configuration
+2. NIP-05 verification
+3. Relay management
+4. Theme toggle
+5. Account settings
+
+### **Priority 4: Magic Mentor AI Integration (2 hours)**
+1. Connect to OpenRouter/Shakespeare AI
+2. User memory system
+3. Conversational interface
+4. References Big Dreams and experiments
+
+### **Priority 5: Vault & Journal Verification (1 hour)**
+1. Verify journal entries save to Nostr
+2. Verify vault displays all notes
+3. Test encryption/decryption
+4. Cross-device sync testing
+
+### **Priority 6: Quiz & Curriculum Flow (1 hour)**
+1. Test complete quiz flow
+2. Verify auto-progression to next lesson
+3. Verify checkmarks appear
+4. Load full 11x LOVE Code curriculum
+
+---
+
+## 📋 FULL FEATURE BACKLOG
+
+### **Profile & Social:**
+- [ ] Edit Profile page
+- [ ] Settings page with all configurations
+- [ ] Followers list modal
+- [ ] Following list modal
+- [ ] Follow/Unfollow buttons
+- [ ] Profile page for other users (not just self)
+
+### **Experiments & Learning:**
+- [ ] Full 11x LOVE Code curriculum (18 lessons)
+- [ ] Quiz system verification
+- [ ] Lab Notes journaling after lessons
+- [ ] Journal viewing in Vault
+- [ ] Auto-progression flow testing
+- [ ] Streak tracking implementation
+
+### **AI Features:**
+- [ ] Magic Mentor chat interface
+- [ ] User memory/context loading
+- [ ] Daily LOVE Practice AI analysis
+- [ ] Journal AI insights
+- [ ] Accountability buddy matching
+
+### **Community:**
+- [ ] Tribe (NIP-29) private groups
+- [ ] Feed improvements
+- [ ] Comments on lessons (NIP-10)
+- [ ] Reactions (kind 7)
+- [ ] Zap buttons functional
+
+### **Data & Persistence:**
+- [ ] Railway relay integration
+- [ ] NIP-42 authentication
+- [ ] Cross-device sync
+- [ ] IndexedDB caching
+
+---
+
+## 🚀 PROMPT TO START NEXT SESSION
+
+Copy and paste this to start your next session:
+
+```
+I'm continuing work on the 11x LOVE LaB app. Please read SESSION_NOTES.md to see what was done in the last session.
+
+Today I want to:
+1. Fix the /edit-profile 404 error - create the page
+2. Create a basic /settings page with Lightning wallet, relay config, and theme
+3. Add followers/following list modals when clicking the counts on profile
+4. Make sure everything builds without GitHub Actions errors
+
+After that, I want to work on:
+- Magic Mentor AI integration
+- Verifying the quiz and lesson progression flow works
+- Loading the full 11x LOVE Code curriculum
+
+Please start by reading the relevant files and showing me what needs to be fixed first.
 ```
 
-**Storage:**
-- MVP: localStorage
-- Production: Nostr relay (encrypted, syncs across devices)
+---
+
+## 📁 KEY FILES TO REFERENCE
+
+- **Planning:** `/PLAN.md` - Full build spec and chunks
+- **Session Notes:** `/SESSION_NOTES.md` (this file)
+- **Project Status:** `/docs/PROJECT-STATUS.md` - Phase 2 AI planning
+- **AI Architecture:** `/docs/AI-ARCHITECTURE.md` - OpenRouter/Grok integration
+- **Curriculum:** `/docs/11x-LOVE-CODE-CURRICULUM.md` - Full lesson content
 
 ---
 
-#### **3. Vault - Lab Notes View (30 min)**
+## 💜 NOTES
 
-**Organization:**
-```
-VAULT
-├── 📓 Lab Notes (by Experiment)
-│   ├── Morning Miracle - 3 Day Challenge
-│   │   ├── Day 1: My 5-min ritual reflection
-│   │   ├── Day 2: Movement before coffee thoughts
-│   │   └── Day 3: Full morning miracle insights
-│   ├── 11x LOVE Code
-│   │   ├── Lesson 0.1 notes
-│   │   ├── Lesson 1.1 notes
-│   │   └── ...
-│   └── [Other experiments]
-├── 📥 My Downloads (Resources collected)
-├── 🎯 My Big Dreams (Archive)
-└── 💡 My Discoveries (Cross-experiment patterns)
-```
+### **About Preview Window Login:**
+Browser extension login (Alby) is NOT possible in Shakespeare preview - this is browser security, not a bug. Extensions can't inject into iframes. Test on the deployed site: https://11xlove.shakespeare.wtf
 
-**Features:**
-- Accordion view: Click experiment to expand lesson notes
-- Search notes by keyword
-- Export to PDF
-- See growth over time
+### **GitHub Actions Status:**
+All TypeScript errors are now fixed. The test workflow should pass.
 
 ---
 
-#### **4. Load Full 11x LOVE Code (30 min)**
-
-Create `/src/data/11x-love-code.ts` with all 18 lessons:
-
-**Structure:**
-- INTRO: BELIEVE (3 lessons)
-- Module 1: BREAKTHROUGH (3 lessons)
-- Module 2: BREAKDOWN (3 lessons)
-- Module 3: BRAVERY (3 lessons)
-- Module 4: BUILD (3 lessons)
-- Module 5: BADASSERY (3 lessons)
-- BONUS: TREASURE CHEST (power tools)
-
-**Each lesson includes:**
-- Title, duration, dimension
-- Content (Markdown from curriculum doc)
-- Video URL placeholder (you'll add real URLs)
-- Worksheet download links
-- Quiz questions (from curriculum)
-
----
-
-#### **5. Connect Railway Relay (2 hours)**
-
-**Critical for production:**
-- Configure relay: `wss://nostr-rs-relay-production-1569.up.railway.app`
-- NIP-42 authentication
-- Publish events instead of localStorage:
-  - Lesson completions (kind 30078)
-  - Lab notes (kind 30078, encrypted)
-  - Quiz attempts (kind 30078)
-  - Progress tracking (kind 30078)
-- Query user progress from relay
-- Sync across devices
-
----
-
-## 📋 BUILD ORDER RECOMMENDATION:
-
-**When you resume:**
-
-1. **Tabs on Experiments Page** (30 min) - Better navigation
-2. **Lab Notes System** (45 min) - Journaling feature
-3. **Vault Lab Notes View** (30 min) - Show all notes
-4. **Full 11x LOVE Code** (30 min) - Real content
-5. **Railway Relay** (2 hours) - Data persistence
-
-**Total time:** ~4.5 hours to production-ready MVP
-
----
-
-## 🎯 CURRENT STATE SUMMARY
-
-**What Works Right Now:**
-- ✅ Beautiful design system (buttons, badges, colors, icons)
-- ✅ 3-column LMS lesson viewer
-- ✅ Interactive quiz system (auto-completes lessons)
-- ✅ Sequential lesson unlocking
-- ✅ Test experiment with 3 lessons
-- ✅ Comment structure (ready for Nostr)
-- ✅ EQ Visualizer in header
-
-**What Uses LocalStorage (Temporary):**
-- 🔄 Lesson completions
-- 🔄 Quiz attempts
-- 🔄 Progress tracking
-
-**What Needs Nostr Relay:**
-- ❌ Persistent data across devices
-- ❌ Lab notes (encrypted journaling)
-- ❌ Comments (NIP-10 threading)
-- ❌ Real community features
-
-**On Hold for Phase 2:**
-- 🔮 Sats economy
-- 🔮 Membership tiers (free vs paid)
-- 🔮 Payment integration
-- 🔮 Gamification
-
----
-
-## 🚀 WHEN YOU RETURN
-
-**Start fresh with:**
-```
-"Let's build the tabs on the Experiments page - 
-My Experiments, All Experiments, and Suggested"
-```
-
-Everything is documented. Nothing will be lost! 💜
-
----
-
-**Last Updated:** February 13, 2026, 7:15 PM  
-**Status:** Ready to resume building  
-**Next Session:** Tabs → Lab Notes → Vault → Full Curriculum → Relay
+**Last Updated:** February 14, 2026, 7:50 PM  
+**Status:** Ready for next session  
+**Next Priority:** Edit Profile page, Settings page, Followers/Following lists
 
 **Peace, LOVE, & Warm Aloha** 🌅💜
