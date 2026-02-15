@@ -45,16 +45,6 @@ export const dummyCurriculum: DummyExperiment[] = [
 - The science behind morning rituals
 
 **Key Insight:** When you start your day with love and intention, you create a ripple effect that touches everything you do.`,
-        quiz: {
-          questions: [{
-            id: 'q1',
-            type: 'multiple-choice',
-            question: 'What is the recommended duration for a morning miracle routine?',
-            options: ['5 minutes', '15 minutes', '30 minutes', '1 hour'],
-            correctAnswer: '15 minutes'
-          }]
-        },
-        journalPrompt: 'What does your ideal morning look like? Describe your perfect morning miracle routine in detail.',
         video: {
           url: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
         },
@@ -68,7 +58,17 @@ export const dummyCurriculum: DummyExperiment[] = [
             url: 'https://example.com/morning-checklist.pdf',
             size: '120 KB'
           }
-        ]
+        ],
+        quiz: {
+          questions: [{
+            id: 'q1',
+            type: 'multiple-choice',
+            question: 'What is the recommended duration for a morning miracle routine?',
+            options: ['5 minutes', '15 minutes', '30 minutes', '1 hour'],
+            correctAnswer: '15 minutes'
+          }]
+        },
+        journalPrompt: 'What does your ideal morning look like? Describe your perfect morning miracle routine in detail.'
       },
       {
         id: 'lesson-2',
@@ -76,9 +76,11 @@ export const dummyCurriculum: DummyExperiment[] = [
         content: `Gratitude is the foundation of all abundance. When you start your day by acknowledging what you already have, you open yourself to receive more.
 
 **Practice:** Write down 3 things you're grateful for every morning. Be specific and feel the gratitude in your body.`,
-        journalPrompt: 'Write down 5 things you\'re grateful for right now. How does this practice change your energy?',
         video: {
           url: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+        },
+        audio: {
+          url: 'https://example.com/gratitude-audio.mp3'
         },
         resources: [
           {
@@ -87,7 +89,8 @@ export const dummyCurriculum: DummyExperiment[] = [
             url: 'https://example.com/gratitude-template.pdf',
             size: '80 KB'
           }
-        ]
+        ],
+        journalPrompt: 'Write down 5 things you\'re grateful for right now. How does this practice change your energy?'
       }
     ]
   },

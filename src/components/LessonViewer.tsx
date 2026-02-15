@@ -10,6 +10,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useSaveJournalEntry } from '@/hooks/useExperimentJournal';
+import { useSaveExperimentProgress } from '@/hooks/useUserProfile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -105,7 +107,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
     }
   };
   
-  const handleQuizPass = () => {
+  const handleQuizPass = async () => {
     if (!passedQuizzes.includes(currentLesson.id)) {
       setPassedQuizzes([...passedQuizzes, currentLesson.id]);
     }
@@ -114,25 +116,40 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
     setJournalModalOpen(true);
   };
 
-  const handleJournalSave = () => {
-    // Auto-complete lesson after journal entry
-    if (!completedLessons.includes(currentLesson.id)) {
-      setCompletedLessons([...completedLessons, currentLesson.id]);
-      // TODO: Publish Nostr event (kind 30078)
+  const { mutateAsync: saveJournalEntry } = useSaveJournalEntry(experiment);
+  const saveProgress = useSaveExperimentProgress();
+
+  const handleJournalSave = async () => {
+    try {
+      // Save journal entry to Nostr (Railway relay)
+      await saveJournalEntry({
+        lessonId: currentLesson.id,
+        lessonTitle: currentLesson.title,
+        content: 'Journal entry content here' // This would come from journal modal
+      });
+
+      // Auto-complete lesson after journal entry
+      if (!completedLessons.includes(currentLesson.id)) {
+        setCompletedLessons([...completedLessons, currentLesson.id]);
+        // Save progress to Nostr
+        await saveProgress(experiment.id);
+      }
+      
+      // Close journal, show celebration
+      setJournalModalOpen(false);
+      
+      // Get random celebration
+      const celebration = getRandomCelebration();
+      setCurrentCelebration(celebration);
+      
+      // Play sound
+      playCelebrationSound(celebration.sound);
+      
+      // Show animation
+      setShowCelebration(true);
+    } catch (error) {
+      console.error('Failed to save journal/progress:', error);
     }
-    
-    // Close journal, show celebration
-    setJournalModalOpen(false);
-    
-    // Get random celebration
-    const celebration = getRandomCelebration();
-    setCurrentCelebration(celebration);
-    
-    // Play sound
-    playCelebrationSound(celebration.sound);
-    
-    // Show animation
-    setShowCelebration(true);
   };
 
   const handleCelebrationComplete = () => {
@@ -290,37 +307,37 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
             </Card>
           )}
 
-          {/* Downloadable Resources - MOVED HERE: Right after video, before content */}
-          {currentLesson.resources && currentLesson.resources.length > 0 && (
-            <Card className="bg-blue-50/50 border-blue-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Download className="h-4 w-4" />
-                  Downloadable Resources
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {currentLesson.resources.map((resource) => (
-                  <a
-                    key={resource.id}
-                    href={resource.url}
-                    download
-                    className="flex items-center justify-between p-3 rounded-lg border bg-white hover:bg-blue-50 transition-colors group"
-                  >
-                    <div>
-                      <p className="font-medium group-hover:text-primary transition-colors text-sm">
-                        {resource.title}
-                      </p>
-                      {resource.size && (
-                        <p className="text-xs text-muted-foreground">{resource.size}</p>
-                      )}
-                    </div>
-                    <Download className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </a>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+  {/* Downloadable Resources */}
+  {currentLesson.resources && currentLesson.resources.length > 0 && (
+    <Card className="bg-blue-50/50 border-blue-200">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Download className="h-4 w-4" />
+          Downloadable Resources
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {currentLesson.resources.map((resource) => (
+          <a
+            key={resource.id}
+            href={resource.url}
+            download
+            className="flex items-center justify-between p-3 rounded-lg border bg-white hover:bg-blue-50 transition-colors group"
+          >
+            <div>
+              <p className="font-medium group-hover:text-primary transition-colors text-sm">
+                {resource.title}
+              </p>
+              {resource.size && (
+                <p className="text-xs text-muted-foreground">{resource.size}</p>
+              )}
+            </div>
+            <Download className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+          </a>
+        ))}
+      </CardContent>
+    </Card>
+  )}
 
           {/* Lesson Content */}
           <Card>
