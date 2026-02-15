@@ -1,16 +1,11 @@
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useNostrPublish } from '@/hooks/useNostrPublish';
-import { useOpenRouter } from '@/hooks/useOpenRouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EQVisualizer } from '@/components/EQVisualizer';
 import { Lock } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useState } from 'react';
 
 // Data defined outside component
 const dimensions = [
@@ -29,13 +24,6 @@ const dimensions = [
 
 const BigDreams = () => {
   const { user } = useCurrentUser();
-  const { mutateAsync: publishEvent } = useNostrPublish();
-  const [testStatus, setTestStatus] = useState<string>('');
-  const [cacheTestStatus, setCacheTestStatus] = useState<string>('');
-  const [apiKey, setApiKey] = useState<string>('');
-
-  // Create OpenRouter instance with user key when available
-  const openRouter = useOpenRouter(apiKey || undefined);
 
   useSeoMeta({
     title: 'Big Dreams - 11x LOVE LaB',
@@ -60,109 +48,8 @@ const BigDreams = () => {
 
   const accountabilityBuddies = [
     { name: 'Sarah M.', streak: 14, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' },
-    { name: 'Mike R.', streak: 8, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike' },
-    { name: 'Alex K.', streak: 22, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex' },
+    { name: 'Mike T.', streak: 7, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike' },
   ];
-
-  const testRelayConnection = async () => {
-    if (!user) {
-      setTestStatus('❌ Please log in with Nostr first');
-      return;
-    }
-
-    setTestStatus('🔄 Testing Railway relay connection...');
-
-    try {
-      const event = await publishEvent({
-        kind: 1,
-        content: `🔒 PRIVATE TEST: 11x LOVE LaB on Railway relay - ${new Date().toISOString()}`,
-        tags: [['t', 'private-test'], ['client', '11xlove-lab']]
-      });
-
-      setTestStatus(`✅ Railway relay SUCCESS! Event ID: ${event.id.slice(0, 8)}... (Private post)`);
-      console.log('Railway test successful:', event);
-    } catch (error) {
-      console.error('Railway relay test failed:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      setTestStatus(`❌ Railway relay FAILED: ${errorMsg}`);
-    }
-  };
-
-  const testExtensionDetection = () => {
-    const hasExtension = 'nostr' in window;
-    const nostr = (window as any).nostr;
-    console.log('Nostr extension detected:', hasExtension);
-    console.log('window.nostr:', nostr);
-    
-    if (hasExtension) {
-      setTestStatus('✅ Extension detected! Try logging in.');
-    } else {
-      setTestStatus('❌ No Nostr extension detected. Install Alby.');
-    }
-  };
-
-  const testPromptCaching = async () => {
-    setCacheTestStatus('🔄 Testing XAI prompt caching...');
-
-    try {
-      // Use user-provided API key or platform key
-      const keyToUse = apiKey || import.meta.env.VITE_OPENROUTER_API_KEY;
-      if (!keyToUse) {
-        setCacheTestStatus('❌ Please enter your OpenRouter API key below or configure VITE_OPENROUTER_API_KEY');
-        return;
-      }
-
-      // System prompt (should be cached)
-      const systemMessage = {
-        role: 'system' as const,
-        content: 'You are Magic Mentor, a warm, wise AI life coach for the 11x LOVE platform. You help users achieve their big dreams through the 11 dimensions of prosperity.'
-      };
-
-      // User profile (should be cached)
-      const userProfile = {
-        role: 'user' as const,
-        content: 'USER PROFILE:\nName: Test User\nBig Dreams: [GOD, Mission, Body, Romance, Community]\nCompleted: Morning Miracle\nFocus: Body\nBuddies: @alice'
-      };
-
-      // Fresh message (never cached)
-      const freshMessage = {
-        role: 'user' as const,
-        content: 'Hello, can you give me one tip for improving my body dimension?'
-      };
-
-      const messages = [systemMessage, userProfile, freshMessage];
-
-      // Send first request
-      setCacheTestStatus('📤 Sending first request...');
-      const response1 = await openRouter.sendChatMessage(messages, 'x-ai/grok-4.1-fast');
-      const usage1 = response1.usage;
-      console.log('First request usage:', usage1);
-
-      // Wait a moment
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Send second request with same cached content
-      setCacheTestStatus('📤 Sending second request (should use cache)...');
-      const response2 = await openRouter.sendChatMessage(messages, 'x-ai/grok-4.1-fast');
-      const usage2 = response2.usage;
-      console.log('Second request usage:', usage2);
-
-      // Check if caching worked (input tokens should be lower)
-      const inputReduction = usage1.prompt_tokens - usage2.prompt_tokens;
-      const cacheWorked = inputReduction > 0;
-
-      setCacheTestStatus(
-        `✅ Cache test complete!\n` +
-        `First request: ${usage1.prompt_tokens} prompt tokens\n` +
-        `Second request: ${usage2.prompt_tokens} prompt tokens\n` +
-        `${cacheWorked ? '🎉 Caching working! Saved ' + inputReduction + ' tokens' : '❌ No caching detected'}`
-      );
-    } catch (error) {
-      console.error('Cache test failed:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      setCacheTestStatus(`❌ AI Cache Test Failed: ${errorMsg}`);
-    }
-  };
 
   if (!user) {
     return (
@@ -399,57 +286,11 @@ const BigDreams = () => {
                 )}
               </CardContent>
             </Card>
-           </div>
-         </div>
-
-         {/* Test Connections */}
-         <div className="mt-8 space-y-4">
-            {/* Test Nostr Extension Detection */}
-            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <h3 className="text-lg font-semibold mb-2">Test Nostr Extension</h3>
-              <Button onClick={testExtensionDetection} className="mr-4">
-                Test Extension Detection
-              </Button>
-              <span className="text-sm text-muted-foreground">{testStatus}</span>
-            </div>
-
-            {/* Test Relay Connection */}
-            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <h3 className="text-lg font-semibold mb-2">Test Railway Relay Connection</h3>
-              <Button onClick={testRelayConnection} disabled={!user} className="mr-4">
-                Test Publish Event
-              </Button>
-              <span className="text-sm text-muted-foreground">{testStatus}</span>
-            </div>
-
-            {/* Test Prompt Caching */}
-            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <h3 className="text-lg font-semibold mb-2">Test xAI Prompt Caching</h3>
-              <div className="mb-4">
-                <Label htmlFor="api-key" className="text-sm font-medium">
-                  OpenRouter API Key (for testing)
-                </Label>
-                <Input
-                  id="api-key"
-                  type="password"
-                  placeholder="sk-or-v1-..."
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="mt-1"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Get your free API key at <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">openrouter.ai</a>
-                </p>
-              </div>
-              <Button onClick={testPromptCaching} disabled={!apiKey && !import.meta.env.VITE_OPENROUTER_API_KEY} className="mr-4">
-                Test Cache
-              </Button>
-              <div className="text-sm text-muted-foreground whitespace-pre-line">{cacheTestStatus}</div>
-            </div>
-         </div>
-       </div>
-     </Layout>
-   );
- };
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+};
 
 export default BigDreams;

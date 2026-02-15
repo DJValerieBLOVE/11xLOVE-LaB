@@ -4,15 +4,13 @@ import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, Clock, Users, Star, Heart } from 'lucide-react';
-import { dummyCurriculum } from '@/data/dummyCurriculum';
+import { experiments } from '@/data/experiments';
+import { morningMiracleExperiment } from '@/data/test-experiment';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import type { Experiment } from '@/types/experiment';
-
-// Admin pubkey for createdBy field
-const ADMIN_PUBKEY = '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767';
 
 const Experiments = () => {
   const { user } = useCurrentUser();
@@ -45,34 +43,11 @@ const Experiments = () => {
     );
   }
 
-  // Use dummy curriculum data for testing
-  const allExperiments: Experiment[] = dummyCurriculum.map(exp => ({
-    id: exp.id,
-    title: exp.title,
-    description: exp.description,
-    dimension: exp.dimension,
-    level: 'Beginner',
-    duration: `${exp.lessons.length} lessons`,
-    instructor: 'DJ Valerie B LOVE',
-    enrolled: Math.floor(Math.random() * 100) + 50, // Random enrollment for demo
-    rating: Math.round((4.8 + Math.random() * 0.2) * 10) / 10, // Random rating 4.8-5.0, rounded to 1 decimal
-    color: `from-[${exp.color}] to-[${exp.color}dd]`, // Convert hex to gradient
-    valueForValue: true,
-    createdBy: ADMIN_PUBKEY,
-    modules: [{
-      id: 'module-1',
-      title: exp.title,
-      description: exp.description,
-      lessons: exp.lessons.map(lesson => ({
-        id: lesson.id,
-        title: lesson.title,
-        content: lesson.content,
-        quiz: lesson.quiz,
-        journalPrompt: lesson.journalPrompt,
-        type: 'lesson' as const,
-      }))
-    }]
-  }));
+  // Combine new template-based experiments with legacy static experiments
+  const allExperiments: Experiment[] = [
+    morningMiracleExperiment,
+    ...experiments,
+  ];
 
   const filteredExperiments = allExperiments.filter(exp =>
     exp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

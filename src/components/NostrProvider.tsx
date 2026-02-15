@@ -8,8 +8,6 @@ interface NostrProviderProps {
   children: React.ReactNode;
 }
 
-
-
 const NostrProvider: React.FC<NostrProviderProps> = (props) => {
   const { children } = props;
   const { config } = useAppContext();

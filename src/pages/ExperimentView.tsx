@@ -10,50 +10,20 @@ import { useSeoMeta } from '@unhead/react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Layout } from '@/components/Layout';
 import { LessonViewer } from '@/components/LessonViewer';
+import { morningMiracleExperiment } from '@/data/test-experiment';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Lock } from 'lucide-react';
-import { dummyCurriculum } from '@/data/dummyCurriculum';
 
-// Convert dummy curriculum to experiment format
-const EXPERIMENTS = dummyCurriculum.map(exp => ({
-  id: exp.id,
-  title: exp.title,
-  description: exp.description,
-  dimension: exp.dimension,
-  level: 'Beginner',
-  duration: `${exp.lessons.length} lessons`,
-  instructor: 'DJ Valerie B LOVE',
-  enrolled: Math.floor(Math.random() * 100) + 50,
-  rating: Math.round((4.8 + Math.random() * 0.2) * 10) / 10,
-  color: `from-[${exp.color}] to-[${exp.color}dd]`,
-  valueForValue: true,
-  createdBy: '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767',
-  modules: [{
-    id: 'module-1',
-    title: exp.title,
-    description: exp.description,
-    lessons: exp.lessons.map(lesson => ({
-      id: lesson.id,
-      title: lesson.title,
-      content: lesson.content,
-      quiz: lesson.quiz,
-      journalPrompt: lesson.journalPrompt,
-      type: 'lesson' as const,
-    }))
-  }]
-}));
+// In the future, this will query experiments from Nostr
+// For now, we have our test experiment
+const EXPERIMENTS = [morningMiracleExperiment];
 
 export default function ExperimentView() {
-  console.log('ExperimentView rendered for experimentId:', useParams<{ experimentId: string; lessonId?: string }>());
   const { experimentId, lessonId } = useParams<{ experimentId: string; lessonId?: string }>();
   const { user } = useCurrentUser();
   
   // Find the experiment
   const experiment = EXPERIMENTS.find((exp) => exp.id === experimentId);
-  console.log('Found experiment:', experiment);
-  if (experiment) {
-    console.log('First module lessons:', experiment.modules[0]?.lessons);
-  }
   
   useSeoMeta({
     title: experiment ? `${experiment.title} - 11x LOVE LaB` : 'Experiment - 11x LOVE LaB',
