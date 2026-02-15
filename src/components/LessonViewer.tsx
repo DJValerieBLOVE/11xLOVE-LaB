@@ -47,7 +47,7 @@ interface LessonViewerProps {
 }
 
 export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps) {
-  const { user } = useCurrentUser();
+  const { user, metadata } = useCurrentUser();
   
   // Get all lessons flattened for easy navigation
   const allLessons = experiment.modules.flatMap((module) => 
@@ -431,13 +431,13 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
             <div className="space-y-2">
               <div className="flex items-start gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.metadata?.picture} />
+                  <AvatarImage src={metadata?.picture} />
                   <AvatarFallback>VIP</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-sm font-medium truncate">
-                      {user?.metadata?.name || 'VIP Member'}
+                      {metadata?.name || 'VIP Member'}
                     </span>
                     <span className="text-xs text-muted-foreground">2h ago</span>
                   </div>

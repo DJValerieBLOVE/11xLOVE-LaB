@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
 const Feed = () => {
-  const { user } = useCurrentUser();
+  const { user, metadata } = useCurrentUser();
 
   useSeoMeta({
     title: 'Feed - 11x LOVE LaB',
@@ -111,7 +111,7 @@ const Feed = () => {
               <CardContent className="p-4">
                 <div className="flex gap-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={user.metadata?.picture} />
+                    <AvatarImage src={metadata?.picture} />
                     <AvatarFallback>ME</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
