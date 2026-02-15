@@ -51,7 +51,8 @@ export function useOpenRouter(apiKey?: string) {
     // Use platform key for non-BYOK users
     const platformKey = import.meta.env.VITE_OPENROUTER_API_KEY;
     if (!platformKey) {
-      throw new Error('OpenRouter API key not configured. Please provide an API key or contact support.');
+      console.warn('OpenRouter API key not found in environment variables');
+      throw new Error('OpenRouter API key not configured. Please set VITE_OPENROUTER_API_KEY or provide a user API key.');
     }
     return `Bearer ${platformKey}`;
   }, [apiKey]);

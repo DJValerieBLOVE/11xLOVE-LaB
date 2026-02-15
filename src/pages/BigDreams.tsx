@@ -61,30 +61,39 @@ const BigDreams = () => {
 
   const testRelayConnection = async () => {
     if (!user) {
-      setTestStatus('Please log in first');
+      setTestStatus('❌ Please log in with Nostr first');
       return;
     }
 
-    setTestStatus('Testing Railway relay connection...');
+    setTestStatus('🔄 Testing Railway relay connection...');
 
     try {
       const event = await publishEvent({
         kind: 1,
         content: `🔒 PRIVATE TEST: 11x LOVE LaB on Railway relay - ${new Date().toISOString()}`,
-        tags: [['t', 'private-test'], ['client', '11xlove-lab'], ['private', 'true']]
+        tags: [['t', 'private-test'], ['client', '11xlove-lab']]
       });
 
       setTestStatus(`✅ Railway relay SUCCESS! Event ID: ${event.id.slice(0, 8)}... (Private post)`);
+      console.log('Railway test successful:', event);
     } catch (error) {
       console.error('Railway relay test failed:', error);
-      setTestStatus(`❌ Railway relay FAILED: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      setTestStatus(`❌ Railway relay FAILED: ${errorMsg}`);
     }
   };
 
   const testPromptCaching = async () => {
-    setCacheTestStatus('Testing prompt caching...');
+    setCacheTestStatus('🔄 Testing XAI prompt caching...');
 
     try {
+      // Check for API key first
+      const platformKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+      if (!platformKey) {
+        setCacheTestStatus('❌ OpenRouter API key not configured. Set VITE_OPENROUTER_API_KEY environment variable.');
+        return;
+      }
+
       // System prompt (should be cached)
       const systemMessage = {
         role: 'system' as const,
@@ -106,7 +115,7 @@ const BigDreams = () => {
       const messages = [systemMessage, userProfile, freshMessage];
 
       // Send first request
-      setCacheTestStatus('Sending first request...');
+      setCacheTestStatus('📤 Sending first request...');
       const response1 = await sendChatMessage(messages, 'x-ai/grok-4.1-fast');
       const usage1 = response1.usage;
       console.log('First request usage:', usage1);
@@ -115,7 +124,7 @@ const BigDreams = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Send second request with same cached content
-      setCacheTestStatus('Sending second request (should use cache)...');
+      setCacheTestStatus('📤 Sending second request (should use cache)...');
       const response2 = await sendChatMessage(messages, 'x-ai/grok-4.1-fast');
       const usage2 = response2.usage;
       console.log('Second request usage:', usage2);
@@ -132,7 +141,8 @@ const BigDreams = () => {
       );
     } catch (error) {
       console.error('Cache test failed:', error);
-      setCacheTestStatus(`❌ Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      setCacheTestStatus(`❌ AI Cache Test Failed: ${errorMsg}`);
     }
   };
 
