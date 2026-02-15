@@ -47,7 +47,7 @@ interface LessonViewerProps {
 }
 
 export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps) {
-  const { user } = useCurrentUser();
+  const { user, metadata } = useCurrentUser();
   
   // Get all lessons flattened for easy navigation
   const allLessons = experiment.modules.flatMap((module) => 

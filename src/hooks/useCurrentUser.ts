@@ -40,9 +40,16 @@ export function useCurrentUser() {
   const user = users[0] as NUser | undefined;
   const author = useAuthor(user?.pubkey);
 
+  // Attach metadata to user object for easier access
+  const userWithMetadata = user ? {
+    ...user,
+    metadata: author.data?.metadata,
+  } : undefined;
+
   return {
-    user,
+    user: userWithMetadata,
     users,
-    ...author.data,
+    metadata: author.data?.metadata,
+    event: author.data?.event,
   };
 }
