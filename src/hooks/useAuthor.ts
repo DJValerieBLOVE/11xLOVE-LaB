@@ -39,11 +39,11 @@ export function useAuthor(pubkey: string | undefined) {
 
       console.log('[useAuthor] Querying relays:', relaysToUse);
 
-      const publicRelays = nostr.group(relaysToUse);
-
+      // Try querying ALL relays, not just a group
+      // This is more reliable than nostr.group()
       console.log('[useAuthor] Starting query for kind 0 event...');
       
-      const events = await publicRelays.query(
+      const events = await nostr.query(
         [{ kinds: [0], authors: [pubkey!], limit: 1 }],
         { signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]) },
       );
@@ -55,9 +55,38 @@ export function useAuthor(pubkey: string | undefined) {
 
       if (!event) {
         console.error('[useAuthor] No kind 0 event found for pubkey:', pubkey);
-        console.error('[useAuthor] Relays queried:', relaysToUse);
-        console.error('[useAuthor] This means your profile does not exist on these relays!');
-        throw new Error('No event found');
+        console.error('[useAuthor] Relays in config:', config.relayMetadata.relays);
+        console.error('[useAuthor] This should not happen - your profile exists on Nostr!');
+        console.error('[useAuthor] Trying individual relay connections...');
+        
+        // Try each relay individually to debug
+        for (const relayUrl of relaysToUse) {
+          try {
+            console.log(`[useAuthor] Trying ${relayUrl}...`);
+            const relay = nostr.relay(relayUrl);
+            const relayEvents = await relay.query(
+              [{ kinds: [0], authors: [pubkey!], limit: 1 }],
+              { signal: AbortSignal.timeout(3000) }
+            );
+            console.log(`[useAuthor] ${relayUrl} returned:`, relayEvents);
+            if (relayEvents.length > 0) {
+              console.log(`[useAuthor] SUCCESS! Found profile on ${relayUrl}`);
+              const foundEvent = relayEvents[0];
+              try {
+                const metadata = n.json().pipe(n.metadata()).parse(foundEvent.content);
+                console.log('[useAuthor] Profile metadata:', metadata);
+                return { metadata, event: foundEvent };
+              } catch (parseError) {
+                console.error('[useAuthor] Failed to parse metadata:', parseError);
+                return { event: foundEvent };
+              }
+            }
+          } catch (err) {
+            console.error(`[useAuthor] ${relayUrl} failed:`, err);
+          }
+        }
+        
+        throw new Error('No event found on any relay');
       }
       
       console.log('[useAuthor] Found profile event:', event);
