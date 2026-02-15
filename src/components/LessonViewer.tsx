@@ -49,6 +49,8 @@ interface LessonViewerProps {
 }
 
 export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps) {
+  console.log('LessonViewer experiment:', experiment);
+  console.log('LessonViewer initialLessonId:', initialLessonId);
   const { user } = useCurrentUser();
   
   // Get all lessons flattened for easy navigation

@@ -62,42 +62,42 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
     }
   };
 
-  const calculateScore = () => {
-    let correct = 0;
-    
-    quiz.questions.forEach((question) => {
-      const userAnswer = answers[question.id]?.trim().toLowerCase();
-      const correctAnswer = question.correctAnswer.trim().toLowerCase();
+    const calculateScore = () => {
+      let correct = 0;
       
-      // For fill-in-blank with empty correctAnswer, any answer is correct
-      if (question.type === 'fill-in-blank' && correctAnswer === '') {
-        if (userAnswer && userAnswer.length > 0) {
+      quiz.questions.forEach((question) => {
+        const userAnswer = answers[question.id]?.trim().toLowerCase();
+        const correctAnswer = question.correctAnswer.toString().trim().toLowerCase();
+        
+        // For fill-in-blank with empty correctAnswer, any answer is correct
+        if (question.type === 'fill-in-blank' && correctAnswer === '') {
+          if (userAnswer && userAnswer.length > 0) {
+            correct++;
+          }
+        } else if (userAnswer === correctAnswer) {
           correct++;
         }
-      } else if (userAnswer === correctAnswer) {
-        correct++;
+      });
+      
+      const scorePercentage = Math.round((correct / totalQuestions) * 100);
+      const quizPassed = scorePercentage >= quiz.passingScore;
+      
+      setScore(scorePercentage);
+      setPassed(quizPassed);
+      setShowResults(true);
+      
+      // Save quiz attempt to localStorage (will be Nostr event later)
+      localStorage.setItem(`quiz-attempt-${lessonId}`, JSON.stringify({
+        score: scorePercentage,
+        passed: quizPassed,
+        completedAt: new Date().toISOString(),
+      }));
+      
+      // If passed, notify parent component
+      if (quizPassed) {
+        onPass();
       }
-    });
-
-    const scorePercentage = Math.round((correct / totalQuestions) * 100);
-    const quizPassed = scorePercentage >= quiz.passingScore;
-    
-    setScore(scorePercentage);
-    setPassed(quizPassed);
-    setShowResults(true);
-
-    // Save quiz attempt to localStorage (will be Nostr event later)
-    localStorage.setItem(`quiz-attempt-${lessonId}`, JSON.stringify({
-      score: scorePercentage,
-      passed: quizPassed,
-      completedAt: new Date().toISOString(),
-    }));
-
-    // If passed, notify parent component
-    if (quizPassed) {
-      onPass();
-    }
-  };
+    };
 
   const handleRetry = () => {
     // Reset quiz state

@@ -49,6 +49,7 @@ export default function ExperimentView() {
   
   // Find the experiment
   const experiment = EXPERIMENTS.find((exp) => exp.id === experimentId);
+  console.log('Found experiment:', experiment);
   
   useSeoMeta({
     title: experiment ? `${experiment.title} - 11x LOVE LaB` : 'Experiment - 11x LOVE LaB',
