@@ -41,17 +41,26 @@ export function useAuthor(pubkey: string | undefined) {
 
       const publicRelays = nostr.group(relaysToUse);
 
-      const [event] = await publicRelays.query(
+      console.log('[useAuthor] Starting query for kind 0 event...');
+      
+      const events = await publicRelays.query(
         [{ kinds: [0], authors: [pubkey!], limit: 1 }],
-        { signal: AbortSignal.any([signal, AbortSignal.timeout(1500)]) },
+        { signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]) },
       );
 
-      console.log('[useAuthor] Query result:', event ? 'Found profile event' : 'No profile found');
+      console.log('[useAuthor] Query complete. Events returned:', events);
+      console.log('[useAuthor] Number of events:', events.length);
+
+      const event = events[0];
 
       if (!event) {
         console.error('[useAuthor] No kind 0 event found for pubkey:', pubkey);
+        console.error('[useAuthor] Relays queried:', relaysToUse);
+        console.error('[useAuthor] This means your profile does not exist on these relays!');
         throw new Error('No event found');
       }
+      
+      console.log('[useAuthor] Found profile event:', event);
 
       try {
         const metadata = n.json().pipe(n.metadata()).parse(event.content);
