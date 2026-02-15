@@ -270,46 +270,49 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
             </div>
           </div>
 
-          {/* Video Player */}
-          {currentLesson.video && (
-            <Card>
-              <CardContent className="p-0">
-                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                  <iframe
-                    className="absolute top-0 left-0 w-full h-full rounded-t-lg"
-                    src={currentLesson.video.url}
-                    title={currentLesson.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-                
-                {/* Audio Toggle */}
-                {currentLesson.audio && (
-                  <div className="p-3 border-t bg-muted/30">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowAudio(!showAudio)}
-                      className="w-full justify-start"
-                    >
-                      <Headphones className="h-4 w-4 mr-2" />
-                      {showAudio ? 'Hide' : 'Show'} Audio Version
-                    </Button>
-                    
-                    {showAudio && currentLesson.audio && (
-                      <audio controls className="w-full mt-2">
-                        <source src={currentLesson.audio.url} />
-                        Your browser does not support audio playback.
-                      </audio>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+  {/* Video Player */}
+  {console.log('Current lesson video:', currentLesson.video)}
+  {currentLesson.video && currentLesson.video.url && (
+    <Card>
+      <CardContent className="p-0">
+        <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+          <iframe
+            className="absolute top-0 left-0 w-full h-full rounded-t-lg"
+            src={currentLesson.video.url}
+            title={currentLesson.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+        
+        {/* Audio Toggle */}
+        {console.log('Current lesson audio:', currentLesson.audio)}
+        {currentLesson.audio && currentLesson.audio.url && (
+          <div className="p-3 border-t bg-muted/30">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAudio(!showAudio)}
+              className="w-full justify-start"
+            >
+              <Headphones className="h-4 w-4 mr-2" />
+              {showAudio ? 'Hide' : 'Show'} Audio Version
+            </Button>
+            
+            {showAudio && currentLesson.audio && (
+              <audio controls className="w-full mt-2">
+                <source src={currentLesson.audio.url} />
+                Your browser does not support audio playback.
+              </audio>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )}
 
   {/* Downloadable Resources */}
+  {console.log('Current lesson resources:', currentLesson.resources)}
   {currentLesson.resources && currentLesson.resources.length > 0 && (
     <Card className="bg-blue-50/50 border-blue-200">
       <CardHeader className="pb-3">
