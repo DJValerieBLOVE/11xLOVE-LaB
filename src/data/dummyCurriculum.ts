@@ -54,7 +54,21 @@ export const dummyCurriculum: DummyExperiment[] = [
             correctAnswer: '15 minutes'
           }]
         },
-        journalPrompt: 'What does your ideal morning look like? Describe your perfect morning miracle routine in detail.'
+        journalPrompt: 'What does your ideal morning look like? Describe your perfect morning miracle routine in detail.',
+        video: {
+          url: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+        },
+        audio: {
+          url: 'https://example.com/morning-miracle-audio.mp3'
+        },
+        resources: [
+          {
+            id: 'morning-checklist',
+            title: 'Morning Miracle Checklist (PDF)',
+            url: 'https://example.com/morning-checklist.pdf',
+            size: '120 KB'
+          }
+        ]
       },
       {
         id: 'lesson-2',
@@ -62,7 +76,18 @@ export const dummyCurriculum: DummyExperiment[] = [
         content: `Gratitude is the foundation of all abundance. When you start your day by acknowledging what you already have, you open yourself to receive more.
 
 **Practice:** Write down 3 things you're grateful for every morning. Be specific and feel the gratitude in your body.`,
-        journalPrompt: 'Write down 5 things you\'re grateful for right now. How does this practice change your energy?'
+        journalPrompt: 'Write down 5 things you\'re grateful for right now. How does this practice change your energy?',
+        video: {
+          url: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+        },
+        resources: [
+          {
+            id: 'gratitude-journal',
+            title: 'Gratitude Journal Template (PDF)',
+            url: 'https://example.com/gratitude-template.pdf',
+            size: '80 KB'
+          }
+        ]
       }
     ]
   },
@@ -94,7 +119,21 @@ export const dummyCurriculum: DummyExperiment[] = [
             correctAnswer: '21 million'
           }]
         },
-        journalPrompt: 'How would having true financial sovereignty change your life? What fears come up when you think about Bitcoin?'
+        journalPrompt: 'How would having true financial sovereignty change your life? What fears come up when you think about Bitcoin?',
+        video: {
+          url: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+        },
+        audio: {
+          url: 'https://example.com/bitcoin-basics-audio.mp3'
+        },
+        resources: [
+          {
+            id: 'bitcoin-whitepaper',
+            title: 'Bitcoin Whitepaper (PDF)',
+            url: 'https://bitcoin.org/bitcoin.pdf',
+            size: '250 KB'
+          }
+        ]
       }
     ]
   },
@@ -113,7 +152,21 @@ export const dummyCurriculum: DummyExperiment[] = [
 **Truth:** Your body hears every thought you have about it. Negative self-talk creates stress hormones that literally make you sick.
 
 **Practice:** Look in the mirror and speak to your body as you would speak to a beloved child.`,
-        journalPrompt: 'Write a love letter to your body. What does it need from you right now?'
+        journalPrompt: 'Write a love letter to your body. What does it need from you right now?',
+        video: {
+          url: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+        },
+        audio: {
+          url: 'https://example.com/body-love-audio.mp3'
+        },
+        resources: [
+          {
+            id: 'body-love-workbook',
+            title: 'Body Love Workbook (PDF)',
+            url: 'https://example.com/body-love-workbook.pdf',
+            size: '1.2 MB'
+          }
+        ]
       }
     ]
   }
