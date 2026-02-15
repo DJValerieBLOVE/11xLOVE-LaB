@@ -8,7 +8,7 @@ export function useAuthor(pubkey: string | undefined) {
   const { config } = useAppContext();
 
   return useQuery<{ event?: NostrEvent; metadata?: NostrMetadata }>({
-    queryKey: ['author', pubkey ?? '', config.relayMetadata.updatedAt],
+    queryKey: ['author', pubkey ?? ''],
     queryFn: async ({ signal }) => {
       if (!pubkey) {
         console.log('[useAuthor] No pubkey provided');
