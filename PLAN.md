@@ -59,11 +59,56 @@ A $1,000/year selective coaching community platform called **11x LOVE LaB** ("Le
 |---|---|---|
 | **Frontend** | React + Tailwind CSS | MKStack template — already set up |
 | **Identity** | Nostr login (NIP-07 / NIP-46) | User owns keys |
-| **Data Persistence** | Private Nostr relay on Railway | All progress stored as Nostr events — persists across devices/browsers |
-| **Local Cache** | IndexedDB (browser) | Speed layer only — relay is source of truth |
-| **Private Community** | NIP-29 group on relay | Authenticated access, private by default |
+| **Data Persistence** | Private Nostr relay on Railway | All LaB data stored here — persists across devices/browsers |
+| **Social Nostr** | Public relays (read-only) | Profiles, follows, public feed interactions |
+| **Local Cache** | IndexedDB (browser) | Speed layer only — relays are source of truth |
+| **Private Community** | NIP-29 groups on relay | Authenticated access, private by default |
 | **Zaps / V4V** | NIP-57 | Non-custodial — user's own wallet |
 | **Encryption** | NIP-44 | Private data encrypted with user's Nostr key |
+
+---
+
+## DUAL-RELAY ARCHITECTURE
+
+### 🔒 Private Railway Relay (Write + Read)
+**URL:** `wss://nostr-rs-relay-production-1569.up.railway.app`
+
+**What Goes Here:**
+- ✅ Experiment progress (kind 30078)
+- ✅ Lab Notes / journal entries (kind 30023, encrypted)
+- ✅ 5V's Daily Practice check-ins (kind 30078)
+- ✅ Big Dreams (kind 30078)
+- ✅ Tribe messages (NIP-29: kind 9, 11, 12)
+- ✅ Private posts (user's choice)
+- ✅ Experiment completions / milestones (unless shared publicly)
+
+**Privacy:** NIP-42 AUTH required, admin-controlled whitelist
+
+---
+
+### 🌍 Public Relays (Read-only)
+**URLs:** 
+- `wss://relay.primal.net`
+- `wss://relay.damus.io`
+- `wss://relay.ditto.pub`
+
+**What We Read:**
+- ✅ User profiles (kind 0)
+- ✅ Follow lists (kind 3)
+- ✅ Public feed posts (kind 1)
+- ✅ Reactions (kind 7)
+- ✅ Zaps (kind 9735)
+- ✅ Public articles (kind 30023)
+
+**User Can:**
+- ✅ Reply to public Nostr posts
+- ✅ React/zap public content
+- ✅ Choose to share their posts publicly (publishes to Railway + public relays)
+
+**Privacy:** 
+- User chooses what to share publicly
+- LaB data NEVER goes to public relays
+- Tribe messages NEVER go to public relays
 
 ---
 
@@ -195,14 +240,20 @@ colors: {
 
 ---
 
-### Chunk 2: Connect to Private Relay
+### ✅ Chunk 2: Connect to Private Relay (COMPLETE)
 **Build:**
-- WebSocket connection to Railway relay
-- NIP-42 authentication handshake
-- Publish test event and read back
-- IndexedDB caching
+- ✅ WebSocket connection to Railway relay
+- ✅ NIP-42 authentication handshake (automatic via NRelay1)
+- ✅ Dual-relay setup: Private Railway + Public relays (read-only)
+- ✅ Smart routing: LaB data → Railway only, Social data → Public relays
+- IndexedDB caching (pending)
 
 **Test:** Can app publish to relay and read back? Does second device see same event? ✓
+
+**Privacy Model:**
+- 🔒 **Railway Relay (Write):** All LaB data (experiments, journal, 5V's, tribes)
+- 🌍 **Public Relays (Read-only):** Profiles, follows, public feed
+- ✅ **User Choice:** Can share milestones/posts to public Nostr if desired
 
 ---
 
@@ -231,16 +282,35 @@ colors: {
 
 ---
 
-### Chunk 5: Tribe (NIP-29 Private Community)
+### Chunk 5: Feed System + Tribes (NIP-29 Private Community)
 **Build:**
-- NIP-29 group on private relay
-- Group chat feed
-- Reply threading
-- Member list
-- Admin: add/remove members
-- Basic moderation
+- **Feed Page with Customizable Tabs:**
+  - "My Tribes" tab (all tribes user is in)
+  - "Following" tab (public Nostr people they follow)
+  - "Trending" tab (optional, public Nostr trending)
+  - User can add/remove/reorder tabs
+  
+- **Individual Tribe Pages:**
+  - NIP-29 group on private Railway relay
+  - Private tribe feed (NEVER public - no share button)
+  - Reply threading (tribe-only)
+  - Member list
+  - Admin: add/remove members
+  - Basic moderation
+  
+- **Publish Options:**
+  - Post to specific tribe(s) → Railway relay
+  - Post to public Nostr → Public relays (user choice)
+  - NO share button on tribe-only posts (always private)
+  - Share button on user's own posts (can make public if desired)
 
-**Test:** Members can post? Only authenticated see messages? Admin can manage? ✓
+**Privacy Rules:**
+- ❌ Tribe messages (kind 9, 11, 12) → NEVER public
+- ✅ General posts → User chooses (tribe or public)
+- 🔒 LaB data (progress, journal, 5V's) → Always private Railway relay
+- ✅ Public relay interactions → User can reply/react to public Nostr
+
+**Test:** Members can post? Only tribe members see? Can reply to public Nostr? Share button logic correct? ✓
 
 ---
 
