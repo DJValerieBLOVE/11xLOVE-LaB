@@ -2,7 +2,7 @@ import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Clock, Users, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { Lock, Users, MoreHorizontal } from 'lucide-react';
 import { events } from '@/data/events';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

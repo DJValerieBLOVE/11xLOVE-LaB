@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Clock, Users, Star, Heart } from 'lucide-react';
+import { Lock, Clock, Users, Heart } from 'lucide-react';
 import { experiments } from '@/data/experiments';
 import { morningMiracleExperiment } from '@/data/test-experiment';
 import { Badge } from '@/components/ui/badge';
@@ -75,8 +75,6 @@ const Experiments = () => {
         {/* Experiment Cards Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredExperiments.map((experiment) => {
-            const totalLessons = experiment.modules.reduce((acc, mod) => acc + mod.lessons.length, 0);
-            
             return (
               <Card key={experiment.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer group flex flex-col min-h-[420px]">
                 {/* Colored Header */}

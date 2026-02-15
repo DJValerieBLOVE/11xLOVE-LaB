@@ -14,7 +14,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useAuthor } from '@/hooks/useAuthor';
 import { genUserName } from '@/lib/genUserName';
-import type { NostrEvent } from '@nostrify/nostrify';
 import { nip19 } from 'nostr-tools';
 
 interface FollowListModalProps {

@@ -115,7 +115,10 @@ export function getRandomCelebration(): Celebration {
  */
 export function playCelebrationSound(sound: CelebrationSound) {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    interface WindowWithWebkit extends Window {
+      webkitAudioContext?: typeof AudioContext;
+    }
+    const audioContext = new (window.AudioContext || (window as WindowWithWebkit).webkitAudioContext)();
     const frequencies = SOUND_FREQUENCIES[sound];
     
     frequencies.forEach((freq, index) => {

@@ -11,7 +11,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Layout } from '@/components/Layout';
 import { LessonViewer } from '@/components/LessonViewer';
 import { morningMiracleExperiment } from '@/data/test-experiment';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Lock } from 'lucide-react';
 
 // In the future, this will query experiments from Nostr

@@ -38,6 +38,9 @@ export default function JournalView() {
     return <Navigate to="/experiments" replace />;
   }
   
+  // Use journal hook (must be called before any conditional returns)
+  const { data: journal, isLoading } = useExperimentJournal(experiment);
+  
   // Require login
   if (!user) {
     return (
@@ -60,8 +63,6 @@ export default function JournalView() {
       </Layout>
     );
   }
-  
-  const { data: journal, isLoading } = useExperimentJournal(experiment);
   
   return (
     <Layout>
