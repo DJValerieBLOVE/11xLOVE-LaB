@@ -55,7 +55,7 @@ const Experiments = () => {
     duration: `${exp.lessons.length} lessons`,
     instructor: 'DJ Valerie B LOVE',
     enrolled: Math.floor(Math.random() * 100) + 50, // Random enrollment for demo
-    rating: 4.8 + Math.random() * 0.2, // Random rating 4.8-5.0
+    rating: Math.round((4.8 + Math.random() * 0.2) * 10) / 10, // Random rating 4.8-5.0, rounded to 1 decimal
     color: `from-[${exp.color}] to-[${exp.color}dd]`, // Convert hex to gradient
     valueForValue: true,
     createdBy: ADMIN_PUBKEY,
