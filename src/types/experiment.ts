@@ -15,6 +15,7 @@ export interface Experiment {
   enrolled: number;
   rating: number;
   color: string; // Tailwind gradient classes
+  image?: string; // Cover image URL (16:9 aspect ratio recommended, like YouTube)
   modules: Module[];
   createdBy: string; // npub of creator (admin only for now)
   valueForValue: boolean; // true = free, false = paid

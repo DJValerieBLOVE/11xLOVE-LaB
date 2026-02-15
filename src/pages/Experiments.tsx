@@ -16,6 +16,7 @@ import { useState } from 'react';
 import type { Experiment } from '@/types/experiment';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { DIMENSIONS } from '@/lib/dimensions';
+import { DimensionCardImage } from '@/components/ui/card-image';
 
 const Experiments = () => {
   const { user } = useCurrentUser();
@@ -358,12 +359,15 @@ interface ExperimentCardProps {
 
 function ExperimentCard({ experiment, showProgress, showCompleted, showEdit }: ExperimentCardProps) {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer group flex flex-col min-h-[420px]">
-      {/* Colored Header */}
-      <div className={`h-36 bg-gradient-to-br ${experiment.color} flex items-center justify-center flex-shrink-0 relative`}>
-        <h3 className="text-white text-2xl font-bold text-center px-4 line-clamp-2">
-          {experiment.title}
-        </h3>
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer group flex flex-col">
+      {/* 16:9 Aspect Ratio Image/Header */}
+      <div className="relative flex-shrink-0">
+        <DimensionCardImage
+          src={experiment.image}
+          alt={experiment.title}
+          dimensionId={experiment.dimension}
+          fallbackText={experiment.title}
+        />
         
         {showProgress && (
           <div className="absolute bottom-2 left-2 right-2">

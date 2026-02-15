@@ -101,7 +101,7 @@ export function EQVisualizer({
 
 /**
  * Compact EQ Visualizer for header/navigation
- * Matches the colorful bar design from the screenshot
+ * Matches the colorful bar design from the screenshot - sharp rectangle segments!
  */
 export function CompactEQVisualizer({ levels, className }: Pick<EQVisualizerProps, 'levels' | 'className'>) {
   // Default animated levels if none provided (random heights for visual appeal)
@@ -122,7 +122,7 @@ export function CompactEQVisualizer({ levels, className }: Pick<EQVisualizerProp
   const activeLevels = Object.keys(levels || {}).length > 0 ? levels : defaultLevels;
 
   return (
-    <div className={cn('flex items-end justify-center gap-0.5', className)}>
+    <div className={cn('flex items-end justify-center gap-[2px]', className)}>
       {DIMENSIONS.map((dimension) => {
         const level = (activeLevels?.[dimension.id] || 50);
         // Create 5 segments per bar for the EQ effect
@@ -132,7 +132,7 @@ export function CompactEQVisualizer({ levels, className }: Pick<EQVisualizerProp
         return (
           <div
             key={dimension.id}
-            className="flex flex-col gap-0.5"
+            className="flex flex-col gap-[2px]"
             title={`${dimension.name}: ${level}%`}
           >
             {Array.from({ length: segments }).map((_, i) => {
@@ -143,7 +143,8 @@ export function CompactEQVisualizer({ levels, className }: Pick<EQVisualizerProp
                 <div
                   key={i}
                   className={cn(
-                    'w-3 h-2 rounded-sm transition-all duration-300',
+                    'w-4 h-[6px] transition-all duration-300',
+                    // NO rounded corners - sharp rectangles like in the screenshot!
                     isActive ? 'opacity-100' : 'opacity-20'
                   )}
                   style={{
