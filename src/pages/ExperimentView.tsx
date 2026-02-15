@@ -44,6 +44,7 @@ const EXPERIMENTS = dummyCurriculum.map(exp => ({
 }));
 
 export default function ExperimentView() {
+  console.log('ExperimentView rendered for experimentId:', useParams<{ experimentId: string; lessonId?: string }>());
   const { experimentId, lessonId } = useParams<{ experimentId: string; lessonId?: string }>();
   const { user } = useCurrentUser();
   
