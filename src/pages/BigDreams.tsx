@@ -88,6 +88,19 @@ const BigDreams = () => {
     }
   };
 
+  const testExtensionDetection = () => {
+    const hasExtension = 'nostr' in window;
+    const nostr = (window as any).nostr;
+    console.log('Nostr extension detected:', hasExtension);
+    console.log('window.nostr:', nostr);
+    
+    if (hasExtension) {
+      setTestStatus('✅ Extension detected! Try logging in.');
+    } else {
+      setTestStatus('❌ No Nostr extension detected. Install Alby.');
+    }
+  };
+
   const testPromptCaching = async () => {
     setCacheTestStatus('🔄 Testing XAI prompt caching...');
 
@@ -391,14 +404,23 @@ const BigDreams = () => {
 
          {/* Test Connections */}
          <div className="mt-8 space-y-4">
-           {/* Test Relay Connection */}
-           <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-             <h3 className="text-lg font-semibold mb-2">Test Railway Relay Connection</h3>
-             <Button onClick={testRelayConnection} disabled={!user} className="mr-4">
-               Test Publish Event
-             </Button>
-             <span className="text-sm text-muted-foreground">{testStatus}</span>
-           </div>
+            {/* Test Nostr Extension Detection */}
+            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+              <h3 className="text-lg font-semibold mb-2">Test Nostr Extension</h3>
+              <Button onClick={testExtensionDetection} className="mr-4">
+                Test Extension Detection
+              </Button>
+              <span className="text-sm text-muted-foreground">{testStatus}</span>
+            </div>
+
+            {/* Test Relay Connection */}
+            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+              <h3 className="text-lg font-semibold mb-2">Test Railway Relay Connection</h3>
+              <Button onClick={testRelayConnection} disabled={!user} className="mr-4">
+                Test Publish Event
+              </Button>
+              <span className="text-sm text-muted-foreground">{testStatus}</span>
+            </div>
 
             {/* Test Prompt Caching */}
             <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">

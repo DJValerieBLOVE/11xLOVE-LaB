@@ -74,7 +74,7 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
           if (userAnswer && userAnswer.length > 0) {
             correct++;
           }
-        } else if (userAnswer === correctAnswer) {
+        } else if (userAnswer.includes(correctAnswer) || userAnswer === correctAnswer) {
           correct++;
         }
       });
