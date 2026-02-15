@@ -40,10 +40,30 @@ export function NostrSync() {
 
             if (fetchedRelays.length > 0) {
               console.log('Syncing relay list from Nostr:', fetchedRelays);
+              
+              // ALWAYS keep Railway relay as primary write relay
+              const railwayRelay = {
+                url: 'wss://nostr-rs-relay-production-1569.up.railway.app',
+                read: true,
+                write: true,
+              };
+              
+              // Add user's public relays as read-only (for social Nostr data)
+              const publicRelays = fetchedRelays.map(r => ({
+                ...r,
+                write: false, // Public relays are read-only
+              }));
+              
+              // Merge: Railway first, then user's public relays
+              const mergedRelays = [
+                railwayRelay,
+                ...publicRelays.filter(r => !r.url.includes('railway.app')),
+              ];
+              
               updateConfig((current) => ({
                 ...current,
                 relayMetadata: {
-                  relays: fetchedRelays,
+                  relays: mergedRelays,
                   updatedAt: event.created_at,
                 },
               }));

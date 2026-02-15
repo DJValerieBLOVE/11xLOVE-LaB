@@ -106,13 +106,25 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
     setPassed(false);
   };
 
+  const handleContinue = () => {
+    if (passed) {
+      console.log('Quiz passed - triggering journal modal');
+      // Call onPass FIRST (this opens journal modal in parent)
+      onPass();
+      // Small delay to ensure journal modal state updates before closing quiz
+      setTimeout(() => {
+        console.log('Closing quiz modal');
+        onClose();
+      }, 100);
+    }
+  };
+
   const handleClose = () => {
     if (passed) {
+      // If they click X or ESC, just close without opening journal
       onClose();
-      // Trigger journal prompt after closing
-      onPass();
     } else {
-      // If failed, can retry or close
+      // If failed, confirm before closing
       if (confirm('You haven\'t passed the quiz yet. Are you sure you want to close?')) {
         onClose();
       }
@@ -255,7 +267,7 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
                     Try Again
                   </Button>
                 )}
-                <Button onClick={onClose}>
+                <Button onClick={passed ? handleContinue : onClose}>
                   {passed ? 'Continue' : 'Review Lesson'}
                 </Button>
               </div>

@@ -106,12 +106,18 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
   };
   
   const handleQuizPass = () => {
+    console.log('handleQuizPass called - opening journal modal');
     if (!passedQuizzes.includes(currentLesson.id)) {
       setPassedQuizzes([...passedQuizzes, currentLesson.id]);
     }
-    // Close quiz modal, open journal prompt
-    setQuizModalOpen(false);
+    // Open journal prompt FIRST
     setJournalModalOpen(true);
+    console.log('Journal modal state set to true');
+    // Then close quiz modal after a small delay
+    setTimeout(() => {
+      setQuizModalOpen(false);
+      console.log('Quiz modal closed');
+    }, 50);
   };
 
   const handleJournalSave = () => {
