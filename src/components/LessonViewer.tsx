@@ -33,13 +33,11 @@ import {
   Heart,
   Zap,
   ChevronRight,
-  Sparkles,
   PartyPopper,
   BookOpen,
 } from 'lucide-react';
-import type { Experiment, Lesson, Module } from '@/types/experiment';
+import type { Experiment } from '@/types/experiment';
 import { getDimensionColor } from '@/lib/dimensions';
-import { genUserName } from '@/lib/genUserName';
 
 interface LessonViewerProps {
   experiment: Experiment;
@@ -74,8 +72,10 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
     const attemptData = localStorage.getItem(`quiz-attempt-${currentLesson.id}`);
     if (attemptData) {
       const { passed } = JSON.parse(attemptData);
-      if (passed && !passedQuizzes.includes(currentLesson.id)) {
-        setPassedQuizzes([...passedQuizzes, currentLesson.id]);
+      if (passed) {
+        setPassedQuizzes((prev) => 
+          prev.includes(currentLesson.id) ? prev : [...prev, currentLesson.id]
+        );
       }
     }
   }, [currentLesson.id]);
@@ -98,12 +98,14 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
     return completedLessons.includes(previousLesson.id);
   };
   
-  const handleMarkComplete = () => {
+  // Mark lesson as complete - called after quiz pass + journal entry
+  const _handleMarkComplete = () => {
     if (!completedLessons.includes(currentLesson.id) && canMarkComplete) {
       setCompletedLessons([...completedLessons, currentLesson.id]);
       // TODO: Publish Nostr event (kind 30078)
     }
   };
+  // Note: _handleMarkComplete is triggered automatically via handleJournalSave flow
   
   const handleQuizPass = () => {
     console.log('handleQuizPass called - opening journal modal');

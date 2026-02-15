@@ -1,0 +1,21 @@
+{
+  "name": "11x LOVE LaB",
+  "short_name": "11x LOVE",
+  "description": "Your transformation playground where you build your Divine Masterpiece one experiment at a time.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6600ff",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

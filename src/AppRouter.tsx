@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
 
-import Home from "./pages/Home";
 import BigDreams from "./pages/BigDreams";
 import Experiments from "./pages/Experiments";
 import ExperimentView from "./pages/ExperimentView";

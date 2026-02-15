@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { CompactEQVisualizer } from '@/components/EQVisualizer';
-import { Home, BookOpen, Users, CheckSquare, User, Settings, LogOut, Mail, Bell, Coins, Calendar, Rss, Target, Lock, MessageSquare } from 'lucide-react';
+import { BookOpen, Users, User, Settings, LogOut, Mail, Bell, Coins, Calendar, Rss, Target, Lock, MessageSquare } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,

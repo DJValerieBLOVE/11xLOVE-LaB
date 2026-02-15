@@ -114,7 +114,7 @@ export function useSaveJournalEntry(experiment: Experiment) {
 
   return useMutation({
     mutationFn: async ({
-      lessonId,
+      lessonId: _lessonId,
       lessonTitle,
       content,
     }: {
@@ -122,6 +122,7 @@ export function useSaveJournalEntry(experiment: Experiment) {
       lessonTitle: string;
       content: string;
     }) => {
+      // Note: _lessonId is included in the interface for future use (e.g., linking entries)
       if (!user?.signer) {
         throw new Error('You must be logged in to save journal entries');
       }
