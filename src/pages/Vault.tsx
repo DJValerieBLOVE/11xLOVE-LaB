@@ -2,16 +2,41 @@ import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Heart, BookText, Bookmark, ClipboardList, Music, Library } from 'lucide-react';
+import { Lock, Heart, BookText, Bookmark, ClipboardList, Music, Library, FileText } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { useNostr } from '@nostrify/react';
+import { useQuery } from '@tanstack/react-query';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import type { NostrEvent } from '@nostrify/nostrify';
 
 const Vault = () => {
   const { user } = useCurrentUser();
+  const { nostr } = useNostr();
 
   useSeoMeta({
     title: 'The Vault - 11x LOVE LaB',
     description: 'Your private space for growth, reflection, and learning',
+  });
+
+  // Query all journal entries (kind 30023)
+  const { data: journals, isLoading: journalsLoading } = useQuery({
+    queryKey: ['all-journals', user?.pubkey],
+    queryFn: async () => {
+      if (!user) return [];
+
+      const events = await nostr.query([
+        {
+          kinds: [30023],
+          authors: [user.pubkey],
+          '#t': ['journal'],
+          limit: 50,
+        },
+      ]);
+
+      return events;
+    },
+    enabled: !!user,
   });
 
   if (!user) {
@@ -183,13 +208,86 @@ const Vault = () => {
             </Card>
           </TabsContent>
 
-          {/* Other tabs placeholder */}
-          <TabsContent value="journal">
+          {/* Journal Tab - Lab Notes */}
+          <TabsContent value="journal" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Journal</CardTitle>
-                <CardDescription>Coming soon!</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <BookText className="h-5 w-5" />
+                      Lab Notes
+                    </CardTitle>
+                    <CardDescription>
+                      Your experiment journals and reflections
+                    </CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Export All
+                  </Button>
+                </div>
               </CardHeader>
+              <CardContent>
+                {journalsLoading ? (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">Loading your journals...</p>
+                  </div>
+                ) : !journals || journals.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-4">No journal entries yet.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Complete experiment lessons and write your reflections to build your Lab Notes!
+                    </p>
+                  </div>
+                ) : (
+                  <Accordion type="single" collapsible className="w-full">
+                    {journals.map((journal: NostrEvent) => {
+                      const title = journal.tags.find(t => t[0] === 'title')?.[1] || 'Untitled Journal';
+                      const experimentId = journal.tags.find(t => t[0] === 'd')?.[1] || '';
+                      const date = new Date(journal.created_at * 1000).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      });
+
+                      return (
+                        <AccordionItem key={journal.id} value={journal.id}>
+                          <AccordionTrigger className="hover:no-underline">
+                            <div className="flex items-center justify-between w-full pr-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full bg-[#6600ff]"></div>
+                                <span className="font-medium text-left">{title}</span>
+                              </div>
+                              <span className="text-sm text-muted-foreground">{date}</span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="pl-5 pr-4 pt-4 space-y-4">
+                              {/* Display journal content */}
+                              <div className="prose prose-sm max-w-none">
+                                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                                  {journal.content}
+                                </div>
+                              </div>
+                              
+                              {/* Actions */}
+                              <div className="flex gap-2 pt-2">
+                                <Button variant="outline" size="sm">
+                                  Export
+                                </Button>
+                                <Button variant="ghost" size="sm">
+                                  View Experiment
+                                </Button>
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      );
+                    })}
+                  </Accordion>
+                )}
+              </CardContent>
             </Card>
           </TabsContent>
 

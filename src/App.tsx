@@ -39,11 +39,13 @@ const defaultConfig: AppConfig = {
       { url: 'wss://nostr-rs-relay-production-1569.up.railway.app', read: true, write: true },
       
       // Default popular public relays - Social Nostr data (profiles, follows, public feed)
-      // These are always available, even if user doesn't have NIP-65 relay list
-      { url: 'wss://relay.ditto.pub', read: true, write: false },
+      // These are always available and FREE
       { url: 'wss://relay.primal.net', read: true, write: false },
       { url: 'wss://relay.damus.io', read: true, write: false },
       { url: 'wss://nos.lol', read: true, write: false },
+      { url: 'wss://relay.snort.social', read: true, write: false },
+      { url: 'wss://relay.ditto.pub', read: true, write: false },
+      { url: 'wss://bitcoiner.social', read: true, write: false },
     ],
     updatedAt: 0,
   },
