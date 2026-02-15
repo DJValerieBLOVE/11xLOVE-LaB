@@ -8,6 +8,8 @@ import { EQVisualizer } from '@/components/EQVisualizer';
 import { Lock } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 
 // Data defined outside component
@@ -28,9 +30,12 @@ const dimensions = [
 const BigDreams = () => {
   const { user } = useCurrentUser();
   const { mutateAsync: publishEvent } = useNostrPublish();
-  const { sendChatMessage } = useOpenRouter();
   const [testStatus, setTestStatus] = useState<string>('');
   const [cacheTestStatus, setCacheTestStatus] = useState<string>('');
+  const [apiKey, setApiKey] = useState<string>('');
+
+  // Create OpenRouter instance with user key when available
+  const openRouter = useOpenRouter(apiKey || undefined);
 
   useSeoMeta({
     title: 'Big Dreams - 11x LOVE LaB',
@@ -87,10 +92,10 @@ const BigDreams = () => {
     setCacheTestStatus('🔄 Testing XAI prompt caching...');
 
     try {
-      // Check for API key first
-      const platformKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-      if (!platformKey) {
-        setCacheTestStatus('❌ OpenRouter API key not configured. Set VITE_OPENROUTER_API_KEY environment variable.');
+      // Use user-provided API key or platform key
+      const keyToUse = apiKey || import.meta.env.VITE_OPENROUTER_API_KEY;
+      if (!keyToUse) {
+        setCacheTestStatus('❌ Please enter your OpenRouter API key below or configure VITE_OPENROUTER_API_KEY');
         return;
       }
 
@@ -116,7 +121,7 @@ const BigDreams = () => {
 
       // Send first request
       setCacheTestStatus('📤 Sending first request...');
-      const response1 = await sendChatMessage(messages, 'x-ai/grok-4.1-fast');
+      const response1 = await openRouter.sendChatMessage(messages, 'x-ai/grok-4.1-fast');
       const usage1 = response1.usage;
       console.log('First request usage:', usage1);
 
@@ -125,7 +130,7 @@ const BigDreams = () => {
 
       // Send second request with same cached content
       setCacheTestStatus('📤 Sending second request (should use cache)...');
-      const response2 = await sendChatMessage(messages, 'x-ai/grok-4.1-fast');
+      const response2 = await openRouter.sendChatMessage(messages, 'x-ai/grok-4.1-fast');
       const usage2 = response2.usage;
       console.log('Second request usage:', usage2);
 
@@ -395,14 +400,30 @@ const BigDreams = () => {
              <span className="text-sm text-muted-foreground">{testStatus}</span>
            </div>
 
-           {/* Test Prompt Caching */}
-           <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-             <h3 className="text-lg font-semibold mb-2">Test xAI Prompt Caching</h3>
-             <Button onClick={testPromptCaching} className="mr-4">
-               Test Cache
-             </Button>
-             <div className="text-sm text-muted-foreground whitespace-pre-line">{cacheTestStatus}</div>
-           </div>
+            {/* Test Prompt Caching */}
+            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+              <h3 className="text-lg font-semibold mb-2">Test xAI Prompt Caching</h3>
+              <div className="mb-4">
+                <Label htmlFor="api-key" className="text-sm font-medium">
+                  OpenRouter API Key (for testing)
+                </Label>
+                <Input
+                  id="api-key"
+                  type="password"
+                  placeholder="sk-or-v1-..."
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Get your free API key at <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">openrouter.ai</a>
+                </p>
+              </div>
+              <Button onClick={testPromptCaching} disabled={!apiKey && !import.meta.env.VITE_OPENROUTER_API_KEY} className="mr-4">
+                Test Cache
+              </Button>
+              <div className="text-sm text-muted-foreground whitespace-pre-line">{cacheTestStatus}</div>
+            </div>
          </div>
        </div>
      </Layout>
