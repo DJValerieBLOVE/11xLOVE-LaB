@@ -11,6 +11,7 @@ import LoveBoard from "./pages/LoveBoard";
 import Vault from "./pages/Vault";
 import Feed from "./pages/Feed";
 import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
 import Settings from "./pages/Settings";
 import { NIP19Page } from "./pages/NIP19Page";
 import NotFound from "./pages/NotFound";
@@ -33,6 +34,7 @@ export function AppRouter() {
         <Route path="/vault" element={<Vault />} />
         <Route path="/feed" element={<Feed />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/settings" element={<Settings />} />
         {/* NIP-19 route for npub1, note1, naddr1, nevent1, nprofile1 */}
         <Route path="/:nip19" element={<NIP19Page />} />

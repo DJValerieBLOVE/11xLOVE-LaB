@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Lock, Edit3, Settings, Zap, ExternalLink, Copy, Check, BadgeCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FollowListModal } from '@/components/FollowListModal';
 import { genUserName } from '@/lib/genUserName';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
@@ -17,6 +18,8 @@ const Profile = () => {
   const currentUserData = useCurrentUser();
   const { user, metadata } = currentUserData;
   const [copied, setCopied] = useState(false);
+  const [showFollowModal, setShowFollowModal] = useState(false);
+  const [followModalTab, setFollowModalTab] = useState<'followers' | 'following'>('following');
   
   // Fetch real stats from Nostr
   const { followers, following, isLoading: statsLoading } = useProfileStats(user?.pubkey);
@@ -185,11 +188,23 @@ const Profile = () => {
               </>
             ) : (
               <>
-                <button className="flex items-center gap-1.5 hover:underline">
+                <button 
+                  className="flex items-center gap-1.5 hover:underline"
+                  onClick={() => {
+                    setFollowModalTab('following');
+                    setShowFollowModal(true);
+                  }}
+                >
                   <span className="font-semibold">{formatNumber(following)}</span>
                   <span className="text-muted-foreground">Following</span>
                 </button>
-                <button className="flex items-center gap-1.5 hover:underline">
+                <button 
+                  className="flex items-center gap-1.5 hover:underline"
+                  onClick={() => {
+                    setFollowModalTab('followers');
+                    setShowFollowModal(true);
+                  }}
+                >
                   <span className="font-semibold">{formatNumber(followers)}</span>
                   <span className="text-muted-foreground">Followers</span>
                 </button>
@@ -211,6 +226,16 @@ const Profile = () => {
             <p>Your activity and posts will appear here</p>
           </div>
         </div>
+
+        {/* Follow List Modal */}
+        {user && (
+          <FollowListModal
+            pubkey={user.pubkey}
+            isOpen={showFollowModal}
+            onClose={() => setShowFollowModal(false)}
+            defaultTab={followModalTab}
+          />
+        )}
       </div>
     </Layout>
   );
