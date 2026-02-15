@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useFeedPosts, useTribePosts, usePublicPosts } from '@/hooks/useFeedPosts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   Lock, 
@@ -28,6 +29,8 @@ import {
   Globe,
   UserCheck,
   Sparkles,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,10 +38,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { FeedPost } from '@/components/FeedPost';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { useToast } from '@/hooks/useToast';
-import type { NostrEvent } from '@nostrify/nostrify';
+import { useLabPublish } from '@/hooks/useLabPublish';
 
 const Feed = () => {
   const { user, metadata } = useCurrentUser();
@@ -46,77 +50,87 @@ const Feed = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [postContent, setPostContent] = useState('');
 
+  // Real Nostr queries
+  const { data: allPosts, isLoading: allLoading, refetch: refetchAll } = useFeedPosts(30);
+  const { data: tribePosts, isLoading: tribeLoading, refetch: refetchTribe } = useTribePosts(30);
+  const { data: publicPosts, isLoading: publicLoading, refetch: refetchPublic } = usePublicPosts(30);
+
+  // Publishing hook
+  const { mutate: publishPost, isPending: isPosting } = useLabPublish();
+
   useSeoMeta({
     title: 'Feed - 11x LOVE LaB',
     description: 'Your personalized feed with updates from Tribes, accountability buddies, and the community',
   });
 
-  // Mock data - will be replaced with real Nostr queries
-  const mockPosts: Array<{
-    event: NostrEvent;
-    isPrivate: boolean;
-    tribeName?: string;
-  }> = [
-    {
-      event: {
-        id: '1',
-        pubkey: 'a'.repeat(64),
-        created_at: Math.floor(Date.now() / 1000) - 7200,
-        kind: 1,
-        tags: [],
-        content: 'Just completed my 30-day morning routine experiment! The compound effect is real. Sharing my learnings with the community later today. 🌅',
-        sig: '',
-      },
-      isPrivate: false,
-    },
-    {
-      event: {
-        id: '2',
-        pubkey: 'b'.repeat(64),
-        created_at: Math.floor(Date.now() / 1000) - 3600,
-        kind: 11, // NIP-29 group message
-        tags: [['h', 'morning-risers']],
-        content: 'Day 5 of waking at 5am! The accountability in this group is amazing. Who else is crushing it today? 💪',
-        sig: '',
-      },
-      isPrivate: true,
-      tribeName: 'Morning Risers',
-    },
-    {
-      event: {
-        id: '3',
-        pubkey: 'c'.repeat(64),
-        created_at: Math.floor(Date.now() / 1000) - 1800,
-        kind: 1,
-        tags: [],
-        content: 'Big breakthrough in my Money dimension today. Finally automated my savings and it feels like a weight lifted off my shoulders. Small wins add up! 💰',
-        sig: '',
-      },
-      isPrivate: false,
-    },
-    {
-      event: {
-        id: '4',
-        pubkey: 'd'.repeat(64),
-        created_at: Math.floor(Date.now() / 1000) - 900,
-        kind: 11,
-        tags: [['h', 'bitcoin-builders']],
-        content: 'Just set up my first Lightning node! Thanks to everyone here for the guidance. This community is incredible. ⚡',
-        sig: '',
-      },
-      isPrivate: true,
-      tribeName: 'Bitcoin Builders',
-    },
-  ];
+  // Get posts for current tab
+  const getCurrentPosts = () => {
+    switch (activeTab) {
+      case 'tribes':
+        return { posts: tribePosts || [], loading: tribeLoading };
+      case 'public':
+        return { posts: publicPosts || [], loading: publicLoading };
+      case 'buddies':
+        return { posts: [], loading: false }; // TODO: Implement buddy filtering
+      case 'all':
+      default:
+        return { posts: allPosts || [], loading: allLoading };
+    }
+  };
 
-  // Filter posts by tab
-  const filteredPosts = mockPosts.filter(post => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'tribes') return post.isPrivate;
-    if (activeTab === 'public') return !post.isPrivate;
-    if (activeTab === 'buddies') return false; // TODO: Filter by accountability buddies
-    return true;
-  });
+  const { posts: currentPosts, loading: currentLoading } = getCurrentPosts();
+
+  // Handle refresh
+  const handleRefresh = () => {
+    switch (activeTab) {
+      case 'tribes':
+        refetchTribe();
+        break;
+      case 'public':
+        refetchPublic();
+        break;
+      default:
+        refetchAll();
+    }
+    toast({
+      title: 'Refreshing...',
+      description: 'Fetching latest posts',
+    });
+  };
+
+  // Handle posting
+  const handlePost = () => {
+    if (!postContent.trim() || !user) return;
+
+    publishPost({
+      event: {
+        kind: 1,
+        content: postContent,
+        tags: [
+          ['t', '11xLOVE'],
+        ],
+      },
+      options: {
+        shareToPublic: false, // Default to LaB-only
+      },
+    }, {
+      onSuccess: () => {
+        toast({
+          title: 'Posted!',
+          description: 'Your post has been published to the LaB.',
+        });
+        setPostContent('');
+        refetchAll();
+      },
+      onError: (error) => {
+        toast({
+          title: 'Failed to post',
+          description: error.message,
+          variant: 'destructive',
+        });
+      },
+    });
+  };
 
   // Handlers
   const handleMute = (pubkey: string) => {
@@ -135,16 +149,13 @@ const Feed = () => {
     console.log('Reporting:', eventId, reason);
   };
 
-  const handlePost = () => {
-    if (!postContent.trim()) return;
-    toast({
-      title: 'Posted!',
-      description: 'Your post has been published.',
-    });
-    setPostContent('');
-  };
-
   // Sidebar data
+  const myTribes = [
+    { name: 'Morning Risers', members: 24, unread: 3 },
+    { name: 'Bitcoin Builders', members: 156, unread: 12 },
+    { name: 'Meditation Masters', members: 42, unread: 0 },
+  ];
+
   const liveNow = [
     { title: 'Bitcoin Lightning Workshop', host: 'Lightning Labs', type: 'Workshop' },
     { title: 'Nostr Development AMA', host: 'Nostr Dev', type: 'Q&A' },
@@ -154,12 +165,6 @@ const Feed = () => {
     { title: 'Bitcoin Lightning Workshop', date: 'Tomorrow, 2:00 PM' },
     { title: 'Nostr Hackathon Kickoff', date: 'Jan 15, 10:00 AM' },
     { title: 'Office Hours', date: 'Today, 5:00 PM' },
-  ];
-
-  const myTribes = [
-    { name: 'Morning Risers', members: 24, unread: 3 },
-    { name: 'Bitcoin Builders', members: 156, unread: 12 },
-    { name: 'Meditation Masters', members: 42, unread: 0 },
   ];
 
   if (!user) {
@@ -198,7 +203,13 @@ const Feed = () => {
   return (
     <Layout>
       <div className="container px-4 py-8">
-        <h1 className="mb-2">Your Feed</h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1>Your Feed</h1>
+          <Button variant="ghost" size="sm" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
         <p className="text-muted-foreground mb-8">
           Updates from your Tribes, buddies, and the community
         </p>
@@ -236,10 +247,17 @@ const Feed = () => {
                       <Button 
                         size="lg" 
                         onClick={handlePost}
-                        disabled={!postContent.trim()}
+                        disabled={!postContent.trim() || isPosting}
                         className="bg-[#6600ff] hover:bg-[#5500dd]"
                       >
-                        Post
+                        {isPosting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Posting...
+                          </>
+                        ) : (
+                          'Post'
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -256,6 +274,11 @@ const Feed = () => {
                 >
                   <Sparkles className="h-4 w-4" />
                   All
+                  {allPosts && allPosts.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 text-xs">
+                      {allPosts.length}
+                    </Badge>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="tribes" 
@@ -263,9 +286,11 @@ const Feed = () => {
                 >
                   <Users className="h-4 w-4" />
                   Tribes
-                  <Badge variant="secondary" className="ml-1 text-xs">
-                    {mockPosts.filter(p => p.isPrivate).length}
-                  </Badge>
+                  {tribePosts && tribePosts.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 text-xs">
+                      {tribePosts.length}
+                    </Badge>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="buddies" 
@@ -280,6 +305,11 @@ const Feed = () => {
                 >
                   <Globe className="h-4 w-4" />
                   Public
+                  {publicPosts && publicPosts.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 text-xs">
+                      {publicPosts.length}
+                    </Badge>
+                  )}
                 </TabsTrigger>
               </TabsList>
 
@@ -295,32 +325,56 @@ const Feed = () => {
                   </div>
                 )}
 
-                {/* Posts */}
-                <div className="space-y-0 mt-4">
-                  {filteredPosts.length === 0 ? (
-                    <Card>
-                      <CardContent className="py-12 text-center">
-                        <p className="text-muted-foreground">
-                          {activeTab === 'buddies' 
-                            ? 'No posts from accountability buddies yet. Add some buddies to see their updates!'
-                            : 'No posts to show. Check back later!'}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    filteredPosts.map((post) => (
-                      <Card key={post.event.id} className="hover:shadow-md transition-shadow">
-                        <FeedPost
-                          event={post.event}
-                          isPrivate={post.isPrivate}
-                          tribeName={post.tribeName}
-                          onMute={handleMute}
-                          onReport={handleReport}
-                        />
+                {/* Loading State */}
+                {currentLoading && (
+                  <div className="space-y-4 mt-4">
+                    {[1, 2, 3].map((i) => (
+                      <Card key={i}>
+                        <CardContent className="p-6">
+                          <div className="flex gap-3">
+                            <Skeleton className="h-12 w-12 rounded-full" />
+                            <div className="flex-1 space-y-2">
+                              <Skeleton className="h-4 w-32" />
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-3/4" />
+                            </div>
+                          </div>
+                        </CardContent>
                       </Card>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Posts */}
+                {!currentLoading && (
+                  <div className="space-y-0 mt-4">
+                    {currentPosts.length === 0 ? (
+                      <Card className="border-dashed">
+                        <CardContent className="py-12 text-center">
+                          <p className="text-muted-foreground">
+                            {activeTab === 'buddies' 
+                              ? 'No posts from accountability buddies yet. Add some buddies to see their updates!'
+                              : activeTab === 'tribes'
+                              ? 'No Tribe posts yet. Join a Tribe or create one to see messages here!'
+                              : 'No posts to show. Be the first to post something!'}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      currentPosts.map((post) => (
+                        <Card key={post.event.id} className="hover:shadow-md transition-shadow">
+                          <FeedPost
+                            event={post.event}
+                            isPrivate={post.isPrivate}
+                            tribeName={post.tribeName}
+                            onMute={handleMute}
+                            onReport={handleReport}
+                          />
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </div>
