@@ -11,14 +11,20 @@ export function useAuthor(pubkey: string | undefined) {
     queryKey: ['author', pubkey ?? '', config.relayMetadata.updatedAt],
     queryFn: async ({ signal }) => {
       if (!pubkey) {
+        console.log('[useAuthor] No pubkey provided');
         return {};
       }
+
+      console.log('[useAuthor] Fetching profile for pubkey:', pubkey);
+      console.log('[useAuthor] Current relay config:', config.relayMetadata.relays);
 
       // Get public relays from user's relay configuration
       // Filter out the Railway relay - only use public relays for profile data
       const publicRelayUrls = config.relayMetadata.relays
         .filter(r => r.read && !r.url.includes('railway.app'))
         .map(r => r.url);
+
+      console.log('[useAuthor] Public relays to query:', publicRelayUrls);
 
       // If user has public relays configured, use those
       // Otherwise fall back to default public relays
@@ -30,6 +36,8 @@ export function useAuthor(pubkey: string | undefined) {
             'wss://relay.ditto.pub',
           ];
 
+      console.log('[useAuthor] Querying relays:', relaysToUse);
+
       const publicRelays = nostr.group(relaysToUse);
 
       const [event] = await publicRelays.query(
@@ -37,14 +45,19 @@ export function useAuthor(pubkey: string | undefined) {
         { signal: AbortSignal.any([signal, AbortSignal.timeout(1500)]) },
       );
 
+      console.log('[useAuthor] Query result:', event ? 'Found profile event' : 'No profile found');
+
       if (!event) {
+        console.error('[useAuthor] No kind 0 event found for pubkey:', pubkey);
         throw new Error('No event found');
       }
 
       try {
         const metadata = n.json().pipe(n.metadata()).parse(event.content);
+        console.log('[useAuthor] Profile metadata:', metadata);
         return { metadata, event };
-      } catch {
+      } catch (error) {
+        console.error('[useAuthor] Failed to parse metadata:', error);
         return { event };
       }
     },
