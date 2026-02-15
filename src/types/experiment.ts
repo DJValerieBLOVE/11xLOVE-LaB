@@ -34,14 +34,16 @@ export interface Lesson {
   duration: string; // e.g., "5 min"
   content: string; // Markdown content
   
-  // Optional media
+  // Optional media - supports both old format (videoUrl) and new format (video object)
   video?: {
     url: string;
     provider: 'youtube' | 'vimeo' | 'direct';
   };
+  videoUrl?: string; // Legacy support
   audio?: {
     url: string;
   };
+  audioUrl?: string; // Legacy support
   
   // Optional resources
   resources?: Resource[];
@@ -50,7 +52,7 @@ export interface Lesson {
   quiz?: Quiz;
   
   // Metadata
-  dimension: number; // Which dimension this lesson focuses on
+  dimension?: number; // Which dimension this lesson focuses on (optional, inherits from experiment)
   satsReward?: number; // Sats earned for completion (e.g., 10)
 }
 

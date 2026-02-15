@@ -1,44 +1,22 @@
-export interface Lesson {
-  id: string;
-  title: string;
-  type: 'video' | 'text' | 'audio';
-  content: string;
-  videoUrl?: string;
-  audioUrl?: string;
-  duration: string;
-}
+import type { Experiment } from '@/types/experiment';
 
-export interface Module {
-  id: string;
-  title: string;
-  description: string;
-  lessons: Lesson[];
-}
-
-export interface Experiment {
-  id: string;
-  title: string;
-  description: string;
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
-  duration: string;
-  enrolled: number;
-  rating: number;
-  instructor: string;
-  color: string;
-  modules: Module[];
-}
+// Re-export the Experiment type for backwards compatibility
+export type { Experiment } from '@/types/experiment';
 
 export const experiments: Experiment[] = [
   {
     id: 'bitcoin-basics',
     title: 'Bitcoin Basics',
     description: 'Learn the fundamentals of Bitcoin and the Lightning Network',
+    dimension: 9, // Money
     level: 'Beginner',
     duration: '6 weeks',
     enrolled: 1234,
     rating: 4.8,
     instructor: 'Satoshi Nakamoto',
     color: 'from-orange-500 to-orange-600',
+    createdBy: '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767',
+    valueForValue: true,
     modules: [
       {
         id: 'module-1',
@@ -83,12 +61,15 @@ export const experiments: Experiment[] = [
     id: 'build-on-nostr',
     title: 'Build on Nostr',
     description: 'Create decentralized applications using the Nostr protocol',
+    dimension: 8, // Mission
     level: 'Intermediate',
     duration: '8 weeks',
     enrolled: 856,
     rating: 4.9,
     instructor: 'Nostr Dev',
     color: 'from-purple-500 to-pink-500',
+    createdBy: '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767',
+    valueForValue: true,
     modules: [
       {
         id: 'module-1',
@@ -133,12 +114,15 @@ export const experiments: Experiment[] = [
     id: 'lightning-network-mastery',
     title: 'Lightning Network Mastery',
     description: 'Deep dive into Lightning Network architecture and development',
+    dimension: 9, // Money
     level: 'Advanced',
     duration: '10 weeks',
     enrolled: 432,
     rating: 4.7,
     instructor: 'Lightning Labs',
     color: 'from-blue-500 to-blue-600',
+    createdBy: '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767',
+    valueForValue: true,
     modules: [
       {
         id: 'module-1',
@@ -168,12 +152,15 @@ export const experiments: Experiment[] = [
     id: '11x-love-code',
     title: 'The 11x LOVE Code',
     description: 'Your introduction to the 11 Dimensions of LOVE',
+    dimension: 1, // GOD/LOVE
     level: 'Beginner',
     duration: '12 weeks',
     enrolled: 2156,
     rating: 5.0,
     instructor: 'DJ Valerie B LOVE',
     color: 'from-pink-500 to-purple-500',
+    createdBy: '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767',
+    valueForValue: true,
     modules: [
       {
         id: 'module-1',
@@ -218,12 +205,15 @@ export const experiments: Experiment[] = [
     id: 'financial-sovereignty',
     title: 'Financial Sovereignty',
     description: 'Take control of your financial future with Bitcoin',
+    dimension: 9, // Money
     level: 'Intermediate',
     duration: '8 weeks',
     enrolled: 987,
     rating: 4.6,
     instructor: 'Bitcoin Expert',
     color: 'from-green-500 to-emerald-600',
+    createdBy: '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767',
+    valueForValue: true,
     modules: [
       {
         id: 'module-1',
@@ -246,12 +236,15 @@ export const experiments: Experiment[] = [
     id: 'value-for-value',
     title: 'Value for Value Economics',
     description: 'Understanding and implementing V4V in your life',
+    dimension: 9, // Money
     level: 'Beginner',
     duration: '4 weeks',
     enrolled: 1543,
     rating: 4.9,
     instructor: 'Adam Curry',
     color: 'from-yellow-500 to-orange-500',
+    createdBy: '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767',
+    valueForValue: true,
     modules: [
       {
         id: 'module-1',
