@@ -87,7 +87,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Main Content Area - Adjusted for narrower sidebar */}
       <div className="flex-1 md:pl-52">
         {/* Top Bar */}
-        <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-40 w-full border-b bg-background">
           <div className="flex h-16 items-center justify-between px-4 md:px-6">
             {/* Mobile Logo (shows on mobile only) - Links to Big Dreams */}
             <Link to="/big-dreams" className="flex md:hidden items-center">
