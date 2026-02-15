@@ -1,8 +1,11 @@
 name: Test
 
 on:
-  push:
-    branches: [ "main" ]
+  # Disabled automatic testing on push to prevent notification spam
+  # Tests still run locally before commits
+  # Can be manually triggered from Actions tab if needed
+  # push:
+  #   branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
