@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import type { Experiment } from '@/types/experiment';
 import { getDimensionColor } from '@/lib/dimensions';
+import { LoginArea } from '@/components/auth/LoginArea';
 
 interface LessonViewerProps {
   experiment: Experiment;
@@ -353,9 +354,18 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                   Complete this quiz to finish this lesson and move forward!
                 </p>
                 <div className="flex justify-center">
-                  <Button onClick={() => setQuizModalOpen(true)}>
-                    Take Quiz
-                  </Button>
+                  {user ? (
+                    <Button onClick={() => setQuizModalOpen(true)}>
+                      Take Quiz
+                    </Button>
+                  ) : (
+                    <div className="text-center space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        Log in to take quizzes and track your progress
+                      </p>
+                      <LoginArea className="flex justify-center" />
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -416,7 +426,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
 
         <ScrollArea className="flex-1 p-4">
           {/* Comment Input */}
-          {user && (
+          {user ? (
             <div className="mb-4">
               <Textarea
                 placeholder="Share your thoughts..."
@@ -427,6 +437,13 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
               <Button size="sm" className="w-full">
                 Post Comment
               </Button>
+            </div>
+          ) : (
+            <div className="mb-4 p-4 bg-muted/50 rounded-lg text-center">
+              <p className="text-sm text-muted-foreground mb-3">
+                Log in to join the discussion
+              </p>
+              <LoginArea className="flex justify-center" />
             </div>
           )}
 

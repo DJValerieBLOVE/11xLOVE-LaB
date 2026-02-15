@@ -3,16 +3,16 @@
  * 
  * Full-screen lesson viewer for any experiment
  * URL: /experiment/:experimentId/:lessonId?
+ * 
+ * PUBLIC: Anyone can view lessons (good for SEO)
+ * PRIVATE: Progress tracking, comments, zaps require login
  */
 
 import { useParams, Navigate } from 'react-router-dom';
 import { useSeoMeta } from '@unhead/react';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Layout } from '@/components/Layout';
 import { LessonViewer } from '@/components/LessonViewer';
 import { morningMiracleExperiment } from '@/data/test-experiment';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Lock } from 'lucide-react';
 
 // In the future, this will query experiments from Nostr
 // For now, we have our test experiment
@@ -20,7 +20,6 @@ const EXPERIMENTS = [morningMiracleExperiment];
 
 export default function ExperimentView() {
   const { experimentId, lessonId } = useParams<{ experimentId: string; lessonId?: string }>();
-  const { user } = useCurrentUser();
   
   // Find the experiment
   const experiment = EXPERIMENTS.find((exp) => exp.id === experimentId);
@@ -35,29 +34,8 @@ export default function ExperimentView() {
     return <Navigate to="/experiments" replace />;
   }
   
-  // Require login
-  if (!user) {
-    return (
-      <Layout>
-        <div className="container px-4 py-8">
-          <div className="max-w-md mx-auto">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center space-x-2">
-                  <Lock className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle>Login Required</CardTitle>
-                </div>
-                <CardDescription>
-                  Please log in to access experiments and lessons.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-  
+  // PUBLIC: Show experiment to everyone
+  // LessonViewer handles login prompts for interactive features
   return (
     <Layout>
       <LessonViewer experiment={experiment} initialLessonId={lessonId} />

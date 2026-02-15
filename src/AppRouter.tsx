@@ -3,6 +3,7 @@ import { ScrollToTop } from "./components/ScrollToTop";
 
 import BigDreams from "./pages/BigDreams";
 import Experiments from "./pages/Experiments";
+import ExperimentBuilder from "./pages/ExperimentBuilder";
 import ExperimentView from "./pages/ExperimentView";
 import JournalView from "./pages/JournalView";
 import Events from "./pages/Events";
@@ -25,6 +26,8 @@ export function AppRouter() {
         <Route path="/" element={<BigDreams />} />
         <Route path="/big-dreams" element={<BigDreams />} />
         <Route path="/experiments" element={<Experiments />} />
+        <Route path="/experiments/create" element={<ExperimentBuilder />} />
+        <Route path="/experiments/edit/:experimentId" element={<ExperimentBuilder />} />
         <Route path="/experiment/:experimentId" element={<ExperimentView />} />
         <Route path="/experiment/:experimentId/:lessonId" element={<ExperimentView />} />
         <Route path="/experiment/:experimentId/journal" element={<JournalView />} />
