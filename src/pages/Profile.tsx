@@ -7,7 +7,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { genUserName } from '@/lib/genUserName';
 
 const Profile = () => {
-  const { user } = useCurrentUser();
+  const currentUserData = useCurrentUser();
+  const { user, metadata } = currentUserData;
+
+  console.log('[Profile] useCurrentUser returned:', currentUserData);
+  console.log('[Profile] user:', user);
+  console.log('[Profile] metadata:', metadata);
 
   useSeoMeta({
     title: 'Profile - 11x LOVE LaB',
@@ -36,9 +41,9 @@ const Profile = () => {
     );
   }
 
-  const displayName = user.metadata?.name || genUserName(user.pubkey);
-  const about = user.metadata?.about || 'No bio yet';
-  const picture = user.metadata?.picture;
+  const displayName = metadata?.name || genUserName(user.pubkey);
+  const about = metadata?.about || 'No bio yet';
+  const picture = metadata?.picture;
 
   return (
     <Layout>
