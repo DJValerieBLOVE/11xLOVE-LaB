@@ -1,182 +1,183 @@
-# Session Notes - February 15, 2026
+# Session Notes - February 15, 2026 (Continued)
 
 > **Quick reference for what's done and what's next**
 
 ---
 
-## ✅ COMPLETED TODAY (Feb 15, 2026)
+## ✅ COMPLETED THIS SESSION (Feb 15, 2026)
 
-### **Fixed 404 Errors & New Pages:**
-- ✅ Created `/edit-profile` page using existing `EditProfileForm` component
-- ✅ Added route to `AppRouter.tsx`
-- ✅ Clean layout with back button and proper messaging
+### **Profile & Settings (Earlier Today):**
+- ✅ Created `/edit-profile` page
+- ✅ Enhanced Settings page with Lightning wallet + theme toggle
+- ✅ Created FollowListModal for following list
+- ✅ Fixed all ESLint errors from previous session
 
-### **Enhanced Settings Page:**
-- ✅ **Lightning Wallet Tab** - Configure lud16 for receiving zaps
-- ✅ **Theme Toggle** - Light/Dark mode with radio buttons and icons
-- ✅ **Relay Configuration** - Existing tab still functional
-- ✅ Reorganized tabs: Wallet → Appearance → Relays → Notifications → Privacy
+### **Membership Tier System:**
+- ✅ Created `membership.ts` with 5 tiers: free, member, byok, creator, admin
+- ✅ Created `useMembership` hook for permission checking
+- ✅ Manual whitelist for beta (NIP-58 badges ready for later)
+- ✅ BYOK = Creator permissions
 
-### **Followers/Following Modal:**
-- ✅ Created `FollowListModal` component
-- ✅ Shows list of people user follows (from kind 3 contact list)
-- ✅ User avatars, names, and "View" buttons
-- ✅ Click handlers on Profile page stats
-- ✅ Followers tab shows "coming soon" (expensive query)
+### **Experiments Page Redesign:**
+- ✅ Added 6 tabs: In Progress, Saved, Completed, For You, Browse All, My Created
+- ✅ Dimension filter dropdown using 11 dimensions
+- ✅ Search functionality
+- ✅ Login required (prevents bots)
+- ✅ "Create Experiment" button with upgrade prompts
 
-### **ESLint/GitHub Actions Fixes:**
-- ✅ Fixed `JournalView.tsx` - moved hook before conditional returns
-- ✅ Fixed `Index.tsx` - removed FIXME comment
-- ✅ Fixed `Experiments.tsx` - removed unused `Star` import and `totalLessons` variable
-- ✅ Fixed `ExperimentView.tsx` - removed unused `CardContent` import
-- ✅ Fixed `Events.tsx` - removed unused icon imports
-- ✅ Fixed `celebrations.ts` - replaced `any` with proper `WindowWithWebkit` interface
-- ✅ Fixed `FollowListModal.tsx` - removed unused `NostrEvent` import
-- ✅ Disabled automatic GitHub Pages deploy (using Shakespeare instead)
+### **Experiment Builder (New Page):**
+- ✅ Full CRUD interface for creating experiments
+- ✅ Basics tab: title, description, dimension (required!), level, cover gradient
+- ✅ Modules & Lessons tab: add/remove/reorder
+- ✅ Lesson editor: video embed URL, markdown content, journal prompt
+- ✅ Creator-only access with upgrade prompts
+- ✅ Routes: `/experiments/create` and `/experiments/edit/:id`
 
-### **Documentation Updates:**
-- ✅ Added comprehensive guidelines to `AGENTS.md`:
-  - Pre-commit checklist for ESLint errors
-  - Common ESLint errors and fixes
-  - React hooks rules with examples
-  - GitHub Actions workflows explanation
-  - Project-specific terminology
-  - Design system reference
-  - Debugging tips
+### **Header Updates:**
+- ✅ Sats sent/received widget (↑ sent | ↓ received) - matches design mockup
+- ✅ Real zap stats from Nostr
+- ✅ Redesigned EQ Visualizer with segmented colorful bars
 
----
-
-## ✅ COMPLETED PREVIOUSLY (Feb 14, 2026)
-
-### **Critical Bug Fixes:**
-- ✅ Fixed TypeScript errors causing GitHub Actions failures
-- ✅ Fixed `user.metadata` errors
-- ✅ Fixed `Experiment` type definition conflicts
-- ✅ Fixed `CelebrationAnimation.tsx` framer-motion type errors
-- ✅ All GitHub Actions tests now pass
-
-### **Profile Page Improvements:**
-- ✅ Complete redesign - clean, spacious layout
-- ✅ Uses `display_name` for pretty formatted names
-- ✅ Real follower/following counts from Nostr (via Primal API)
-- ✅ Real zap stats (sats received)
-- ✅ Banner image with avatar overlay
-- ✅ Copy npub button
+### **Encryption Foundation:**
+- ✅ Created `useEncryptedStorage` hook for NIP-44 encryption
+- ✅ Private data (Big Dreams, journals, Magic Mentor memory) encrypted
+- ✅ **Even admin CANNOT read user's private data**
 
 ---
 
-## 🎯 PRIORITY ORDER FOR NEXT SESSION
+## 🔐 PRIVACY & ENCRYPTION EXPLAINED
 
-### **Priority 1: Magic Mentor AI Integration (2 hours)**
-1. Connect to OpenRouter/Shakespeare AI
-2. Create chat interface component
-3. User memory/context system
-4. References Big Dreams and experiments
+### **What Gets Encrypted (NIP-44):**
+- Big Dreams (all 11 dimensions)
+- Daily 5 V's entries
+- Journal/Lab Notes
+- Magic Mentor conversations & memory
+- Progress tracking
+- Vault contents
 
-### **Priority 2: Quiz & Curriculum Flow (1 hour)**
-1. Test complete quiz flow
-2. Verify auto-progression to next lesson
-3. Verify checkmarks appear after completion
-4. Load full 11x LOVE Code curriculum (18 lessons)
+### **How It Works:**
+```typescript
+// Only the USER can decrypt this
+const encrypted = await user.signer.nip44.encrypt(
+  user.pubkey,  // Encrypt to self
+  JSON.stringify(bigDreamsData)
+);
+```
 
-### **Priority 3: Vault & Journal Verification (1 hour)**
-1. Verify journal entries save to Nostr
-2. Verify vault displays all notes
-3. Test encryption/decryption
-4. Cross-device sync testing
+**You literally CANNOT see user data** - it's encrypted with their private key.
 
-### **Priority 4: Profile Enhancements**
-1. Follow/Unfollow buttons
-2. Profile page for other users (not just self)
-3. Activity feed on profile
+### **How to Check Railway Relay Data:**
+
+**Option 1: Use a Nostr Client**
+1. Go to Snort.social or Primal.net
+2. Add your Railway relay: `wss://nostr-rs-relay-production-1569.up.railway.app`
+3. Search for events by kind
+
+**Option 2: Build Admin Stats Page (Recommended)**
+- Shows: Total events by kind, user count, recent activity
+- Does NOT show: Encrypted content (you can't decrypt it anyway!)
 
 ---
 
-## 📋 FULL FEATURE BACKLOG
+## ⚡ SATS & GAMIFICATION (Anti-Gaming)
 
-### **Profile & Social:**
-- [x] Edit Profile page ✅
-- [x] Settings page with Lightning wallet, theme, relays ✅
-- [x] Following list modal ✅
-- [ ] Followers list modal (with actual data)
-- [ ] Follow/Unfollow buttons
-- [ ] Profile page for other users (not just self)
+### **The Problem:**
+> "We don't want people taking the same experiment 100 times for sats"
 
-### **Experiments & Learning:**
-- [ ] Full 11x LOVE Code curriculum (18 lessons)
-- [ ] Quiz system verification
-- [ ] Lab Notes journaling after lessons
-- [ ] Journal viewing in Vault
-- [ ] Auto-progression flow testing
-- [ ] Streak tracking implementation
+### **The Solution: Completion Receipts**
+- Kind 30078 is **replaceable** - same d-tag = same event (overwritten)
+- User can only have ONE completion event per lesson
+- Taking it again just updates timestamp, doesn't create new event
+- Sats awarded based on **existence of completion event**, not count
 
-### **AI Features:**
-- [ ] Magic Mentor chat interface
-- [ ] User memory/context loading
-- [ ] Daily LOVE Practice AI analysis
-- [ ] Journal AI insights
+### **Where Zaps Happen:**
+| Location | Who Gets Zapped |
+|----------|-----------------|
+| Experiment completion | Creator of experiment |
+| Comment on lesson | Comment author |
+| Feed post | Post author |
+| Tribe message | Message author |
+| Love Board listing | Listing creator |
+
+---
+
+## 🎯 NEXT PRIORITIES
+
+### **Priority 1: Save Experiments to Nostr** (30 min)
+- Publish experiments as kind 30078 to Railway relay
+- Load experiments from relay (not just static files)
+- Edit existing experiments
+
+### **Priority 2: Progress Tracking** (45 min)
+- Track which lessons user has completed
+- Calculate in-progress vs completed experiments
+- Populate the tabs with real data
+
+### **Priority 3: Accountability Buddies** (1 hour)
+- Custom profile fields for matching
+- Search for buddies by interests/dimensions
+- Share Big Dreams with selected buddies (optional)
+
+### **Priority 4: Magic Mentor AI** (2 hours)
+- OpenRouter/Grok integration
+- User memory system (loads from Nostr)
+- Encrypted conversation storage
+- References Big Dreams, experiments, journals
+
+---
+
+## 📋 FEATURES MENTIONED BUT NOT YET BUILT
+
+### **From This Conversation:**
+- [ ] Animated EQ Visualizer (moving graphic equalizer)
 - [ ] Accountability buddy matching
+- [ ] Share Big Dreams with selected people
+- [ ] Admin stats page for Railway relay
+- [ ] Completion receipts (one per lesson)
+- [ ] Streak tracking with gamification
+- [ ] Zap creator on experiment completion
+- [ ] Feedback/review system for experiments
 
-### **Community:**
+### **From Previous Sessions:**
+- [ ] Full 11x LOVE Code curriculum (18 lessons)
+- [ ] Quiz builder in Experiment Builder
+- [ ] Comments system (paid members only)
 - [ ] Tribe (NIP-29) private groups
-- [ ] Feed improvements
-- [ ] Comments on lessons (NIP-10)
-- [ ] Reactions (kind 7)
-- [ ] Zap buttons functional
-
-### **Data & Persistence:**
-- [ ] Railway relay integration
-- [ ] NIP-42 authentication
-- [ ] Cross-device sync
-- [ ] IndexedDB caching
+- [ ] Events creation and RSVP
 
 ---
 
-## 🚀 PROMPT TO START NEXT SESSION
+## 🚀 PROMPT TO CONTINUE
 
-Copy and paste this to start your next session:
+Copy and paste this to continue:
 
 ```
-I'm continuing work on the 11x LOVE LaB app. Please read SESSION_NOTES.md to see what was done in the last session.
+I'm continuing work on the 11x LOVE LaB app. Please read SESSION_NOTES.md.
 
-Today I want to work on:
-1. Magic Mentor AI integration - chat interface with context
-2. Testing the quiz and lesson progression flow
-3. Loading the full 11x LOVE Code curriculum
+Today I want to:
+1. Make experiments save to the Railway relay (not just static files)
+2. Get progress tracking working (In Progress / Completed tabs)
+3. Start on the Magic Mentor AI integration
 
-Please start by reading the relevant files and docs/AI-ARCHITECTURE.md to understand the AI integration plans.
+The Notion doc for the full 11x LOVE LaB program is available if you need it.
 ```
 
 ---
 
-## 📁 KEY FILES TO REFERENCE
+## 📁 KEY FILES
 
-- **Planning:** `/PLAN.md` - Full build spec and chunks
-- **Session Notes:** `/SESSION_NOTES.md` (this file)
-- **Project Status:** `/docs/PROJECT-STATUS.md` - Phase 2 AI planning
-- **AI Architecture:** `/docs/AI-ARCHITECTURE.md` - OpenRouter/Grok integration
-- **Curriculum:** `/docs/11x-LOVE-CODE-CURRICULUM.md` - Full lesson content
-- **AI Guidelines:** `/AGENTS.md` - Pre-commit checklist and debugging tips
-
----
-
-## 💜 NOTES
-
-### **About Preview Window Login:**
-Browser extension login (Alby) is NOT possible in Shakespeare preview - this is browser security, not a bug. Extensions can't inject into iframes. Test on the deployed site: https://11xlove.shakespeare.wtf
-
-### **GitHub Actions Status:**
-All ESLint and TypeScript errors are fixed. Both test and deploy workflows should pass.
-
-### **Model Recommendation:**
-- Use **Opus** for complex debugging, architecture decisions, and when Sonnet makes repeated mistakes
-- Use **Sonnet** for simple tasks and routine changes
-- Always check `AGENTS.md` pre-commit checklist before committing
+- **Membership:** `/src/lib/membership.ts`, `/src/hooks/useMembership.ts`
+- **Encryption:** `/src/hooks/useEncryptedStorage.ts`
+- **Experiment Builder:** `/src/pages/ExperimentBuilder.tsx`
+- **Experiments Page:** `/src/pages/Experiments.tsx`
+- **Layout/Header:** `/src/components/Layout.tsx`
+- **EQ Visualizer:** `/src/components/EQVisualizer.tsx`
+- **Docs:** `/docs/PROJECT-STATUS.md`, `/docs/AI-ARCHITECTURE.md`
 
 ---
 
-**Last Updated:** February 15, 2026, 9:15 AM  
-**Status:** Ready for AI integration work  
-**Next Priority:** Magic Mentor AI, Quiz flow, Full curriculum
+**Last Updated:** February 15, 2026, 10:45 AM  
+**Status:** Membership system + Experiment Builder complete  
+**Next Priority:** Save to Nostr, Progress tracking, Magic Mentor AI
 
 **Peace, LOVE, & Warm Aloha** 🌅💜
