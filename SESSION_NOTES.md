@@ -1,4 +1,4 @@
-# Session Notes - February 15, 2026 (Continued)
+# Session Notes - February 15, 2026 (Afternoon)
 
 > **Quick reference for what's done and what's next**
 
@@ -6,144 +6,163 @@
 
 ## ✅ COMPLETED THIS SESSION (Feb 15, 2026)
 
-### **Profile & Settings (Earlier Today):**
-- ✅ Created `/edit-profile` page
-- ✅ Enhanced Settings page with Lightning wallet + theme toggle
-- ✅ Created FollowListModal for following list
-- ✅ Fixed all ESLint errors from previous session
+### **Security & Privacy System (COMPLETE):**
+- ✅ Three-tier privacy system (Never/Private/Shareable)
+- ✅ Railway-only writes for ALL LaB data
+- ✅ NIP-44 encryption hook for private data
+- ✅ Share confirmation dialog with warning
+- ✅ `useLabPublish` hooks for secure publishing
+- ✅ `useLabOnlyPublish` for guaranteed private publishing
+- ✅ `useShareCompletion` for public achievements
 
-### **Membership Tier System:**
-- ✅ Created `membership.ts` with 5 tiers: free, member, byok, creator, admin
-- ✅ Created `useMembership` hook for permission checking
-- ✅ Manual whitelist for beta (NIP-58 badges ready for later)
-- ✅ BYOK = Creator permissions
+### **Privacy Levels:**
+| Level | What | Share Button? | Encryption |
+|-------|------|---------------|------------|
+| 🔴 NEVER | Tribe messages | ❌ NO (blocked) | Yes (group only) |
+| 🟡 PRIVATE | Big Dreams, Journals, Magic Mentor | ⚠️ Warning dialog | Yes (user only) |
+| 🟢 SHAREABLE | Completions, Feed posts | ✅ Yes | No |
 
-### **Experiments Page Redesign:**
-- ✅ Added 6 tabs: In Progress, Saved, Completed, For You, Browse All, My Created
-- ✅ Dimension filter dropdown using 11 dimensions
-- ✅ Search functionality
-- ✅ Login required (prevents bots)
-- ✅ "Create Experiment" button with upgrade prompts
+### **Feed System (COMPLETE):**
+- ✅ Four tabs: All, Tribes, Buddies, Public
+- ✅ Mixed public + private content (safe - client-side only)
+- ✅ Private posts show lock badge with tribe name
+- ✅ Private posts have NO share button
+- ✅ All posts have: React, Reply, Zap, Mute, Report
+- ✅ `FeedPost` component with privacy indicators
 
-### **Experiment Builder (New Page):**
-- ✅ Full CRUD interface for creating experiments
-- ✅ Basics tab: title, description, dimension (required!), level, cover gradient
-- ✅ Modules & Lessons tab: add/remove/reorder
-- ✅ Lesson editor: video embed URL, markdown content, journal prompt
-- ✅ Creator-only access with upgrade prompts
-- ✅ Routes: `/experiments/create` and `/experiments/edit/:id`
+### **Moderation System (COMPLETE):**
+- ✅ `useMutedUsers` - NIP-51 mute list on Railway relay
+- ✅ `useReportPost` - NIP-56 reports sent to site admin
+- ✅ `useIsSiteAdmin` - Check if user is DJ Valerie (admin)
+- ✅ `useAdminReports` - View all reports (admin only)
+- ✅ `useTribeAdmin` - Check tribe admin/mod status
+- ✅ `useRemoveFromTribe` - Kick users from groups (NIP-29)
+- ✅ `useFilterMuted` - Utility to filter muted content
 
-### **Header Updates:**
-- ✅ Sats sent/received widget (↑ sent | ↓ received) - matches design mockup
-- ✅ Real zap stats from Nostr
-- ✅ Redesigned EQ Visualizer with segmented colorful bars
-
-### **Encryption Foundation:**
-- ✅ Created `useEncryptedStorage` hook for NIP-44 encryption
-- ✅ Private data (Big Dreams, journals, Magic Mentor memory) encrypted
-- ✅ **Even admin CANNOT read user's private data**
+### **UI Updates:**
+- ✅ EQ Visualizer with sharp rectangle segments (not rounded)
+- ✅ 16:9 aspect ratio for all card images (YouTube cover format)
+- ✅ Sats sent/received widget in header
 
 ---
 
-## 🔐 PRIVACY & ENCRYPTION EXPLAINED
+## 🔐 HOW DATA STAYS PRIVATE
 
-### **What Gets Encrypted (NIP-44):**
-- Big Dreams (all 11 dimensions)
-- Daily 5 V's entries
-- Journal/Lab Notes
-- Magic Mentor conversations & memory
-- Progress tracking
-- Vault contents
-
-### **How It Works:**
-```typescript
-// Only the USER can decrypt this
-const encrypted = await user.signer.nip44.encrypt(
-  user.pubkey,  // Encrypt to self
-  JSON.stringify(bigDreamsData)
-);
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    DATA FLOW                                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Your Browser                                                   │
+│  ┌──────────────────────────────────────────────────────┐      │
+│  │                                                      │      │
+│  │  Railway Relay ──► Private posts (encrypted)        │      │
+│  │       +                                             │      │
+│  │  Public Relays ──► Public posts                    │      │
+│  │       =                                             │      │
+│  │  Combined Feed (mixed in YOUR browser only)        │      │
+│  │                                                      │      │
+│  └──────────────────────────────────────────────────────┘      │
+│                                                                 │
+│  ⚠️ Private posts NEVER leave Railway                          │
+│  ⚠️ Tribe messages can NEVER be shared                         │
+│  ⚠️ Big Dreams encrypted - even admin can't read               │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**You literally CANNOT see user data** - it's encrypted with their private key.
+---
 
-### **How to Check Railway Relay Data:**
+## 🚂 RAILWAY ADMIN TIPS
 
-**Option 1: Use a Nostr Client**
-1. Go to Snort.social or Primal.net
-2. Add your Railway relay: `wss://nostr-rs-relay-production-1569.up.railway.app`
-3. Search for events by kind
+Add these to your **Variables** tab for spam protection:
 
-**Option 2: Build Admin Stats Page (Recommended)**
-- Shows: Total events by kind, user count, recent activity
-- Does NOT show: Encrypted content (you can't decrypt it anyway!)
+| Variable | Value | Purpose |
+|----------|-------|---------|
+| `RELAY_LIMIT_EVENTS_PER_SEC` | `10` | Block floods |
+| `RELAY_LIMIT_MAX_EVENT_BYTES` | `65536` | Limit file size |
+| `RELAY_LIMIT_MAX_SUBS_PER_MIN` | `60` | Limit queries |
+
+**Monthly Admin Checklist:**
+- [ ] Check Metrics tab - CPU/Memory under 80%?
+- [ ] Check Deployments - All green?
+- [ ] Check Logs - Any "ERROR" messages?
 
 ---
 
-## ⚡ SATS & GAMIFICATION (Anti-Gaming)
+## 🎯 REMAINING BUILD (Priority Order)
 
-### **The Problem:**
-> "We don't want people taking the same experiment 100 times for sats"
+### **HIGH PRIORITY:**
 
-### **The Solution: Completion Receipts**
-- Kind 30078 is **replaceable** - same d-tag = same event (overwritten)
-- User can only have ONE completion event per lesson
-- Taking it again just updates timestamp, doesn't create new event
-- Sats awarded based on **existence of completion event**, not count
+1. **Completion Receipts + Anti-Gaming** (1 hour)
+   - One-time sats earning per lesson
+   - Kind 30078 replaceable events
+   - Can't game by repeating lessons
 
-### **Where Zaps Happen:**
-| Location | Who Gets Zapped |
-|----------|-----------------|
-| Experiment completion | Creator of experiment |
-| Comment on lesson | Comment author |
-| Feed post | Post author |
-| Tribe message | Message author |
-| Love Board listing | Listing creator |
+2. **Streak Tracking System** (1 hour)
+   - Daily check-in streaks
+   - Duolingo-style gamification
+   - Milestone celebrations (7/30/90 days)
+
+3. **Magic Mentor AI** (3-4 hours)
+   - OpenRouter/Grok integration
+   - User memory from Nostr
+   - Encrypted conversation storage
+   - References Big Dreams, experiments, journals
+
+### **MEDIUM PRIORITY:**
+
+4. **Accountability Buddies** (2 hours)
+   - Custom profile fields for matching
+   - Search by interests/dimensions
+   - Share Big Dreams with selected buddies
+
+5. **Full Curriculum Load** (1 hour)
+   - 18 lessons of 11x LOVE Code
+   - Quiz questions
+   - Worksheet PDFs
+
+6. **Comments System** (1 hour)
+   - NIP-10 threaded replies
+   - On lessons and feed posts
+   - Paid members only
+
+### **LOWER PRIORITY:**
+
+7. **Animated EQ Visualizer** (30 min)
+   - Moving bars based on progress
+   - Resets after achievements
+
+8. **Admin Relay Viewer** (30 min)
+   - Event counts by kind
+   - User activity stats
+   - Does NOT show encrypted content
 
 ---
 
-## 🎯 NEXT PRIORITIES
+## 📁 KEY FILES
 
-### **Priority 1: Save Experiments to Nostr** (30 min)
-- Publish experiments as kind 30078 to Railway relay
-- Load experiments from relay (not just static files)
-- Edit existing experiments
+### **Security & Privacy:**
+- `/src/lib/relays.ts` - Relay config, privacy helpers
+- `/src/hooks/useLabPublish.ts` - Secure publishing hooks
+- `/src/hooks/useEncryptedStorage.ts` - NIP-44 encryption
+- `/src/components/ShareConfirmDialog.tsx` - Warning dialog
 
-### **Priority 2: Progress Tracking** (45 min)
-- Track which lessons user has completed
-- Calculate in-progress vs completed experiments
-- Populate the tabs with real data
+### **Feed & Moderation:**
+- `/src/pages/Feed.tsx` - Feed page with tabs
+- `/src/components/FeedPost.tsx` - Post component
+- `/src/hooks/useModeration.ts` - Mute, report, admin tools
 
-### **Priority 3: Accountability Buddies** (1 hour)
-- Custom profile fields for matching
-- Search for buddies by interests/dimensions
-- Share Big Dreams with selected buddies (optional)
+### **Experiments:**
+- `/src/pages/Experiments.tsx` - Experiment catalog
+- `/src/pages/ExperimentBuilder.tsx` - Creator tool
+- `/src/types/experiment.ts` - TypeScript interfaces
 
-### **Priority 4: Magic Mentor AI** (2 hours)
-- OpenRouter/Grok integration
-- User memory system (loads from Nostr)
-- Encrypted conversation storage
-- References Big Dreams, experiments, journals
-
----
-
-## 📋 FEATURES MENTIONED BUT NOT YET BUILT
-
-### **From This Conversation:**
-- [ ] Animated EQ Visualizer (moving graphic equalizer)
-- [ ] Accountability buddy matching
-- [ ] Share Big Dreams with selected people
-- [ ] Admin stats page for Railway relay
-- [ ] Completion receipts (one per lesson)
-- [ ] Streak tracking with gamification
-- [ ] Zap creator on experiment completion
-- [ ] Feedback/review system for experiments
-
-### **From Previous Sessions:**
-- [ ] Full 11x LOVE Code curriculum (18 lessons)
-- [ ] Quiz builder in Experiment Builder
-- [ ] Comments system (paid members only)
-- [ ] Tribe (NIP-29) private groups
-- [ ] Events creation and RSVP
+### **Documentation:**
+- `/PLAN.md` - Full build spec
+- `/SESSION_NOTES.md` (this file) - Current session
+- `/docs/PROJECT-STATUS.md` - Phase 2 AI plans
+- `/docs/AI-ARCHITECTURE.md` - OpenRouter integration
 
 ---
 
@@ -152,32 +171,20 @@ const encrypted = await user.signer.nip44.encrypt(
 Copy and paste this to continue:
 
 ```
-I'm continuing work on the 11x LOVE LaB app. Please read SESSION_NOTES.md.
+I'm continuing work on the 11x LOVE LaB app. Please read SESSION_NOTES.md and PLAN.md.
 
 Today I want to:
-1. Make experiments save to the Railway relay (not just static files)
-2. Get progress tracking working (In Progress / Completed tabs)
-3. Start on the Magic Mentor AI integration
+1. Build completion receipts (one-time sats earning, anti-gaming)
+2. Add streak tracking (daily check-ins, gamification)
+3. Start on Magic Mentor AI integration
 
-The Notion doc for the full 11x LOVE LaB program is available if you need it.
+What's the status and what should we do first?
 ```
 
 ---
 
-## 📁 KEY FILES
-
-- **Membership:** `/src/lib/membership.ts`, `/src/hooks/useMembership.ts`
-- **Encryption:** `/src/hooks/useEncryptedStorage.ts`
-- **Experiment Builder:** `/src/pages/ExperimentBuilder.tsx`
-- **Experiments Page:** `/src/pages/Experiments.tsx`
-- **Layout/Header:** `/src/components/Layout.tsx`
-- **EQ Visualizer:** `/src/components/EQVisualizer.tsx`
-- **Docs:** `/docs/PROJECT-STATUS.md`, `/docs/AI-ARCHITECTURE.md`
-
----
-
-**Last Updated:** February 15, 2026, 10:45 AM  
-**Status:** Membership system + Experiment Builder complete  
-**Next Priority:** Save to Nostr, Progress tracking, Magic Mentor AI
+**Last Updated:** February 15, 2026, 11:30 AM  
+**Status:** Security + Feed + Moderation COMPLETE  
+**Next Priority:** Completion receipts, Streaks, Magic Mentor
 
 **Peace, LOVE, & Warm Aloha** 🌅💜
