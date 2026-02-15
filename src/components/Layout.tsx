@@ -18,7 +18,7 @@ import { useLogout } from '@/hooks/useLogout';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const { user } = useCurrentUser();
+  const { user, metadata } = useCurrentUser();
   const logout = useLogout();
 
   const navigation = [
