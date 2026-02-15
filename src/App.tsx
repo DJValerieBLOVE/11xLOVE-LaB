@@ -35,13 +35,15 @@ const defaultConfig: AppConfig = {
   theme: "light",
   relayMetadata: {
     relays: [
-      // Private Railway relay - 11x LOVE LaB data ONLY
+      // Private Railway relay - 11x LOVE LaB data ONLY (always write here)
       { url: 'wss://nostr-rs-relay-production-1569.up.railway.app', read: true, write: true },
       
-      // Public relays - Social Nostr data (profiles, follows, public feed)
+      // Default popular public relays - Social Nostr data (profiles, follows, public feed)
+      // These are always available, even if user doesn't have NIP-65 relay list
       { url: 'wss://relay.ditto.pub', read: true, write: false },
       { url: 'wss://relay.primal.net', read: true, write: false },
       { url: 'wss://relay.damus.io', read: true, write: false },
+      { url: 'wss://nos.lol', read: true, write: false },
     ],
     updatedAt: 0,
   },

@@ -20,58 +20,92 @@ export function NostrSync() {
 
     const syncRelaysFromNostr = async () => {
       try {
-        const events = await nostr.query(
+        // ALWAYS keep Railway relay as primary write relay
+        const railwayRelay = {
+          url: 'wss://nostr-rs-relay-production-1569.up.railway.app',
+          read: true,
+          write: true,
+        };
+        
+        // Default popular public relays (always available)
+        const defaultPublicRelays = [
+          { url: 'wss://relay.ditto.pub', read: true, write: false },
+          { url: 'wss://relay.primal.net', read: true, write: false },
+          { url: 'wss://relay.damus.io', read: true, write: false },
+          { url: 'wss://nos.lol', read: true, write: false },
+        ];
+
+        // Try to fetch user's NIP-65 relay list from public relays
+        const publicRelays = nostr.group([
+          'wss://relay.primal.net',
+          'wss://relay.damus.io',
+          'wss://relay.ditto.pub',
+        ]);
+
+        const events = await publicRelays.query(
           [{ kinds: [10002], authors: [user.pubkey], limit: 1 }],
           { signal: AbortSignal.timeout(5000) }
         );
 
+        let userCustomRelays: { url: string; read: boolean; write: boolean }[] = [];
+
         if (events.length > 0) {
           const event = events[0];
+          console.log('Found user NIP-65 relay list:', event);
 
-          // Only update if the event is newer than our stored data
-          if (event.created_at > config.relayMetadata.updatedAt) {
-            const fetchedRelays = event.tags
-              .filter(([name]) => name === 'r')
-              .map(([_, url, marker]) => ({
-                url,
-                read: !marker || marker === 'read',
-                write: !marker || marker === 'write',
-              }));
+          const fetchedRelays = event.tags
+            .filter(([name]) => name === 'r')
+            .map(([_, url, marker]) => ({
+              url,
+              read: !marker || marker === 'read',
+              write: false, // All public relays are read-only in our app
+            }));
 
-            if (fetchedRelays.length > 0) {
-              console.log('Syncing relay list from Nostr:', fetchedRelays);
-              
-              // ALWAYS keep Railway relay as primary write relay
-              const railwayRelay = {
-                url: 'wss://nostr-rs-relay-production-1569.up.railway.app',
-                read: true,
-                write: true,
-              };
-              
-              // Add user's public relays as read-only (for social Nostr data)
-              const publicRelays = fetchedRelays.map(r => ({
-                ...r,
-                write: false, // Public relays are read-only
-              }));
-              
-              // Merge: Railway first, then user's public relays
-              const mergedRelays = [
-                railwayRelay,
-                ...publicRelays.filter(r => !r.url.includes('railway.app')),
-              ];
-              
-              updateConfig((current) => ({
-                ...current,
-                relayMetadata: {
-                  relays: mergedRelays,
-                  updatedAt: event.created_at,
-                },
-              }));
-            }
-          }
+          userCustomRelays = fetchedRelays.filter(r => !r.url.includes('railway.app'));
+        } else {
+          console.log('No NIP-65 relay list found - using defaults only');
         }
+
+        // Merge: Railway first, then defaults, then user's custom relays
+        // Remove duplicates by URL
+        const allRelays = [railwayRelay, ...defaultPublicRelays, ...userCustomRelays];
+        const uniqueRelays = Array.from(
+          new Map(allRelays.map(r => [r.url, r])).values()
+        );
+
+        console.log('Final relay configuration:', uniqueRelays);
+
+        updateConfig((current) => ({
+          ...current,
+          relayMetadata: {
+            relays: uniqueRelays,
+            updatedAt: Date.now() / 1000,
+          },
+        }));
       } catch (error) {
         console.error('Failed to sync relays from Nostr:', error);
+        
+        // On error, ensure defaults are set
+        const railwayRelay = {
+          url: 'wss://nostr-rs-relay-production-1569.up.railway.app',
+          read: true,
+          write: true,
+        };
+        
+        const defaultPublicRelays = [
+          { url: 'wss://relay.ditto.pub', read: true, write: false },
+          { url: 'wss://relay.primal.net', read: true, write: false },
+          { url: 'wss://relay.damus.io', read: true, write: false },
+          { url: 'wss://nos.lol', read: true, write: false },
+        ];
+        
+        updateConfig((current) => ({
+          ...current,
+          relayMetadata: {
+            relays: [railwayRelay, ...defaultPublicRelays],
+            updatedAt: Date.now() / 1000,
+          },
+        }));
       }
     };
 
