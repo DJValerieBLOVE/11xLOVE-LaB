@@ -9,6 +9,7 @@ export function useAuthor(pubkey: string | undefined) {
 
   return useQuery<{ event?: NostrEvent; metadata?: NostrMetadata }>({
     queryKey: ['author', pubkey ?? ''],
+    enabled: !!pubkey, // Don't run query if no pubkey
     queryFn: async ({ signal }) => {
       if (!pubkey) {
         console.log('[useAuthor] No pubkey provided');
