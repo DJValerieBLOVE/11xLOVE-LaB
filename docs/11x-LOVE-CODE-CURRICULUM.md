@@ -178,25 +178,26 @@ Forget your PhD. You're earning your **MEhD** — becoming the world's leading e
 Each lesson follows this pattern:
 
 ### Lesson Format:
-- ⏱️ **Time:** 5 minutes max (2 min concept + 2 min action + 1 min retrieval)
+- ⏱️ **Time:** 5 minutes max (2 min concept + 2 min action + 1 min quiz)
 - 📖 **Concept:** Core teaching (what + why)
 - 🎯 **Action:** Immediate micro-action (do it now)
-- ✅ **Retrieval Check:** Test understanding
-- 🏁 **Done Signal:** Clear completion marker
-- 💜 **Worksheet Prompt:** Reflection questions + journaling
+- ✅ **Quiz:** Test understanding (retrieval-based questions)
+- 🏁 **Checkpoint:** Clear completion marker
+- 💜 **Dream Sheet Prompt:** Reflection questions + journaling
 
 ### Delivery Modes:
 - **Video:** YouTube embed (5 min max)
 - **Audio:** Optional audio narration toggle
 - **Text:** Full lesson text (markdown)
-- **Worksheet:** Interactive form or downloadable PDF
+- **Dream Sheet:** Interactive form or downloadable PDF
 
 ### Quiz:
 - After lesson completion
 - Multiple choice + fill-in-blank
-- Retrieval-based (tests understanding, not memorization)
+- Tests understanding, not memorization
 - Passing score: 70%
 - Sats reward on pass (future)
+- Questions generated from lesson Quiz sections
 
 ### Lab Notes (Journal):
 - Shown AFTER quiz pass
@@ -355,7 +356,7 @@ Magic Mentor uses the curriculum data to provide personalized coaching:
 
 ---
 
-## 🎯 COMPETENCE CHECKPOINTS
+## 🎯 CHECKPOINTS
 
 By the end of the Masterclass, students should be able to:
 
