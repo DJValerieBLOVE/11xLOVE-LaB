@@ -46,9 +46,13 @@ export const dummyCurriculum: DummyExperiment[] = [
 
 **Key Insight:** When you start your day with love and intention, you create a ripple effect that touches everything you do.`,
         quiz: {
-          question: 'What is the recommended duration for a morning miracle routine?',
-          options: ['5 minutes', '15 minutes', '30 minutes', '1 hour'],
-          correctAnswer: 1
+          questions: [{
+            id: 'q1',
+            type: 'multiple-choice',
+            question: 'What is the recommended duration for a morning miracle routine?',
+            options: ['5 minutes', '15 minutes', '30 minutes', '1 hour'],
+            correctAnswer: '15 minutes'
+          }]
         },
         journalPrompt: 'What does your ideal morning look like? Describe your perfect morning miracle routine in detail.'
       },
@@ -82,9 +86,13 @@ export const dummyCurriculum: DummyExperiment[] = [
 
 **Why it matters:** Bitcoin gives you true financial sovereignty for the first time in human history.`,
         quiz: {
-          question: 'What is Bitcoin\'s maximum supply?',
-          options: ['100 million', '21 million', '1 billion', 'Unlimited'],
-          correctAnswer: 1
+          questions: [{
+            id: 'q1',
+            type: 'multiple-choice',
+            question: 'What is Bitcoin\'s maximum supply?',
+            options: ['100 million', '21 million', '1 billion', 'Unlimited'],
+            correctAnswer: '21 million'
+          }]
         },
         journalPrompt: 'How would having true financial sovereignty change your life? What fears come up when you think about Bitcoin?'
       }
