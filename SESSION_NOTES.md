@@ -1,122 +1,104 @@
-# Session Notes - February 14, 2026
+# Session Notes - February 15, 2026
 
 > **Quick reference for what's done and what's next**
 
 ---
 
-## ✅ COMPLETED TODAY (Feb 14, 2026)
+## ✅ COMPLETED TODAY (Feb 15, 2026)
 
-### **Critical Bug Fixes:**
-- ✅ Fixed TypeScript errors causing GitHub Actions failures
-- ✅ Fixed `user.metadata` errors - changed to use `metadata` from `useCurrentUser()` spread
-- ✅ Fixed `Experiment` type definition conflicts (duplicate types in two files)
-- ✅ Fixed `Lesson.dimension` being required - made it optional
-- ✅ Fixed `CelebrationAnimation.tsx` framer-motion type errors - rewrote with CSS animations
-- ✅ Fixed `LessonViewer.tsx` dimension undefined check
-- ✅ All GitHub Actions tests now pass
+### **Fixed 404 Errors & New Pages:**
+- ✅ Created `/edit-profile` page using existing `EditProfileForm` component
+- ✅ Added route to `AppRouter.tsx`
+- ✅ Clean layout with back button and proper messaging
 
-### **Profile Page Improvements:**
-- ✅ Complete redesign - clean, spacious layout like Primal/Twitter
-- ✅ Uses `display_name` for pretty formatted names (e.g., "DJ Valerie B LOVE")
-- ✅ Shows `@handle` below display name when different
-- ✅ Real follower/following counts from Nostr (via Primal API)
-- ✅ Real zap stats (sats received) from kind 9735 events
-- ✅ Fixed duplicate NIP-05/Lightning display
-- ✅ Removed redundant Quick Actions (sidebar already has all links)
-- ✅ Banner image with avatar overlay
-- ✅ Copy npub button
-- ✅ Verification badge display
+### **Enhanced Settings Page:**
+- ✅ **Lightning Wallet Tab** - Configure lud16 for receiving zaps
+- ✅ **Theme Toggle** - Light/Dark mode with radio buttons and icons
+- ✅ **Relay Configuration** - Existing tab still functional
+- ✅ Reorganized tabs: Wallet → Appearance → Relays → Notifications → Privacy
 
-### **Header Improvements:**
-- ✅ Removed blur/transparency effect on scroll - now solid background
-- ✅ Uses `display_name` in dropdown menu
-- ✅ Avatar displays correctly from Nostr profile
+### **Followers/Following Modal:**
+- ✅ Created `FollowListModal` component
+- ✅ Shows list of people user follows (from kind 3 contact list)
+- ✅ User avatars, names, and "View" buttons
+- ✅ Click handlers on Profile page stats
+- ✅ Followers tab shows "coming soon" (expensive query)
 
-### **New Hooks Created:**
-- ✅ `useProfileStats.ts` - Fetches real follower/following counts from Primal API
-- ✅ `useZapStats.ts` - Fetches zap receipt data (sats received/sent)
+### **ESLint/GitHub Actions Fixes:**
+- ✅ Fixed `JournalView.tsx` - moved hook before conditional returns
+- ✅ Fixed `Index.tsx` - removed FIXME comment
+- ✅ Fixed `Experiments.tsx` - removed unused `Star` import and `totalLessons` variable
+- ✅ Fixed `ExperimentView.tsx` - removed unused `CardContent` import
+- ✅ Fixed `Events.tsx` - removed unused icon imports
+- ✅ Fixed `celebrations.ts` - replaced `any` with proper `WindowWithWebkit` interface
+- ✅ Fixed `FollowListModal.tsx` - removed unused `NostrEvent` import
+- ✅ Disabled automatic GitHub Pages deploy (using Shakespeare instead)
 
-### **Data Fixes:**
-- ✅ All experiments now have required fields: `dimension`, `createdBy`, `valueForValue`
-- ✅ Lesson type supports both old format (`videoUrl`) and new format (`video: {url, provider}`)
+### **Documentation Updates:**
+- ✅ Added comprehensive guidelines to `AGENTS.md`:
+  - Pre-commit checklist for ESLint errors
+  - Common ESLint errors and fixes
+  - React hooks rules with examples
+  - GitHub Actions workflows explanation
+  - Project-specific terminology
+  - Design system reference
+  - Debugging tips
 
 ---
 
-## 🚨 KNOWN ISSUES TO FIX NEXT
+## ✅ COMPLETED PREVIOUSLY (Feb 14, 2026)
 
-### **1. Edit Profile Page (404 Error)**
-- `/edit-profile` route doesn't exist
-- Need to create `EditProfile.tsx` page
-- Should use existing `EditProfileForm` component
+### **Critical Bug Fixes:**
+- ✅ Fixed TypeScript errors causing GitHub Actions failures
+- ✅ Fixed `user.metadata` errors
+- ✅ Fixed `Experiment` type definition conflicts
+- ✅ Fixed `CelebrationAnimation.tsx` framer-motion type errors
+- ✅ All GitHub Actions tests now pass
 
-### **2. Settings Page**
-- Need comprehensive settings page for:
-  - Lightning wallet address (lud16)
-  - NIP-05 verification
-  - Relay configuration
-  - Theme preferences
-  - Notification settings
-
-### **3. Followers/Following Lists**
-- When clicking "X Followers" or "X Following" on profile
-- Should open a modal/page showing the actual list of people
-- Like Twitter/Primal does
-
-### **4. Experiment/Curriculum Issues**
-- Full 11x LOVE Code curriculum not loaded
-- Quiz flow needs testing
-- Vault/journal saving needs verification
-- Lesson auto-progression after quiz pass
+### **Profile Page Improvements:**
+- ✅ Complete redesign - clean, spacious layout
+- ✅ Uses `display_name` for pretty formatted names
+- ✅ Real follower/following counts from Nostr (via Primal API)
+- ✅ Real zap stats (sats received)
+- ✅ Banner image with avatar overlay
+- ✅ Copy npub button
 
 ---
 
 ## 🎯 PRIORITY ORDER FOR NEXT SESSION
 
-### **Priority 1: Fix 404 Errors (30 min)**
-1. Create `/edit-profile` route and page
-2. Create `/settings` route and page (basic structure)
-3. Ensure all navigation links work
-
-### **Priority 2: Followers/Following Lists (45 min)**
-1. Create `FollowersModal` component
-2. Query kind 3 (contact list) events
-3. Show user avatars, names, follow buttons
-4. Infinite scroll for large lists
-
-### **Priority 3: Settings Page (1 hour)**
-1. Lightning wallet configuration
-2. NIP-05 verification
-3. Relay management
-4. Theme toggle
-5. Account settings
-
-### **Priority 4: Magic Mentor AI Integration (2 hours)**
+### **Priority 1: Magic Mentor AI Integration (2 hours)**
 1. Connect to OpenRouter/Shakespeare AI
-2. User memory system
-3. Conversational interface
+2. Create chat interface component
+3. User memory/context system
 4. References Big Dreams and experiments
 
-### **Priority 5: Vault & Journal Verification (1 hour)**
+### **Priority 2: Quiz & Curriculum Flow (1 hour)**
+1. Test complete quiz flow
+2. Verify auto-progression to next lesson
+3. Verify checkmarks appear after completion
+4. Load full 11x LOVE Code curriculum (18 lessons)
+
+### **Priority 3: Vault & Journal Verification (1 hour)**
 1. Verify journal entries save to Nostr
 2. Verify vault displays all notes
 3. Test encryption/decryption
 4. Cross-device sync testing
 
-### **Priority 6: Quiz & Curriculum Flow (1 hour)**
-1. Test complete quiz flow
-2. Verify auto-progression to next lesson
-3. Verify checkmarks appear
-4. Load full 11x LOVE Code curriculum
+### **Priority 4: Profile Enhancements**
+1. Follow/Unfollow buttons
+2. Profile page for other users (not just self)
+3. Activity feed on profile
 
 ---
 
 ## 📋 FULL FEATURE BACKLOG
 
 ### **Profile & Social:**
-- [ ] Edit Profile page
-- [ ] Settings page with all configurations
-- [ ] Followers list modal
-- [ ] Following list modal
+- [x] Edit Profile page ✅
+- [x] Settings page with Lightning wallet, theme, relays ✅
+- [x] Following list modal ✅
+- [ ] Followers list modal (with actual data)
 - [ ] Follow/Unfollow buttons
 - [ ] Profile page for other users (not just self)
 
@@ -157,18 +139,12 @@ Copy and paste this to start your next session:
 ```
 I'm continuing work on the 11x LOVE LaB app. Please read SESSION_NOTES.md to see what was done in the last session.
 
-Today I want to:
-1. Fix the /edit-profile 404 error - create the page
-2. Create a basic /settings page with Lightning wallet, relay config, and theme
-3. Add followers/following list modals when clicking the counts on profile
-4. Make sure everything builds without GitHub Actions errors
+Today I want to work on:
+1. Magic Mentor AI integration - chat interface with context
+2. Testing the quiz and lesson progression flow
+3. Loading the full 11x LOVE Code curriculum
 
-After that, I want to work on:
-- Magic Mentor AI integration
-- Verifying the quiz and lesson progression flow works
-- Loading the full 11x LOVE Code curriculum
-
-Please start by reading the relevant files and showing me what needs to be fixed first.
+Please start by reading the relevant files and docs/AI-ARCHITECTURE.md to understand the AI integration plans.
 ```
 
 ---
@@ -180,6 +156,7 @@ Please start by reading the relevant files and showing me what needs to be fixed
 - **Project Status:** `/docs/PROJECT-STATUS.md` - Phase 2 AI planning
 - **AI Architecture:** `/docs/AI-ARCHITECTURE.md` - OpenRouter/Grok integration
 - **Curriculum:** `/docs/11x-LOVE-CODE-CURRICULUM.md` - Full lesson content
+- **AI Guidelines:** `/AGENTS.md` - Pre-commit checklist and debugging tips
 
 ---
 
@@ -189,12 +166,17 @@ Please start by reading the relevant files and showing me what needs to be fixed
 Browser extension login (Alby) is NOT possible in Shakespeare preview - this is browser security, not a bug. Extensions can't inject into iframes. Test on the deployed site: https://11xlove.shakespeare.wtf
 
 ### **GitHub Actions Status:**
-All TypeScript errors are now fixed. The test workflow should pass.
+All ESLint and TypeScript errors are fixed. Both test and deploy workflows should pass.
+
+### **Model Recommendation:**
+- Use **Opus** for complex debugging, architecture decisions, and when Sonnet makes repeated mistakes
+- Use **Sonnet** for simple tasks and routine changes
+- Always check `AGENTS.md` pre-commit checklist before committing
 
 ---
 
-**Last Updated:** February 14, 2026, 7:50 PM  
-**Status:** Ready for next session  
-**Next Priority:** Edit Profile page, Settings page, Followers/Following lists
+**Last Updated:** February 15, 2026, 9:15 AM  
+**Status:** Ready for AI integration work  
+**Next Priority:** Magic Mentor AI, Quiz flow, Full curriculum
 
 **Peace, LOVE, & Warm Aloha** 🌅💜

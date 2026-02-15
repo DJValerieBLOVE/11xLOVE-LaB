@@ -1207,3 +1207,136 @@ The validation ensures code quality and catches errors before deployment, regard
 If git is available in your environment (through a `shell` tool, or other git-specific tools), you should utilize `git log` to understand project history. Use `git status` and `git diff` to check the status of your changes, and if you make a mistake use `git checkout` to restore files.
 
 When your changes are complete and validated, create a git commit with a descriptive message summarizing your changes.
+
+---
+
+## 11x LOVE LaB Project Guidelines
+
+This section contains project-specific guidelines for the 11x LOVE LaB application.
+
+### Pre-Commit Checklist
+
+**CRITICAL**: Before committing any changes, verify the following:
+
+1. **No unused imports** - ESLint will fail on unused imports. Remove any import that isn't used in the file.
+2. **React hooks are called unconditionally** - Hooks must be called at the top level of components, NEVER after early returns or inside conditionals.
+3. **No `any` types** - Use proper TypeScript interfaces instead of `any`. If you need a flexible type, create an interface.
+4. **Remove or convert FIXME/TODO comments** - ESLint flags these. Convert to regular comments or resolve the issue.
+5. **Check for unused variables** - Variables that are defined but never used will cause ESLint errors.
+
+### Common ESLint Errors and Fixes
+
+| Error | Fix |
+|-------|-----|
+| `'X' is defined but never used` | Remove the unused import/variable |
+| `React Hook "useX" is called conditionally` | Move hook call before any conditional returns |
+| `Unexpected 'fixme' comment` | Remove FIXME or change to regular comment |
+| `Unexpected any. Specify a different type` | Create proper interface instead of `any` |
+
+### React Hooks Rules
+
+```typescript
+// ❌ WRONG: Hook called after early return
+function MyComponent({ user }: Props) {
+  if (!user) {
+    return <Login />;
+  }
+  const { data } = useQuery(...); // ESLint error!
+}
+
+// ✅ CORRECT: Hook called before any returns
+function MyComponent({ user }: Props) {
+  const { data } = useQuery(...); // Hooks first!
+  
+  if (!user) {
+    return <Login />;
+  }
+  // Use data here...
+}
+```
+
+### GitHub Actions Workflows
+
+This project has two GitHub Actions workflows:
+
+1. **test.yml** - Runs on every push/PR to main:
+   - TypeScript type checking (`tsc --noEmit`)
+   - ESLint with zero warnings allowed (`eslint --max-warnings 0`)
+   - Vitest tests (`vitest run`)
+   - Production build (`npm run build`)
+
+2. **deploy.yml** - Disabled (project deploys to Shakespeare)
+   - Can be manually triggered if GitHub Pages deployment is needed
+   - Requires enabling GitHub Pages in repository settings first
+
+### Project-Specific Terminology
+
+Always use the correct terminology:
+
+| ✅ Use This | ❌ Not This |
+|-------------|-------------|
+| Experiments | Courses, lessons, modules |
+| Tribes | Communities, groups |
+| Big Dream | Goal |
+| Sats | Points, coins |
+| Zap | Tip, donate |
+| LaB | Lab, LAB |
+| Value for Value (V4V) | Free |
+
+### Key Project Files
+
+- **PLAN.md** - Full build spec and technical roadmap
+- **SESSION_NOTES.md** - Session progress and next steps
+- **docs/PROJECT-STATUS.md** - Phase 2 AI planning
+- **docs/AI-ARCHITECTURE.md** - OpenRouter/Grok integration plans
+- **docs/11x-LOVE-CODE-CURRICULUM.md** - Full lesson content
+
+### Design System
+
+- **Primary accent**: `#eb00a8` (pink)
+- **Secondary accent**: `#6600ff` (purple)
+- **Light mode default** - pink accent theme
+- **11 Dimensions color system** - see `/src/lib/dimensions.ts`
+- **Pill-shaped buttons** - use `rounded-full` for action buttons
+- **Card-based layouts** - 12px rounded corners
+
+### Testing Login in Preview
+
+Browser extension login (Alby, nos2x) does NOT work in Shakespeare preview due to browser security restrictions. Extensions cannot inject into iframes. To test login functionality, deploy to the live site: https://11xLOVE.shakespeare.wtf
+
+### Deployment
+
+This project deploys to Shakespeare hosting:
+- **Live URL**: https://11xLOVE.shakespeare.wtf
+- **Repository**: https://github.com/DJValerieBLOVE/11xLOVE-LaB.git
+
+### Private Relay
+
+The project uses a private Railway relay for LaB-specific data:
+- **URL**: `wss://nostr-rs-relay-production-1569.up.railway.app`
+- **Auth**: NIP-42 whitelist mode
+- **Admin pubkey**: `3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767`
+
+### Debugging Tips
+
+1. **Build passes but GitHub Actions fail?** - The Shakespeare build tool doesn't run ESLint. Check for:
+   - Unused imports
+   - Unused variables
+   - Conditional hook calls
+   - `any` types
+   - FIXME/TODO comments
+
+2. **Component not rendering?** - Check:
+   - Is the route added to `AppRouter.tsx`?
+   - Is the component exported correctly?
+   - Are all required props passed?
+
+3. **Nostr data not loading?** - Check:
+   - Is the user logged in? Use `useCurrentUser()` to verify
+   - Is the query key unique? TanStack Query caches by key
+   - Are relay connections working? Check browser console
+
+4. **TypeScript errors?** - Common fixes:
+   - Add proper type annotations to function parameters
+   - Use optional chaining (`?.`) for potentially undefined values
+   - Import types explicitly with `import type { X }`
