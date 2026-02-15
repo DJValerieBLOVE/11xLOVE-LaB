@@ -49,7 +49,7 @@ import { useLabPublish } from '@/hooks/useLabPublish';
 const Feed = () => {
   const { user, metadata } = useCurrentUser();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('tribes');
   const [postContent, setPostContent] = useState('');
 
   // Real Nostr queries
@@ -273,21 +273,9 @@ const Feed = () => {
               </CardContent>
             </Card>
 
-            {/* Feed Tabs */}
+            {/* Feed Tabs - Order: Tribes, Buddies, Following, All, Trending */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto flex-wrap">
-                <TabsTrigger 
-                  value="all" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  All
-                  {allPosts && allPosts.length > 0 && (
-                    <Badge variant="secondary" className="ml-1 text-xs">
-                      {allPosts.length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
                 <TabsTrigger 
                   value="tribes" 
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
@@ -299,6 +287,13 @@ const Feed = () => {
                       {tribePosts.length}
                     </Badge>
                   )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="buddies" 
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
+                >
+                  <UserCheck className="h-4 w-4" />
+                  Buddies
                 </TabsTrigger>
                 <TabsTrigger 
                   value="following" 
@@ -313,6 +308,18 @@ const Feed = () => {
                   )}
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="all" 
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  All
+                  {allPosts && allPosts.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 text-xs">
+                      {allPosts.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
                   value="trending" 
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
                 >
@@ -323,13 +330,6 @@ const Feed = () => {
                       {trendingPosts.length}
                     </Badge>
                   )}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="buddies" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
-                >
-                  <UserCheck className="h-4 w-4" />
-                  Buddies
                 </TabsTrigger>
               </TabsList>
 
@@ -367,7 +367,7 @@ const Feed = () => {
 
                 {/* Posts */}
                 {!currentLoading && (
-                  <div className="space-y-0 mt-4">
+                  <div className="space-y-4 mt-4">
                     {currentPosts.length === 0 ? (
                       <Card className="border-dashed">
                         <CardContent className="py-12 text-center">
