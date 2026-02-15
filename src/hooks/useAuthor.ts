@@ -12,7 +12,15 @@ export function useAuthor(pubkey: string | undefined) {
         return {};
       }
 
-      const [event] = await nostr.query(
+      // Query public relays for user profile data (kind 0)
+      // Create a relay group with public relays to fetch social Nostr data
+      const publicRelays = nostr.group([
+        'wss://relay.primal.net',
+        'wss://relay.damus.io',
+        'wss://relay.ditto.pub',
+      ]);
+
+      const [event] = await publicRelays.query(
         [{ kinds: [0], authors: [pubkey!], limit: 1 }],
         { signal: AbortSignal.any([signal, AbortSignal.timeout(1500)]) },
       );

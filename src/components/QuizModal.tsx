@@ -93,9 +93,12 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
       completedAt: new Date().toISOString(),
     }));
 
-    // If passed, notify parent component
+    // If passed, auto-close after showing results for 2 seconds
     if (quizPassed) {
-      onPass();
+      setTimeout(() => {
+        onClose();
+        onPass();
+      }, 2000); // Show celebration for 2 seconds, then transition to journal
     }
   };
 
