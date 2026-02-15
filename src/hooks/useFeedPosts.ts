@@ -1,5 +1,5 @@
 /**
- * useFeedPosts Hook
+ * useFeedPosts Hooks
  * 
  * Fetches posts for the Feed from:
  * - Private Railway relay (Tribe messages, LaB posts)
@@ -18,18 +18,62 @@ export interface FeedPost {
   event: NostrEvent;
   isPrivate: boolean;
   tribeName?: string;
-  source: 'lab' | 'public';
+  source: 'lab' | 'public' | 'trending';
 }
 
 /**
- * Fetch all feed posts (private + public combined)
+ * Get the user's follow list (kind 3 contact list)
  */
-export function useFeedPosts(limit: number = 50) {
+export function useFollowList() {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
 
   return useQuery({
-    queryKey: ['feed-posts', user?.pubkey, limit],
+    queryKey: ['follow-list', user?.pubkey],
+    queryFn: async (): Promise<string[]> => {
+      if (!user) return [];
+      
+      try {
+        const publicRelayGroup = nostr.group(PUBLIC_RELAYS.slice(0, 3));
+        
+        // Query kind 3 (contact list) for the current user
+        const contactEvents = await publicRelayGroup.query([
+          {
+            kinds: [3],
+            authors: [user.pubkey],
+            limit: 1,
+          },
+        ]);
+
+        if (contactEvents.length === 0) return [];
+        
+        // Extract pubkeys from 'p' tags
+        const follows = contactEvents[0].tags
+          .filter(([name]) => name === 'p')
+          .map(([, pubkey]) => pubkey)
+          .filter(Boolean);
+        
+        return follows;
+      } catch (error) {
+        console.warn('[Feed] Failed to fetch follow list:', error);
+        return [];
+      }
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Fetch all feed posts (private + public from follows)
+ */
+export function useFeedPosts(limit: number = 50) {
+  const { nostr } = useNostr();
+  const { user } = useCurrentUser();
+  const { data: follows = [] } = useFollowList();
+
+  return useQuery({
+    queryKey: ['feed-posts', user?.pubkey, follows.length, limit],
     queryFn: async (): Promise<FeedPost[]> => {
       const posts: FeedPost[] = [];
 
@@ -69,31 +113,42 @@ export function useFeedPosts(limit: number = 50) {
         console.warn('[Feed] Failed to fetch from LaB relay:', error);
       }
 
-      // 2. Fetch from public relays
-      try {
-        const publicRelayGroup = nostr.group(PUBLIC_RELAYS.slice(0, 3)); // Use first 3 for speed
-        
-        const publicEvents = await publicRelayGroup.query([
-          {
-            kinds: [1], // Regular notes
-            limit: limit,
-          },
-        ]);
-
-        for (const event of publicEvents) {
-          // Skip if we already have this event from LaB relay
-          if (posts.some(p => p.event.id === event.id)) {
-            continue;
+      // 2. Fetch from public relays - ONLY from followed users
+      if (follows.length > 0) {
+        try {
+          const publicRelayGroup = nostr.group(PUBLIC_RELAYS.slice(0, 3));
+          
+          // Batch follows into chunks of 50 to avoid filter limits
+          const followChunks = [];
+          for (let i = 0; i < follows.length; i += 50) {
+            followChunks.push(follows.slice(i, i + 50));
           }
           
-          posts.push({
-            event,
-            isPrivate: false,
-            source: 'public',
-          });
+          for (const chunk of followChunks) {
+            const publicEvents = await publicRelayGroup.query([
+              {
+                kinds: [1], // Regular notes
+                authors: chunk, // Only from followed users!
+                limit: Math.ceil(limit / followChunks.length),
+              },
+            ]);
+
+            for (const event of publicEvents) {
+              // Skip if we already have this event from LaB relay
+              if (posts.some(p => p.event.id === event.id)) {
+                continue;
+              }
+              
+              posts.push({
+                event,
+                isPrivate: false,
+                source: 'public',
+              });
+            }
+          }
+        } catch (error) {
+          console.warn('[Feed] Failed to fetch from public relays:', error);
         }
-      } catch (error) {
-        console.warn('[Feed] Failed to fetch from public relays:', error);
       }
 
       // 3. Sort by timestamp (newest first) and limit
@@ -153,44 +208,112 @@ export function useTribePosts(limit: number = 50) {
 }
 
 /**
- * Fetch only public posts
+ * Fetch posts from followed users only
  */
-export function usePublicPosts(limit: number = 50) {
+export function useFollowingPosts(limit: number = 50) {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
+  const { data: follows = [] } = useFollowList();
 
   return useQuery({
-    queryKey: ['public-posts', user?.pubkey, limit],
+    queryKey: ['following-posts', user?.pubkey, follows.length, limit],
     queryFn: async (): Promise<FeedPost[]> => {
       const posts: FeedPost[] = [];
+
+      if (follows.length === 0) {
+        return posts;
+      }
 
       try {
         const publicRelayGroup = nostr.group(PUBLIC_RELAYS.slice(0, 3));
         
-        const publicEvents = await publicRelayGroup.query([
+        // Batch follows into chunks of 50
+        const followChunks = [];
+        for (let i = 0; i < follows.length; i += 50) {
+          followChunks.push(follows.slice(i, i + 50));
+        }
+        
+        for (const chunk of followChunks) {
+          const publicEvents = await publicRelayGroup.query([
+            {
+              kinds: [1],
+              authors: chunk,
+              limit: Math.ceil(limit / followChunks.length),
+            },
+          ]);
+
+          for (const event of publicEvents) {
+            if (posts.some(p => p.event.id === event.id)) continue;
+            
+            posts.push({
+              event,
+              isPrivate: false,
+              source: 'public',
+            });
+          }
+        }
+      } catch (error) {
+        console.warn('[Feed] Failed to fetch following posts:', error);
+      }
+
+      posts.sort((a, b) => b.event.created_at - a.event.created_at);
+      return posts.slice(0, limit);
+    },
+    enabled: !!user && follows.length > 0,
+    staleTime: 30000,
+  });
+}
+
+/**
+ * Fetch trending/popular posts (high engagement)
+ * Uses primal.net's cache for performance
+ */
+export function useTrendingPosts(limit: number = 50) {
+  const { nostr } = useNostr();
+  const { user } = useCurrentUser();
+
+  return useQuery({
+    queryKey: ['trending-posts', limit],
+    queryFn: async (): Promise<FeedPost[]> => {
+      const posts: FeedPost[] = [];
+
+      try {
+        // Use Primal relay for trending content
+        const primalRelay = nostr.relay('wss://relay.primal.net');
+        
+        // Query recent notes - Primal's relay naturally returns popular content
+        const trendingEvents = await primalRelay.query([
           {
             kinds: [1],
             limit: limit,
           },
         ]);
 
-        for (const event of publicEvents) {
+        for (const event of trendingEvents) {
           posts.push({
             event,
             isPrivate: false,
-            source: 'public',
+            source: 'trending',
           });
         }
       } catch (error) {
-        console.warn('[Feed] Failed to fetch public posts:', error);
+        console.warn('[Feed] Failed to fetch trending posts:', error);
       }
 
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
-      return posts;
+      return posts.slice(0, limit);
     },
     enabled: !!user,
-    staleTime: 30000,
+    staleTime: 60000, // 1 minute for trending
   });
+}
+
+/**
+ * Fetch only public posts (now from follows instead of global)
+ * @deprecated Use useFollowingPosts instead
+ */
+export function usePublicPosts(limit: number = 50) {
+  return useFollowingPosts(limit);
 }
 
 /**

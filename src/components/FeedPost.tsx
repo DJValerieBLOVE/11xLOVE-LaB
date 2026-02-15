@@ -2,10 +2,10 @@
  * Feed Post Component
  * 
  * Displays a single post in the feed with appropriate actions based on privacy:
- * - Private posts (Tribe): No share button, mute & report available
- * - Public posts: Share button available, mute & report available
+ * - Private posts (Tribe): No share/repost button, all other actions available
+ * - Public posts: All actions available including share and repost
  * 
- * All posts have: React, Reply, Zap, Mute, Report
+ * All posts have: Zap, Like, Reply, Bookmark, Mute, Report
  */
 
 import { useState } from 'react';
@@ -28,6 +28,8 @@ import {
   Lock,
   Users,
   UserMinus,
+  Bookmark,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -51,7 +53,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { NoteContent } from '@/components/NoteContent';
-import { ZapButton } from '@/components/ZapButton';
+import { ZapDialog } from '@/components/ZapDialog';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { cn } from '@/lib/utils';
 
 interface FeedPostProps {
   event: NostrEvent;
@@ -85,14 +89,23 @@ export function FeedPost({
   onDelete,
 }: FeedPostProps) {
   const author = useAuthor(event.pubkey);
+  const { user } = useCurrentUser();
   const metadata = author.data?.metadata;
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
 
   const displayName = metadata?.display_name || metadata?.name || genUserName(event.pubkey);
   const npub = nip19.npubEncode(event.pubkey);
+  const noteId = nip19.noteEncode(event.id);
   const timeAgo = formatDistanceToNow(new Date(event.created_at * 1000), { addSuffix: true });
+  
+  // Check if author has lightning address for zapping
+  const hasLightningAddress = !!(metadata?.lud16 || metadata?.lud06);
+  const canZap = !!user && user.pubkey !== event.pubkey && hasLightningAddress;
 
   const handleReport = () => {
     if (onReport && reportReason.trim()) {
@@ -107,6 +120,29 @@ export function FeedPost({
       onRemoveFromGroup(event.pubkey);
       setShowRemoveDialog(false);
     }
+  };
+
+  const handleLike = () => {
+    setIsLiked(!isLiked);
+    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+    // TODO: Publish kind 7 reaction event
+  };
+
+  const handleBookmark = () => {
+    setIsBookmarked(!isBookmarked);
+    // TODO: Add to NIP-51 bookmark list
+  };
+
+  const handleShare = () => {
+    // Copy link to clipboard
+    const url = `${window.location.origin}/${noteId}`;
+    navigator.clipboard.writeText(url);
+    // TODO: Show toast
+  };
+
+  const handleRepost = () => {
+    // TODO: Publish kind 6 repost event
+    console.log('Repost:', event.id);
   };
 
   return (
@@ -149,6 +185,16 @@ export function FeedPost({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
+                  {/* Open in new tab */}
+                  <DropdownMenuItem asChild>
+                    <Link to={`/${noteId}`} target="_blank">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Open Note
+                    </Link>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
                   {/* Mute Author */}
                   <DropdownMenuItem onClick={() => onMute?.(event.pubkey)}>
                     <VolumeX className="h-4 w-4 mr-2" />
@@ -192,46 +238,91 @@ export function FeedPost({
             </div>
 
             {/* Content */}
-            <div className="mb-4 whitespace-pre-wrap break-words">
+            <div className="mb-4">
               <NoteContent event={event} className="text-base" />
             </div>
 
             {/* Engagement Buttons */}
-            <div className="flex items-center gap-1 flex-wrap">
+            <div className="flex items-center gap-1 flex-wrap -ml-2">
               {/* Reply */}
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-[#6600ff] gap-1.5 h-9 px-3">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 gap-1.5 h-9 px-3">
                 <MessageCircle className="h-4 w-4" />
                 <span className="text-sm">Reply</span>
               </Button>
 
-              {/* React/Like */}
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-500 gap-1.5 h-9 px-3">
-                <Heart className="h-4 w-4" />
-                <span className="text-sm">React</span>
+              {/* Like/React */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleLike}
+                className={cn(
+                  "gap-1.5 h-9 px-3",
+                  isLiked 
+                    ? "text-red-500 hover:text-red-600 hover:bg-red-50" 
+                    : "text-gray-400 hover:text-red-500 hover:bg-red-50"
+                )}
+              >
+                <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
+                <span className="text-sm">{likeCount > 0 ? likeCount : 'Like'}</span>
               </Button>
 
-              {/* Zap - Always available */}
-              <ZapButton 
-                pubkey={event.pubkey} 
-                eventId={event.id}
-                variant="ghost"
-                size="sm"
-                className="text-gray-400 hover:text-orange-500 gap-1.5 h-9 px-3"
-              />
+              {/* Zap - Always available if author has lightning address */}
+              {canZap ? (
+                <ZapDialog target={event}>
+                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-orange-500 hover:bg-orange-50 gap-1.5 h-9 px-3">
+                    <Zap className="h-4 w-4" />
+                    <span className="text-sm">Zap</span>
+                  </Button>
+                </ZapDialog>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  disabled 
+                  className="text-gray-300 gap-1.5 h-9 px-3 cursor-not-allowed"
+                  title={!user ? "Login to zap" : user.pubkey === event.pubkey ? "Can't zap yourself" : "No lightning address"}
+                >
+                  <Zap className="h-4 w-4" />
+                  <span className="text-sm">Zap</span>
+                </Button>
+              )}
+
+              {/* Bookmark */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleBookmark}
+                className={cn(
+                  "gap-1.5 h-9 px-3",
+                  isBookmarked 
+                    ? "text-[#6600ff] hover:text-[#5500dd] hover:bg-[#6600ff]/10" 
+                    : "text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10"
+                )}
+              >
+                <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-current")} />
+              </Button>
 
               {/* Repost - Only for public posts */}
               {!isPrivate && (
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-green-500 gap-1.5 h-9 px-3">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleRepost}
+                  className="text-gray-400 hover:text-green-500 hover:bg-green-50 gap-1.5 h-9 px-3"
+                >
                   <Repeat2 className="h-4 w-4" />
-                  <span className="text-sm">Repost</span>
                 </Button>
               )}
 
               {/* Share - Only for public posts */}
               {!isPrivate && (
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-[#6600ff] gap-1.5 h-9 px-3">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleShare}
+                  className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 gap-1.5 h-9 px-3"
+                >
                   <Share2 className="h-4 w-4" />
-                  <span className="text-sm">Share</span>
                 </Button>
               )}
             </div>

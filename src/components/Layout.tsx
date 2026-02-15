@@ -112,10 +112,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center space-x-2 md:space-x-3">
               {user ? (
                 <>
-                  {/* Sats Sent/Received Widget - Like the screenshot */}
+                  {/* Sats Sent/Received Widget - Orange/Bitcoin color for both */}
                   <div className="hidden md:flex items-center gap-3 text-sm">
                     {/* Sent */}
-                    <div className="flex items-center gap-1 text-[#eb00a8]" title={`${zapsSent.toLocaleString()} sats sent`}>
+                    <div className="flex items-center gap-1 text-orange-500" title={`${zapsSent.toLocaleString()} sats sent`}>
                       <ArrowUp className="h-4 w-4" />
                       <span className="font-medium">{formatSats(zapsSent)}</span>
                     </div>
@@ -124,7 +124,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <div className="h-4 w-px bg-gray-300" />
                     
                     {/* Received */}
-                    <div className="flex items-center gap-1 text-[#6600ff]" title={`${zapsReceived.toLocaleString()} sats received`}>
+                    <div className="flex items-center gap-1 text-orange-500" title={`${zapsReceived.toLocaleString()} sats received`}>
                       <ArrowDown className="h-4 w-4" />
                       <span className="font-medium">{formatSats(zapsReceived)}</span>
                     </div>

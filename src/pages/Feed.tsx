@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useFeedPosts, useTribePosts, usePublicPosts } from '@/hooks/useFeedPosts';
+import { useFeedPosts, useTribePosts, useFollowingPosts, useTrendingPosts } from '@/hooks/useFeedPosts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   Lock, 
@@ -31,6 +31,8 @@ import {
   Sparkles,
   Loader2,
   RefreshCw,
+  TrendingUp,
+  UserPlus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -53,7 +55,8 @@ const Feed = () => {
   // Real Nostr queries
   const { data: allPosts, isLoading: allLoading, refetch: refetchAll } = useFeedPosts(30);
   const { data: tribePosts, isLoading: tribeLoading, refetch: refetchTribe } = useTribePosts(30);
-  const { data: publicPosts, isLoading: publicLoading, refetch: refetchPublic } = usePublicPosts(30);
+  const { data: followingPosts, isLoading: followingLoading, refetch: refetchFollowing } = useFollowingPosts(30);
+  const { data: trendingPosts, isLoading: trendingLoading, refetch: refetchTrending } = useTrendingPosts(30);
 
   // Publishing hook
   const { mutate: publishPost, isPending: isPosting } = useLabPublish();
@@ -68,8 +71,10 @@ const Feed = () => {
     switch (activeTab) {
       case 'tribes':
         return { posts: tribePosts || [], loading: tribeLoading };
-      case 'public':
-        return { posts: publicPosts || [], loading: publicLoading };
+      case 'following':
+        return { posts: followingPosts || [], loading: followingLoading };
+      case 'trending':
+        return { posts: trendingPosts || [], loading: trendingLoading };
       case 'buddies':
         return { posts: [], loading: false }; // TODO: Implement buddy filtering
       case 'all':
@@ -86,8 +91,11 @@ const Feed = () => {
       case 'tribes':
         refetchTribe();
         break;
-      case 'public':
-        refetchPublic();
+      case 'following':
+        refetchFollowing();
+        break;
+      case 'trending':
+        refetchTrending();
         break;
       default:
         refetchAll();
@@ -293,23 +301,35 @@ const Feed = () => {
                   )}
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="following" 
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Following
+                  {followingPosts && followingPosts.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 text-xs">
+                      {followingPosts.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="trending" 
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  Trending
+                  {trendingPosts && trendingPosts.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 text-xs">
+                      {trendingPosts.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
                   value="buddies" 
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
                 >
                   <UserCheck className="h-4 w-4" />
                   Buddies
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="public" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
-                >
-                  <Globe className="h-4 w-4" />
-                  Public
-                  {publicPosts && publicPosts.length > 0 && (
-                    <Badge variant="secondary" className="ml-1 text-xs">
-                      {publicPosts.length}
-                    </Badge>
-                  )}
                 </TabsTrigger>
               </TabsList>
 
@@ -356,6 +376,10 @@ const Feed = () => {
                               ? 'No posts from accountability buddies yet. Add some buddies to see their updates!'
                               : activeTab === 'tribes'
                               ? 'No Tribe posts yet. Join a Tribe or create one to see messages here!'
+                              : activeTab === 'following'
+                              ? 'No posts from people you follow. Follow some amazing creators to see their updates!'
+                              : activeTab === 'trending'
+                              ? 'No trending posts right now. Check back later!'
                               : 'No posts to show. Be the first to post something!'}
                           </p>
                         </CardContent>

@@ -101,51 +101,54 @@ export function EQVisualizer({
 
 /**
  * Compact EQ Visualizer for header/navigation
- * Matches the colorful bar design from the screenshot - sharp rectangle segments!
+ * 11 colors x 10 rectangles each = showing progress across all dimensions
+ * Sharp rectangle segments - no rounded corners!
  */
 export function CompactEQVisualizer({ levels, className }: Pick<EQVisualizerProps, 'levels' | 'className'>) {
-  // Default animated levels if none provided (random heights for visual appeal)
+  // Default demo levels if none provided (shows visual appeal)
   const defaultLevels: Record<number, number> = {
-    1: 85,  // GOD/LOVE - Hot Pink
-    2: 70,  // Soul - Magenta
-    3: 90,  // Mind - Purple
-    4: 75,  // Body - Purple
-    5: 60,  // Romance - Red
-    6: 80,  // Family - Orange
-    7: 95,  // Community - Yellow
-    8: 70,  // Mission - Lime
-    9: 85,  // Money - Green
-    10: 65, // Time - Cyan
-    11: 90, // Environment - Blue
+    1: 70,  // GOD/LOVE - Hot Pink
+    2: 50,  // Soul - Magenta
+    3: 80,  // Mind - Purple
+    4: 60,  // Body - Purple
+    5: 40,  // Romance - Red
+    6: 70,  // Family - Orange
+    7: 90,  // Community - Yellow
+    8: 50,  // Mission - Lime
+    9: 60,  // Money - Green
+    10: 30, // Time - Cyan
+    11: 80, // Environment - Blue
   };
 
   const activeLevels = Object.keys(levels || {}).length > 0 ? levels : defaultLevels;
 
+  // 10 segments per dimension = 10 achievements per dimension
+  const SEGMENTS_PER_DIMENSION = 10;
+
   return (
     <div className={cn('flex items-end justify-center gap-[2px]', className)}>
       {DIMENSIONS.map((dimension) => {
-        const level = (activeLevels?.[dimension.id] || 50);
-        // Create 5 segments per bar for the EQ effect
-        const segments = 5;
-        const activeSegments = Math.ceil((level / 100) * segments);
+        const level = (activeLevels?.[dimension.id] || 0);
+        // Calculate how many of the 10 segments should be "lit up"
+        const activeSegments = Math.round((level / 100) * SEGMENTS_PER_DIMENSION);
         
         return (
           <div
             key={dimension.id}
-            className="flex flex-col gap-[2px]"
-            title={`${dimension.name}: ${level}%`}
+            className="flex flex-col gap-[1px]"
+            title={`${dimension.name}: ${activeSegments}/${SEGMENTS_PER_DIMENSION}`}
           >
-            {Array.from({ length: segments }).map((_, i) => {
-              const segmentIndex = segments - 1 - i; // Reverse so bottom is 0
+            {Array.from({ length: SEGMENTS_PER_DIMENSION }).map((_, i) => {
+              const segmentIndex = SEGMENTS_PER_DIMENSION - 1 - i; // Reverse so bottom is 0
               const isActive = segmentIndex < activeSegments;
               
               return (
                 <div
                   key={i}
                   className={cn(
-                    'w-4 h-[6px] transition-all duration-300',
-                    // NO rounded corners - sharp rectangles like in the screenshot!
-                    isActive ? 'opacity-100' : 'opacity-20'
+                    'w-3 h-[4px] transition-all duration-300',
+                    // NO rounded corners - sharp rectangles!
+                    isActive ? 'opacity-100' : 'opacity-15'
                   )}
                   style={{
                     backgroundColor: dimension.color,
