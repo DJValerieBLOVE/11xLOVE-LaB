@@ -3,11 +3,10 @@ import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Lock, Edit3, Settings, Zap, Users, Heart, Target, ExternalLink, Copy, Check, Sparkles, BookOpen, Calendar } from 'lucide-react';
+import { Lock, Edit3, Settings, Zap, Users, Heart, ExternalLink, Copy, Check, BookOpen, Calendar } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { genUserName } from '@/lib/genUserName';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { nip19 } from 'nostr-tools';
@@ -44,7 +43,9 @@ const Profile = () => {
     );
   }
 
-  const displayName = metadata?.name || genUserName(user.pubkey);
+  // Use display_name if available (prettier formatted name), fallback to name, then generated name
+  const displayName = metadata?.display_name || metadata?.name || genUserName(user.pubkey);
+  const handle = metadata?.name; // The @handle/username
   const about = metadata?.about || '';
   const picture = metadata?.picture;
   const banner = metadata?.banner;
@@ -61,21 +62,6 @@ const Profile = () => {
     experimentsCompleted: 3,
     currentStreak: 7,
   };
-
-  // The 11 dimensions with their colors
-  const dimensions = [
-    { id: 1, name: 'GOD/LOVE', color: '#eb00a8', dream: 'Deep spiritual connection and divine love' },
-    { id: 2, name: 'Soul', color: '#cc00ff', dream: 'Authentic self-expression' },
-    { id: 3, name: 'Mind', color: '#9900ff', dream: 'Continuous learning and growth' },
-    { id: 4, name: 'Body', color: '#6600ff', dream: 'Peak health and vitality' },
-    { id: 5, name: 'Romance', color: '#e60023', dream: 'Loving partnership' },
-    { id: 6, name: 'Family', color: '#ff6600', dream: 'Strong family bonds' },
-    { id: 7, name: 'Community', color: '#ffdf00', dream: 'Meaningful connections' },
-    { id: 8, name: 'Mission', color: '#a2f005', dream: 'Purpose-driven life' },
-    { id: 9, name: 'Money', color: '#00d81c', dream: 'Financial freedom' },
-    { id: 10, name: 'Time', color: '#00ccff', dream: 'Work-life balance' },
-    { id: 11, name: 'Environment', color: '#0033ff', dream: 'Inspiring surroundings' },
-  ];
 
   const copyNpub = () => {
     navigator.clipboard.writeText(npub);
@@ -133,7 +119,7 @@ const Profile = () => {
                 <div className="flex-1 pb-2">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                      <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
+                      <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2 flex-wrap">
                         {displayName}
                         {nip05 && (
                           <Badge variant="secondary" className="text-xs font-normal">
@@ -142,6 +128,10 @@ const Profile = () => {
                           </Badge>
                         )}
                       </h1>
+                      {/* Show handle if different from display name */}
+                      {handle && handle !== displayName && (
+                        <p className="text-sm text-muted-foreground mt-0.5">@{handle}</p>
+                      )}
                       <button
                         onClick={copyNpub}
                         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mt-1"
@@ -250,70 +240,6 @@ const Profile = () => {
               </CardContent>
             </Card>
           </div>
-
-          <Separator className="mb-10" />
-
-          {/* Big Dreams Section */}
-          <section className="mb-10">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-[#6600ff] to-[#eb00a8] rounded-xl">
-                  <Target className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl md:text-2xl font-bold">My 11 Big Dreams</h2>
-                  <p className="text-sm text-muted-foreground">Vision across all dimensions of life</p>
-                </div>
-              </div>
-              <Link to="/big-dreams">
-                <Button variant="outline" size="sm">
-                  <Edit3 className="h-4 w-4 mr-2" />
-                  Edit Dreams
-                </Button>
-              </Link>
-            </div>
-
-            {/* Dimension Cards Grid */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {dimensions.map((dim) => (
-                <Card 
-                  key={dim.id} 
-                  className="group relative overflow-hidden hover:shadow-xl transition-all duration-300 border-0"
-                  style={{ 
-                    background: `linear-gradient(135deg, ${dim.color}15 0%, ${dim.color}05 100%)`,
-                    borderLeft: `4px solid ${dim.color}`
-                  }}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div 
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-lg"
-                        style={{ backgroundColor: dim.color }}
-                      >
-                        {dim.id}
-                      </div>
-                      <Sparkles 
-                        className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" 
-                        style={{ color: dim.color }}
-                      />
-                    </div>
-                    <h3 className="font-semibold text-base mb-1" style={{ color: dim.color }}>
-                      {dim.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {dim.dream}
-                    </p>
-                  </CardContent>
-                  
-                  {/* Hover glow effect */}
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
-                    style={{ background: `radial-gradient(circle at center, ${dim.color}, transparent)` }}
-                  />
-                </Card>
-              ))}
-            </div>
-          </section>
 
           {/* Quick Actions */}
           <section>

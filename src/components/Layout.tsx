@@ -125,9 +125,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <DropdownMenu>
                     <DropdownMenuTrigger className="focus:outline-none">
                       <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-[#6600ff]/20 hover:ring-[#6600ff]/40 transition-all">
-                        <AvatarImage src={metadata?.picture} alt={metadata?.name || genUserName(user.pubkey)} />
+                        <AvatarImage src={metadata?.picture} alt={metadata?.display_name || metadata?.name || genUserName(user.pubkey)} />
                         <AvatarFallback className="bg-[#6600ff]/10 text-[#6600ff]">
-                          {(metadata?.name || genUserName(user.pubkey)).slice(0, 2).toUpperCase()}
+                          {(metadata?.display_name || metadata?.name || genUserName(user.pubkey)).slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                     </DropdownMenuTrigger>
@@ -135,7 +135,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       <DropdownMenuLabel>
                         <div className="flex flex-col space-y-1">
                           <p className="text-sm font-medium leading-none">
-                            {metadata?.name || genUserName(user.pubkey)}
+                            {metadata?.display_name || metadata?.name || genUserName(user.pubkey)}
                           </p>
                           <p className="text-xs leading-none text-muted-foreground">
                             {user.pubkey.slice(0, 8)}...{user.pubkey.slice(-8)}
