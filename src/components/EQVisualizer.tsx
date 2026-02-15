@@ -101,15 +101,60 @@ export function EQVisualizer({
 
 /**
  * Compact EQ Visualizer for header/navigation
+ * Matches the colorful bar design from the screenshot
  */
 export function CompactEQVisualizer({ levels, className }: Pick<EQVisualizerProps, 'levels' | 'className'>) {
+  // Default animated levels if none provided (random heights for visual appeal)
+  const defaultLevels: Record<number, number> = {
+    1: 85,  // GOD/LOVE - Hot Pink
+    2: 70,  // Soul - Magenta
+    3: 90,  // Mind - Purple
+    4: 75,  // Body - Purple
+    5: 60,  // Romance - Red
+    6: 80,  // Family - Orange
+    7: 95,  // Community - Yellow
+    8: 70,  // Mission - Lime
+    9: 85,  // Money - Green
+    10: 65, // Time - Cyan
+    11: 90, // Environment - Blue
+  };
+
+  const activeLevels = Object.keys(levels || {}).length > 0 ? levels : defaultLevels;
+
   return (
-    <EQVisualizer 
-      levels={levels} 
-      compact 
-      height={40} 
-      showLabels={false}
-      className={className}
-    />
+    <div className={cn('flex items-end justify-center gap-0.5', className)}>
+      {DIMENSIONS.map((dimension) => {
+        const level = (activeLevels?.[dimension.id] || 50);
+        // Create 5 segments per bar for the EQ effect
+        const segments = 5;
+        const activeSegments = Math.ceil((level / 100) * segments);
+        
+        return (
+          <div
+            key={dimension.id}
+            className="flex flex-col gap-0.5"
+            title={`${dimension.name}: ${level}%`}
+          >
+            {Array.from({ length: segments }).map((_, i) => {
+              const segmentIndex = segments - 1 - i; // Reverse so bottom is 0
+              const isActive = segmentIndex < activeSegments;
+              
+              return (
+                <div
+                  key={i}
+                  className={cn(
+                    'w-3 h-2 rounded-sm transition-all duration-300',
+                    isActive ? 'opacity-100' : 'opacity-20'
+                  )}
+                  style={{
+                    backgroundColor: dimension.color,
+                  }}
+                />
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
   );
 }

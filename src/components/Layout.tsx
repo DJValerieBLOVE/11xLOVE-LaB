@@ -1,8 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useZapStats } from '@/hooks/useZapStats';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { CompactEQVisualizer } from '@/components/EQVisualizer';
-import { BookOpen, Users, User, Settings, LogOut, Mail, Bell, Coins, Calendar, Rss, Target, Lock, MessageSquare } from 'lucide-react';
+import { BookOpen, Users, User, Settings, LogOut, Bell, Calendar, Rss, Target, Lock, MessageSquare, ArrowUp, ArrowDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { user, metadata } = useCurrentUser();
   const logout = useLogout();
+  const { zapsSent, zapsReceived } = useZapStats(user?.pubkey);
+
+  // Format sats for display
+  const formatSats = (sats: number): string => {
+    if (sats >= 1000000) return `${(sats / 1000000).toFixed(1)}M`;
+    if (sats >= 1000) return `${(sats / 1000).toFixed(1)}k`;
+    return sats.toString();
+  };
 
   const navigation = [
     { name: 'Big Dreams', href: '/big-dreams', icon: Target },
@@ -99,21 +108,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <CompactEQVisualizer />
             </div>
 
-            {/* Right side: Mail, Notifications, Sats, User */}
-            <div className="flex items-center space-x-3">
+            {/* Right side: Sats Stats, Notifications, User */}
+            <div className="flex items-center space-x-2 md:space-x-3">
               {user ? (
                 <>
-                  {/* Sats Balance */}
-                  <Button variant="ghost" className="text-[#ff9500] hover:text-[#ff9500] hidden md:flex items-center gap-1 bg-[#fff4e6] hover:bg-[#ffe8cc] rounded-full px-4">
-                    <Coins className="h-4 w-4" />
-                    <span className="font-medium">1</span>
-                    <span className="text-sm">Sats</span>
-                  </Button>
-
-                  {/* Mail */}
-                  <Button variant="ghost" size="icon" className="text-gray-400 hover:text-[#6600ff]">
-                    <Mail className="h-5 w-5" />
-                  </Button>
+                  {/* Sats Sent/Received Widget - Like the screenshot */}
+                  <div className="hidden md:flex items-center gap-3 text-sm">
+                    {/* Sent */}
+                    <div className="flex items-center gap-1 text-[#eb00a8]" title={`${zapsSent.toLocaleString()} sats sent`}>
+                      <ArrowUp className="h-4 w-4" />
+                      <span className="font-medium">{formatSats(zapsSent)}</span>
+                    </div>
+                    
+                    {/* Divider */}
+                    <div className="h-4 w-px bg-gray-300" />
+                    
+                    {/* Received */}
+                    <div className="flex items-center gap-1 text-[#6600ff]" title={`${zapsReceived.toLocaleString()} sats received`}>
+                      <ArrowDown className="h-4 w-4" />
+                      <span className="font-medium">{formatSats(zapsReceived)}</span>
+                    </div>
+                  </div>
 
                   {/* Notifications */}
                   <Button variant="ghost" size="icon" className="text-gray-400 hover:text-[#6600ff] relative">
