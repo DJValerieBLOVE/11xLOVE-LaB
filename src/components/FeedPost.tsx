@@ -20,7 +20,6 @@ import {
   Repeat2, 
   Zap, 
   Heart, 
-  Share2, 
   MoreHorizontal,
   VolumeX,
   Flag,
@@ -58,7 +57,7 @@ import { useZappers } from '@/hooks/useZappers';
 import { cn } from '@/lib/utils';
 import type { PostStats } from '@/hooks/useFeedPosts';
 
-/** Mini avatar for inline zapper display - Primal style */
+/** Mini avatar for zapper display - Primal style */
 function ZapperMiniAvatar({ pubkey, index }: { pubkey: string; index: number }) {
   const author = useAuthor(pubkey);
   const metadata = author.data?.metadata;
@@ -66,13 +65,13 @@ function ZapperMiniAvatar({ pubkey, index }: { pubkey: string; index: number }) 
   return (
     <Avatar 
       className={cn(
-        "h-5 w-5 border border-background",
-        index > 0 && "-ml-1.5"
+        "h-6 w-6 border-2 border-background",
+        index > 0 && "-ml-2"
       )}
       style={{ zIndex: 10 - index }}
     >
       <AvatarImage src={metadata?.picture} />
-      <AvatarFallback className="bg-orange-100 text-orange-600 text-[8px]">
+      <AvatarFallback className="bg-orange-100 text-orange-600 text-[9px]">
         ⚡
       </AvatarFallback>
     </Avatar>
@@ -211,12 +210,6 @@ export function FeedPost({
     // TODO: Add to NIP-51 bookmark list
   };
 
-  const handleShare = () => {
-    const url = `${window.location.origin}/${noteId}`;
-    navigator.clipboard.writeText(url);
-    // TODO: Show toast
-  };
-
   return (
     <>
       <div className="p-3 sm:p-4">
@@ -306,21 +299,63 @@ export function FeedPost({
             </div>
 
             {/* Content */}
-            <div className="mb-1">
+            <div className="mb-2">
               <NoteContent event={event} className="text-sm" />
             </div>
 
-            {/* Action Buttons - compact like Primal */}
-            <div className="flex items-center justify-between -mx-1 mt-1">
+            {/* Top Zappers Row - Primal style (above action buttons) */}
+            {zappersData && zappersData.topZappers.length > 0 && (
+              <div className="flex items-center gap-1 mb-2">
+                {zappersData.topZappers.slice(0, 4).map((zapper, i) => (
+                  <ZapperMiniAvatar key={zapper.pubkey} pubkey={zapper.pubkey} index={i} />
+                ))}
+                <div className="flex items-center gap-1 text-xs text-orange-500">
+                  <Zap className="h-3 w-3 fill-current" />
+                  <span className="font-medium">{formatSats(zappersData.totalSats)}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons - Primal style */}
+            <div className="flex items-center justify-between">
               {/* Reply */}
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-gray-400 hover:text-[#6600ff] hover:bg-transparent gap-1 h-8 px-2"
+                className="text-gray-500 hover:text-[#6600ff] hover:bg-transparent gap-1.5 h-8 px-2"
               >
-                <MessageCircle className="h-4 w-4" />
+                <MessageCircle className="h-[18px] w-[18px]" />
                 {replyCount > 0 && <span className="text-xs">{formatCount(replyCount)}</span>}
               </Button>
+
+              {/* Zap */}
+              {canZap ? (
+                <ZapDialog target={event}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={cn(
+                      "gap-1.5 h-8 px-2 hover:bg-transparent",
+                      userZapped || satsZapped > 0
+                        ? "text-orange-500 hover:text-orange-600"
+                        : "text-gray-500 hover:text-orange-500"
+                    )}
+                  >
+                    <Zap className={cn("h-[18px] w-[18px]", (userZapped || satsZapped > 0) && "fill-current")} />
+                    {satsZapped > 0 && <span className="text-xs">{formatSats(satsZapped)}</span>}
+                  </Button>
+                </ZapDialog>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  disabled 
+                  className="text-gray-300 gap-1.5 h-8 px-2 cursor-not-allowed"
+                  title={!user ? "Login to zap" : user.pubkey === event.pubkey ? "Can't zap yourself" : "No lightning address"}
+                >
+                  <Zap className="h-[18px] w-[18px]" />
+                </Button>
+              )}
 
               {/* Like */}
               <Button 
@@ -328,54 +363,15 @@ export function FeedPost({
                 size="sm" 
                 onClick={handleLike}
                 className={cn(
-                  "gap-1 h-8 px-2 hover:bg-transparent",
+                  "gap-1.5 h-8 px-2 hover:bg-transparent",
                   isLiked 
                     ? "text-red-500 hover:text-red-600" 
-                    : "text-gray-400 hover:text-red-500"
+                    : "text-gray-500 hover:text-red-500"
                 )}
               >
-                <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
+                <Heart className={cn("h-[18px] w-[18px]", isLiked && "fill-current")} />
                 {likeCount > 0 && <span className="text-xs">{formatCount(likeCount)}</span>}
               </Button>
-
-              {/* Zap with inline zapper avatars - Primal style */}
-              <div className="flex items-center">
-                {/* Mini zapper avatars */}
-                {zappersData && zappersData.topZappers.length > 0 && (
-                  <div className="flex items-center -mr-1">
-                    {zappersData.topZappers.slice(0, 3).map((zapper, i) => (
-                      <ZapperMiniAvatar key={zapper.pubkey} pubkey={zapper.pubkey} index={i} />
-                    ))}
-                  </div>
-                )}
-                {canZap ? (
-                  <ZapDialog target={event}>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className={cn(
-                        "gap-1 h-8 px-2 hover:bg-transparent",
-                        userZapped || satsZapped > 0
-                          ? "text-orange-500 hover:text-orange-600"
-                          : "text-gray-400 hover:text-orange-500"
-                      )}
-                    >
-                      <Zap className={cn("h-4 w-4", (userZapped || satsZapped > 0) && "fill-current")} />
-                      {satsZapped > 0 && <span className="text-xs">{formatSats(satsZapped)}</span>}
-                    </Button>
-                  </ZapDialog>
-                ) : (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    disabled 
-                    className="text-gray-300 gap-1 h-8 px-2 cursor-not-allowed"
-                    title={!user ? "Login to zap" : user.pubkey === event.pubkey ? "Can't zap yourself" : "No lightning address"}
-                  >
-                    <Zap className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
 
               {/* Repost - Only for public posts */}
               {!isPrivate ? (
@@ -384,17 +380,17 @@ export function FeedPost({
                   size="sm" 
                   onClick={handleRepost}
                   className={cn(
-                    "gap-1 h-8 px-2 hover:bg-transparent",
+                    "gap-1.5 h-8 px-2 hover:bg-transparent",
                     isReposted
                       ? "text-green-500 hover:text-green-600"
-                      : "text-gray-400 hover:text-green-500"
+                      : "text-gray-500 hover:text-green-500"
                   )}
                 >
-                  <Repeat2 className={cn("h-4 w-4", isReposted && "stroke-[2.5px]")} />
+                  <Repeat2 className={cn("h-[18px] w-[18px]", isReposted && "stroke-[2.5px]")} />
                   {repostCount > 0 && <span className="text-xs">{formatCount(repostCount)}</span>}
                 </Button>
               ) : (
-                <div className="w-8" />
+                <div className="w-10" />
               )}
 
               {/* Bookmark */}
@@ -406,25 +402,11 @@ export function FeedPost({
                   "h-8 px-2 hover:bg-transparent",
                   isBookmarked 
                     ? "text-[#6600ff] hover:text-[#5500dd]" 
-                    : "text-gray-400 hover:text-[#6600ff]"
+                    : "text-gray-500 hover:text-[#6600ff]"
                 )}
               >
-                <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-current")} />
+                <Bookmark className={cn("h-[18px] w-[18px]", isBookmarked && "fill-current")} />
               </Button>
-
-              {/* Share - Only for public posts */}
-              {!isPrivate ? (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleShare}
-                  className="text-gray-400 hover:text-[#6600ff] hover:bg-transparent h-8 px-2"
-                >
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              ) : (
-                <div className="w-8" />
-              )}
             </div>
           </div>
         </div>
