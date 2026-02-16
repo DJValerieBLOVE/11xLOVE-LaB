@@ -306,8 +306,28 @@ export function useFeedPosts(limit: number = 50) {
 
       // Sort by timestamp (newest first)
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
+      const displayPosts = posts.slice(0, limit);
       
-      return posts.slice(0, limit);
+      // Fetch engagement stats for public posts
+      const publicPostIds = displayPosts
+        .filter(p => !p.isPrivate)
+        .map(p => p.event.id);
+        
+      if (publicPostIds.length > 0 && publicRelays.length > 0) {
+        const statsMap = await fetchEngagementStats(nostr, publicPostIds, publicRelays, user?.pubkey);
+        for (const post of displayPosts) {
+          if (post.isPrivate) continue;
+          const statsEntry = statsMap.get(post.event.id);
+          if (statsEntry) {
+            post.stats = statsEntry.stats;
+            post.userLiked = statsEntry.userLiked;
+            post.userReposted = statsEntry.userReposted;
+            post.userZapped = statsEntry.userZapped;
+          }
+        }
+      }
+      
+      return displayPosts;
     },
     enabled: !!user,
     staleTime: 30000,
@@ -395,7 +415,7 @@ export function useTribePosts(limit: number = 50) {
 
 /**
  * Fetch posts from followed users only
- * Shows latest posts from people you follow
+ * Shows latest posts from people you follow WITH engagement stats
  */
 export function useFollowingPosts(limit: number = 50) {
   const { nostr } = useNostr();
@@ -408,6 +428,7 @@ export function useFollowingPosts(limit: number = 50) {
     queryFn: async (): Promise<FeedPost[]> => {
       const posts: FeedPost[] = [];
       const seenIds = new Set<string>();
+      const eventIds: string[] = [];
 
       if (follows.length === 0 || publicRelays.length === 0) {
         return posts;
@@ -436,13 +457,32 @@ export function useFollowingPosts(limit: number = 50) {
             source: 'public',
             stats: { ...emptyStats },
           });
+          eventIds.push(event.id);
         }
       } catch (error) {
         console.warn('[Feed] Failed to fetch following posts:', error);
       }
 
+      // Sort first to get the posts we'll display
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
-      return posts.slice(0, limit);
+      const displayPosts = posts.slice(0, limit);
+      const displayEventIds = displayPosts.map(p => p.event.id);
+
+      // Fetch engagement stats for the posts we'll display
+      if (displayEventIds.length > 0 && publicRelays.length > 0) {
+        const statsMap = await fetchEngagementStats(nostr, displayEventIds, publicRelays, user?.pubkey);
+        for (const post of displayPosts) {
+          const statsEntry = statsMap.get(post.event.id);
+          if (statsEntry) {
+            post.stats = statsEntry.stats;
+            post.userLiked = statsEntry.userLiked;
+            post.userReposted = statsEntry.userReposted;
+            post.userZapped = statsEntry.userZapped;
+          }
+        }
+      }
+
+      return displayPosts;
     },
     enabled: !!user && !followsLoading && follows.length > 0 && publicRelays.length > 0,
     staleTime: 30000,

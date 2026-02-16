@@ -202,24 +202,25 @@ const Feed = () => {
 
   return (
     <Layout>
-      <div className="container px-4 py-6">
-        <div className="flex items-center justify-between mb-2">
-          <h1>Your Feed</h1>
-          <Button variant="ghost" size="sm" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
+      <div className="py-6">
+        {/* Centered header */}
+        <div className="max-w-[580px] mx-auto px-4 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl font-bold">Your Feed</h1>
+            <Button variant="ghost" size="sm" onClick={handleRefresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+          <p className="text-muted-foreground">
+            Updates from your Tribes, buddies, and the community
+          </p>
         </div>
-        <p className="text-muted-foreground mb-6">
-          Updates from your Tribes, buddies, and the community
-        </p>
 
-        {/* Grid layout - Primal-style: narrower feed, sidebar on right */}
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,600px)_280px] gap-6 justify-center">
-          
-          {/* Main Feed Column - centered */}
-          <div className="space-y-3">
+        {/* Grid layout - Primal-style: feed centered, sidebar anchored right */}
+        <div className="flex justify-center gap-6 px-4">
+          {/* Main Feed Column - centered, narrow like Primal */}
+          <div className="w-full max-w-[580px] space-y-3">
             {/* Post Composer */}
             <Card>
               <CardContent className="p-4">
@@ -364,8 +365,8 @@ const Feed = () => {
             </Tabs>
           </div>
 
-          {/* Right Sidebar */}
-          <div className="hidden lg:block space-y-3">
+          {/* Right Sidebar - fixed width, hidden on mobile */}
+          <div className="hidden xl:block w-[280px] flex-shrink-0 space-y-3">
             {/* My Tribes */}
             <Card>
               <CardHeader className="pb-3">
@@ -441,7 +442,6 @@ const Feed = () => {
                 </Button>
               </CardContent>
             </Card>
-          </div>
           </div>
         </div>
       </div>
