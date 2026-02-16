@@ -99,6 +99,22 @@ export function NoteContent({
   event, 
   className, 
 }: NoteContentProps) {  
+  // Debug: Check if event is actually an object
+  if (typeof event === 'string') {
+    console.error('[NoteContent] Received string instead of event object:', event.slice(0, 100));
+    try {
+      const parsed = JSON.parse(event);
+      return <div className={className}>{parsed.content || 'Failed to parse event'}</div>;
+    } catch {
+      return <div className={className}>Invalid event data</div>;
+    }
+  }
+  
+  if (!event || typeof event.content !== 'string') {
+    console.error('[NoteContent] Invalid event:', event);
+    return <div className={className}>Invalid event</div>;
+  }
+  
   // Collect media URLs from content and imeta tags
   const { textContent, mediaItems } = useMemo(() => {
     const text = event.content;

@@ -186,30 +186,49 @@ async function primalRequest(
 
 /**
  * Process an event from Primal
+ * Events might come as objects or as JSON strings
  */
-function processEvent(event: Record<string, unknown>, result: PrimalFeedResult) {
+function processEvent(eventData: unknown, result: PrimalFeedResult) {
+  // Handle case where event is a JSON string
+  let event: Record<string, unknown>;
+  if (typeof eventData === 'string') {
+    try {
+      event = JSON.parse(eventData);
+    } catch {
+      console.warn('[Primal] Failed to parse event string:', eventData.slice(0, 100));
+      return;
+    }
+  } else if (typeof eventData === 'object' && eventData !== null) {
+    event = eventData as Record<string, unknown>;
+  } else {
+    return;
+  }
+  
   const kind = event.kind as number;
   
   if (kind === 0) {
     // Profile
     try {
       const pubkey = event.pubkey as string;
-      const metadata = JSON.parse(event.content as string) as NostrMetadata;
+      const content = event.content as string;
+      const metadata = JSON.parse(content) as NostrMetadata;
       result.profiles.set(pubkey, metadata);
     } catch { /* ignore */ }
   } else if (kind === 1 || kind === 6) {
-    // Note or repost
+    // Note or repost - ensure it's a proper object
     result.notes.push(event as unknown as NostrEvent);
   } else if (kind === 10000100) {
     // Stats
     try {
-      const stats = JSON.parse(event.content as string) as PrimalNoteStats;
+      const content = event.content as string;
+      const stats = JSON.parse(content) as PrimalNoteStats;
       result.stats.set(stats.event_id, stats);
     } catch { /* ignore */ }
   } else if (kind === 10000115) {
     // User actions
     try {
-      const actions = JSON.parse(event.content as string) as PrimalNoteActions;
+      const content = event.content as string;
+      const actions = JSON.parse(content) as PrimalNoteActions;
       result.actions.set(actions.event_id, actions);
     } catch { /* ignore */ }
   }
