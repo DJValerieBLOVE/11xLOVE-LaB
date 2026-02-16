@@ -397,7 +397,7 @@ const Feed = () => {
                         <Users className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-medium text-sm text-gray-900 dark:text-gray-100">{tribe.name}</p>
+                        <p className="font-medium text-sm">{tribe.name}</p>
                         <p className="text-xs text-muted-foreground">{tribe.members} members</p>
                       </div>
                     </div>
@@ -427,7 +427,7 @@ const Feed = () => {
                       <AvatarFallback>{item.host.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm leading-tight text-gray-900 dark:text-gray-100">{item.title}</p>
+                      <p className="font-medium text-sm leading-tight">{item.title}</p>
                       <p className="text-xs text-muted-foreground">{item.host}</p>
                       <Badge variant="secondary" className="mt-1 text-xs">
                         {item.type}
@@ -446,7 +446,7 @@ const Feed = () => {
               <CardContent className="space-y-3">
                 {upcomingEvents.map((event, i) => (
                   <div key={i}>
-                    <p className="font-medium text-sm text-gray-900 dark:text-gray-100">{event.title}</p>
+                    <p className="font-medium text-sm">{event.title}</p>
                     <p className="text-xs text-muted-foreground">{event.date}</p>
                     {i < upcomingEvents.length - 1 && <Separator className="mt-3" />}
                   </div>

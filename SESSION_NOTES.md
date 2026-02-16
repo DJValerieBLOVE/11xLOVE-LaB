@@ -49,8 +49,11 @@ LinkPreviewCard component now renders URL cards for kind 10000128.
 ### ~~BUG 5: Stale/Old Feed Data~~ ✅ FIXED
 Removed "frozen posts" state that was preventing new data from showing.
 
-### ~~BUG 6: Grayed Username~~ ✅ FIXED
-Changed username styling from `text-foreground` to explicit `text-gray-900`.
+### ~~BUG 6: Grayed/Blurry Text~~ ✅ FIXED
+Updated global CSS variables to use proper dark colors:
+- `--foreground`: Now `0 0% 9%` (#171717 near-black)
+- `--muted-foreground`: Now `0 0% 40%` (#666666 darker gray)
+- All card, popover, sidebar text colors updated globally
 
 ---
 

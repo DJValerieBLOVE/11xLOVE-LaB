@@ -307,7 +307,7 @@ export function FeedPost({
             {/* Header */}
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <Link to={`/${npub}`} className="font-semibold text-gray-900 dark:text-gray-100 hover:underline text-sm sm:text-base">
+                <Link to={`/${npub}`} className="font-semibold hover:underline text-sm sm:text-base">
                   {displayName}
                 </Link>
                 <span className="text-muted-foreground text-xs sm:text-sm">• {timeAgo}</span>
