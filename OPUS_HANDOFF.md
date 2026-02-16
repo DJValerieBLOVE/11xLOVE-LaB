@@ -134,8 +134,9 @@ Claude Sonnet 4.5 tried 10+ different approaches over 100+ messages:
 8. Modified Tailwind config
 9. Fixed CSS selector specificity
 10. Removed all overrides
+11. ❌ **LATEST ATTEMPT (Sonnet 4.5)**: Moved CSS variables outside @layer, restored muted-foreground — STILL FUZZY/GRAY
 
-**NONE of these worked.** Text is still gray.
+**NONE of these worked.** Text is still gray/fuzzy.
 
 See `/projects/11xlove-lab/CRITICAL_BUGS.md` for complete details.
 

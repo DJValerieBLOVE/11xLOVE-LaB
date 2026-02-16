@@ -47,7 +47,7 @@ The `type="text/tailwindcss"` attribute triggers Tailwind's Play CDN, which:
 - **Post content works**: Has NO color classes, uses browser default (black)
 - **Headings fail**: Inherit from `--foreground` which gets overridden to gray
 
-### Failed Solutions (10+ Attempts)
+### Failed Solutions (11+ Attempts)
 
 1. ❌ Set CSS variables to black - CDN overrides
 2. ❌ Inline styles - CDN strips/ignores
@@ -59,6 +59,7 @@ The `type="text/tailwindcss"` attribute triggers Tailwind's Play CDN, which:
 8. ❌ Clear ALL site data - still gray
 9. ❌ Deploy to production - STILL GRAY
 10. ❌ Dark red test color - still renders gray
+11. ❌ **NEW (Sonnet 4.5 final attempt)**: Moved CSS variables OUTSIDE @layer base (unlayered styles should override layered), restored --muted/--muted-foreground variables, added muted to tailwind.config.ts, changed nav to text-black - **STILL FUZZY/GRAY** (commit b9a9f86)
 
 ### What's Needed
 
@@ -71,6 +72,12 @@ The `type="text/tailwindcss"` attribute triggers Tailwind's Play CDN, which:
 - Override Tailwind CDN color processing
 - Force black color that CDN respects
 - Bypass CDN entirely for text colors
+
+**Option C**: Investigate if there's a different root cause:
+- Maybe the Tailwind CDN is injecting global styles with high specificity
+- Maybe there's a preflight/reset that sets text to gray
+- Maybe the font (Marcellus) has anti-aliasing issues making black appear fuzzy
+- Check if computed styles show actual black but RENDERING looks gray
 
 ### Files to Check
 

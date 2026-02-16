@@ -1,16 +1,17 @@
 # Session Notes - February 16, 2026
 
-> **STATUS: CRITICAL BUG - TEXT COLORS NOT RENDERING - NEEDS OPUS 4.6**
+> **STATUS: CRITICAL BUG - TEXT COLORS STILL FUZZY/GRAY - UNFIXABLE**
 
 ---
 
-## CURRENT SESSION SUMMARY
+## CURRENT SESSION SUMMARY (Updated 9:45 AM)
 
 ### What Was Attempted This Session
 1. ✅ **Added link preview support** (kind 10000128 → LinkPreviewCard)
 2. ✅ **Changed tribe badges from pink to gray**
 3. ✅ **Added notification badge to Latest tab**
-4. ❌ **FAILED: Fix gray/muted text colors** - tried 10+ different approaches, NONE worked
+4. ❌ **FAILED: Fix gray/muted text colors** - tried 11+ different approaches, NONE worked
+5. ❌ **LATEST ATTEMPT (Sonnet 4.5)**: Moved CSS vars outside @layer, restored muted vars — STILL FUZZY (commit b9a9f86)
 
 ### Critical Issue: Tailwind Play CDN Overriding All Color Changes
 
@@ -41,6 +42,7 @@ The `<style type="text/tailwindcss">` tag in dist/index.html triggers Tailwind's
 
 ### Git Commits (Color Fix Attempts)
 ```
+b9a9f86 - LATEST: Moved CSS vars outside @layer + restored muted vars — STILL FUZZY ❌
 4cb68a1 - REMOVE all color overrides - use pure black (#000000) CSS variables only
 73d0dfd - Replace inline styles with !important utility classes + fix tribe badges
 b8b8955 - Add inline styles with hardcoded dark color (#1a1a1a)
@@ -55,11 +57,12 @@ d1fc265 - Remove ALL text-muted-foreground - replace with explicit colors
 
 ## REMAINING BUGS TO FIX
 
-### 🔴 BUG 1: ALL TEXT RENDERS GRAY/MUTED (CRITICAL - UNRESOLVED)
-**Symptom**: Usernames, headings, sidebar text all appear gray/muted instead of black
-**Root Cause**: Tailwind Play CDN overriding CSS variables at runtime
-**Status**: ❌ UNFIXABLE with current Shakespeare build system
-**Next Step**: **ESCALATE TO OPUS 4.6** - requires Shakespeare build system fix or PostCSS compilation
+### 🔴 BUG 1: ALL TEXT RENDERS GRAY/FUZZY (CRITICAL - UNRESOLVED)
+**Symptom**: Usernames, headings, sidebar text all appear gray/fuzzy/washed out instead of pure black
+**11+ Fix Attempts**: CSS variables, @layer positioning, muted vars restoration, inline styles, !important, text-black — ALL FAILED
+**Latest Attempt (b9a9f86)**: Moved CSS variables outside @layer base (unlayered > layered priority), restored --muted/--muted-foreground, added muted to tailwind config, changed nav to text-black — **STILL FUZZY/GRAY**
+**Status**: ❌ UNFIXABLE - Requires deeper investigation or Shakespeare build system changes
+**Next Step**: Try different approach - maybe the Tailwind CDN is setting global styles with !important or there's a different layer issue
 
 ### 🔴 BUG 2: Feed Shows 25+ Minute Old Data (CRITICAL - UNRESOLVED)
 **Symptom**: Feed displays stale posts from 25+ minutes ago, even after hard refresh and cache clear
