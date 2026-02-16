@@ -240,47 +240,56 @@ export function NoteContent({
           const decoded = nip19.decode(nostrId);
           
           if (decoded.type === 'npub') {
-            const pubkey = decoded.data;
+            const pubkey = decoded.data as string;
             parts.push(
               <NostrMention key={`mention-${keyCounter++}`} pubkey={pubkey} />
             );
           } else if (decoded.type === 'nprofile') {
-            const pubkey = decoded.data.pubkey;
+            const data = decoded.data as { pubkey: string; relays?: string[] };
             parts.push(
-              <NostrMention key={`mention-${keyCounter++}`} pubkey={pubkey} />
+              <NostrMention key={`mention-${keyCounter++}`} pubkey={data.pubkey} />
             );
           } else if (decoded.type === 'note') {
             // Embedded note quote
             parts.push(
               <EmbeddedNote 
                 key={`note-${keyCounter++}`} 
-                eventId={decoded.data} 
+                eventId={decoded.data as string} 
               />
             );
           } else if (decoded.type === 'nevent') {
             // Embedded nevent quote
+            const data = decoded.data as { id: string; relays?: string[]; author?: string };
             parts.push(
               <EmbeddedNote 
                 key={`nevent-${keyCounter++}`} 
-                eventId={decoded.data.id}
-                relays={decoded.data.relays}
+                eventId={data.id}
+                relays={data.relays}
               />
             );
           } else {
-            // For other types, just show as a link
+            // For other types, show as compact link (not raw string)
             parts.push(
               <Link 
                 key={`nostr-${keyCounter++}`}
                 to={`/${nostrId}`}
-                className="text-[#6600ff] hover:underline break-all"
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#6600ff]/10 text-[#6600ff] rounded text-sm hover:bg-[#6600ff]/20"
               >
-                {fullMatch}
+                🔗 {nostrPrefix.slice(0, -1)}
               </Link>
             );
           }
         } catch {
-          // If decoding fails, just render as text
-          parts.push(fullMatch);
+          // If decoding fails, show as compact link instead of raw text
+          const shortId = `${nostrPrefix}${nostrData.slice(0, 8)}...`;
+          parts.push(
+            <span 
+              key={`nostr-fallback-${keyCounter++}`}
+              className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-sm"
+            >
+              🔗 {shortId}
+            </span>
+          );
         }
       } else if (hashtag) {
         // Handle hashtags
@@ -307,12 +316,6 @@ export function NoteContent({
     return parts;
   }, [textContent, mediaItems]);
 
-  // Check if content needs truncation
-  const needsTruncation = textContent.length > MAX_CONTENT_LENGTH && !isExpanded;
-  const truncatedText = needsTruncation 
-    ? textContent.slice(0, MAX_CONTENT_LENGTH) + '...'
-    : textContent;
-  
   // Check if media needs limiting
   const hasMoreMedia = mediaItems.length > MAX_IMAGES_PREVIEW && !showAllMedia;
   const displayedMedia = hasMoreMedia 
@@ -320,43 +323,41 @@ export function NoteContent({
     : mediaItems;
   const hiddenMediaCount = mediaItems.length - MAX_IMAGES_PREVIEW;
 
-  // Re-process content if truncated
-  const displayContent = useMemo(() => {
-    if (!needsTruncation) return processedContent;
-    
-    // For truncated content, just show plain text truncated
-    return [truncatedText];
-  }, [needsTruncation, truncatedText, processedContent]);
+  // Check if content needs truncation - but ALWAYS process nostr references
+  // Only truncate pure text parts, not embedded content
+  const needsTruncation = textContent.length > MAX_CONTENT_LENGTH && !isExpanded;
 
   return (
     <div className={cn("space-y-3", className)}>
-      {/* Text content */}
-      {displayContent.length > 0 && (
-        <div className="whitespace-pre-wrap break-words">
-          {displayContent}
-          {needsTruncation && (
-            <Button
-              variant="link"
-              size="sm"
-              onClick={() => setIsExpanded(true)}
-              className="text-[#6600ff] p-0 h-auto font-normal ml-1"
-            >
-              Show more
-              <ChevronDown className="h-3 w-3 ml-0.5" />
-            </Button>
-          )}
-          {isExpanded && textContent.length > MAX_CONTENT_LENGTH && (
-            <Button
-              variant="link"
-              size="sm"
-              onClick={() => setIsExpanded(false)}
-              className="text-[#6600ff] p-0 h-auto font-normal ml-1"
-            >
-              Show less
-              <ChevronUp className="h-3 w-3 ml-0.5" />
-            </Button>
-          )}
+      {/* Text content - always use processedContent to render nostr references */}
+      {processedContent.length > 0 && (
+        <div className={cn("whitespace-pre-wrap break-words", needsTruncation && "line-clamp-6")}>
+          {processedContent}
         </div>
+      )}
+      
+      {/* Show more/less for text */}
+      {needsTruncation && (
+        <Button
+          variant="link"
+          size="sm"
+          onClick={() => setIsExpanded(true)}
+          className="text-[#6600ff] p-0 h-auto font-normal"
+        >
+          Show more
+          <ChevronDown className="h-3 w-3 ml-0.5" />
+        </Button>
+      )}
+      {isExpanded && textContent.length > MAX_CONTENT_LENGTH && (
+        <Button
+          variant="link"
+          size="sm"
+          onClick={() => setIsExpanded(false)}
+          className="text-[#6600ff] p-0 h-auto font-normal"
+        >
+          Show less
+          <ChevronUp className="h-3 w-3 ml-0.5" />
+        </Button>
       )}
       
       {/* Media gallery - Primal style: limited preview with show more */}
