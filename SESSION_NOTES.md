@@ -24,6 +24,7 @@
 cfadd2a - Update PLAN.md and SESSION_NOTES.md
 a5d6a76 - Fix stale feed data and username styling
 be3a4c6 - Fix all text colors to use explicit dark gray
+5413805 - Fix global text colors in CSS variables (proper fix)
 ```
 
 ---
