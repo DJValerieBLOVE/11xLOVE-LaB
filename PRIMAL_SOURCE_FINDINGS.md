@@ -113,7 +113,7 @@ export const getFutureFeed = (
 
 ---
 
-### 3. Event Stats
+### 3. Event Stats — CRITICAL: extended_response REQUIRED
 
 **From Primal's `lib/feed.ts`:**
 ```typescript
@@ -145,11 +145,15 @@ export const getEvents = (
 };
 ```
 
-**Our Implementation:**
+**CRITICAL FINDING (Feb 16, 2026):**
+Primal's app ALWAYS calls `getEvents(pubkey, ids, subId, true)` — the 4th argument is `true` for `extended_response`. Without it, the events endpoint returns ONLY the events themselves, NO stats (kind 10000100) and NO user actions (kind 10000115).
+
+**Our FIXED Implementation:**
 ```typescript
 // /src/lib/primalCache.ts - fetchPrimalEventStats
 const payload: Record<string, unknown> = {
   event_ids: eventIds.slice(0, 100),
+  extended_response: true,  // REQUIRED — without this, no stats returned
 };
 if (userPubkey) {
   payload.user_pubkey = userPubkey;
@@ -158,7 +162,7 @@ if (userPubkey) {
 const result = await primalRequest('events', payload, 10000);
 ```
 
-**✅ This matches - no issue here**
+**This was the #1 cause of stats not showing — fixed in commit 9562c31.**
 
 ---
 
@@ -228,27 +232,30 @@ export const getUserFeed = (
 
 **We only query generic feed** - could add these for richer features
 
-### 3. Extended Response
+### 3. Extended Response — NOW USED (REQUIRED)
 
-Stats endpoint supports `extended_response`:
+Stats endpoint REQUIRES `extended_response: true`:
 ```typescript
 if (extendResponse) {
   payload.extended_response = extendResponse;
 }
 ```
 
-**We don't use this** - might give us more data?
+**We now use this** — it's REQUIRED for stats. Without it, no stats are returned. Fixed in commit 9562c31.
 
 ---
 
-## ✅ WHAT WE'RE DOING RIGHT
+## ✅ WHAT WE'RE DOING RIGHT (All Fixed)
 
-1. **WebSocket Connection** - ✅ Correct
-2. **Compression (zlib/pako)** - ✅ Correct
-3. **Request Format** - ✅ Correct structure
-4. **Custom Kinds** - ✅ Parsing 10000100 and 10000115
-5. **Parallel Queries** - ✅ Primal + user's relays
-6. **Stats Fetching** - ✅ Background fetch for relay posts
+1. **WebSocket Connection** - Correct
+2. **Compression (zlib/pako)** - Correct
+3. **Request Format** - Correct structure
+4. **Custom Kinds** - Parsing 10000100 and 10000115
+5. **Parallel Queries** - Primal + user's relays
+6. **Stats Fetching** - extended_response: true, await + merge
+7. **Kind 6 Repost Stats** - Inner event ID lookup
+8. **NoteContent Rendering** - All NIP-19 prefixes handled
+9. **Embedded Note Media** - EmbeddedNoteContent component
 
 ---
 
@@ -351,18 +358,17 @@ export async function fetchPrimalNetworkFeed(
 
 ---
 
-## 💡 KEY TAKEAWAYS
+## KEY TAKEAWAYS
 
 1. **`until === 0` means "current time" in Primal's logic**
 2. **Use `Math.ceil()` not `Math.floor()` for timestamps**
 3. **Always pass current timestamp explicitly for main feed**
-4. **Primal has MANY more features we could use**
-5. **Our architecture is correct, just timestamp bugs**
+4. **`extended_response: true` is REQUIRED on events endpoint for stats**
+5. **Kind 6 repost stats are on the INNER event, not the wrapper**
+6. **Always await + merge stats fetches, never fire-and-forget**
 
 ---
 
 **Last Updated:** February 16, 2026  
-**Status:** Root cause identified - timestamp handling  
-**Next:** Fix timestamps, test, then tackle other bugs
+**Status:** All issues identified and fixed (commit 9562c31)
 
-💜 **The feed system is SOLID. Just needs timestamp fixes.**

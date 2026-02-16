@@ -1,7 +1,7 @@
 # 11x LOVE LaB Feed System - Complete Summary
 
 **Last Updated:** February 16, 2026  
-**Status:** Multiple bugs documented in FEED_BUGS.md - needs debugging
+**Status:** ALL CRITICAL BUGS FIXED — See AGENTS.md for prevention rules
 
 ---
 
@@ -133,11 +133,11 @@ let payload = { limit, until: time, pubkey };
 ### Core Feed System:
 | File | Purpose | Status |
 |------|---------|--------|
-| `/src/lib/primalCache.ts` | Primal WebSocket client | ⚠️ Has bugs |
-| `/src/hooks/useFeedPosts.ts` | Feed data hooks | ⚠️ Has bugs |
-| `/src/pages/Feed.tsx` | Feed UI with tabs | ✅ Working |
-| `/src/components/FeedPost.tsx` | Individual post component | ✅ Working |
-| `/src/components/NoteContent.tsx` | Rich text + media rendering | ⚠️ Has bugs |
+| `/src/lib/primalCache.ts` | Primal WebSocket client | STABLE |
+| `/src/hooks/useFeedPosts.ts` | Feed data hooks | STABLE |
+| `/src/pages/Feed.tsx` | Feed UI with tabs | STABLE |
+| `/src/components/FeedPost.tsx` | Individual post component | STABLE |
+| `/src/components/NoteContent.tsx` | Rich text + media rendering | STABLE |
 
 ### Privacy & Publishing:
 | File | Purpose |
@@ -150,26 +150,25 @@ let payload = { limit, until: time, pubkey };
 ### Documentation:
 | File | Purpose |
 |------|---------|
-| **FEED_BUGS.md** | ⚠️ **READ THIS FIRST** - Bug list & debug plan |
+| **AGENTS.md** | **READ THIS FIRST** — Prevention rules for feed, Primal API, NoteContent |
+| FEED_BUGS.md | Bug history (all resolved) |
 | SESSION_NOTES.md | Session history |
 | PLAN.md | Full build spec |
 
 ---
 
-## 🐛 CURRENT BUGS (See FEED_BUGS.md for details)
+## ALL CRITICAL BUGS RESOLVED (Feb 16, 2026)
 
-### Critical Issues:
-1. **Stale Data** - Feed shows old posts, reverts after refresh
-2. **Raw JSON Display** - Some posts show JSON instead of content
-3. **Images Not Loading** - Media detection/display broken
-4. **Links Not Working** - URL parsing issues
-5. **Intermittent Stats** - Likes/zaps sometimes missing
+1. **Stale Data** — Mitigated (Primal lag is by design, direct relays supplement)
+2. **Raw JSON Display** — Fixed (processEvent handles string/object)
+3. **Images Not Loading in Embedded Notes** — Fixed (EmbeddedNoteContent component)
+4. **naddr Links as Raw Text** — Fixed (regex + decode handler)
+5. **Stats Not Showing** — Fixed (extended_response + inner ID + await merge)
 
-### Debug Priority:
-1. Read **FEED_BUGS.md** first - has action plan
-2. Add extensive logging to track data flow
-3. Test Primal API directly in browser console
-4. Compare with actual primal.net behavior
+### Prevention Rules in AGENTS.md:
+- "CRITICAL: Primal API Rules (DO NOT BREAK)" — 4 rules
+- "CRITICAL: NoteContent Rendering Rules (DO NOT BREAK)" — 4 rules
+- "CRITICAL: Feed File Reference (READ BEFORE EDITING)" — file map
 
 ---
 
@@ -318,20 +317,13 @@ We enforce privacy at multiple layers:
 
 ---
 
-## 🎬 NEXT STEPS (From FEED_BUGS.md)
+## NEXT STEPS
 
-### Immediate Priorities:
-1. **Fix stale data bug** - Investigate TanStack Query caching
-2. **Fix raw JSON display** - Ensure events are objects, not strings
-3. **Fix image loading** - Debug URL detection regex
-4. **Add extensive logging** - Track data flow through system
-5. **Test with Primal directly** - Verify API behavior
-
-### After Bug Fixes:
-1. **Completion receipts** - One-time sats earning per lesson
-2. **Streak tracking** - Daily check-ins, gamification
-3. **Accountability buddies** - Buddy feed tab
-4. **Magic Mentor AI** - OpenRouter/Grok integration
+### All Feed Bugs Resolved. Moving On To:
+1. **Completion receipts** — One-time sats earning per lesson
+2. **Streak tracking** — Daily check-ins, gamification
+3. **Accountability buddies** — Buddy feed tab
+4. **Magic Mentor AI** — OpenRouter/Grok integration
 
 ---
 
@@ -353,21 +345,24 @@ We enforce privacy at multiple layers:
 
 ---
 
-## ⚠️ CRITICAL WARNINGS
+## CRITICAL WARNINGS
 
 ### FOR AI AGENTS:
-1. **READ FEED_BUGS.md FIRST** before changing feed code
-2. **Don't change multiple files at once** - bugs are interconnected
-3. **Test each fix** before moving to next bug
-4. **Add logging, don't remove it** - we need visibility
-5. **Preserve privacy controls** - don't accidentally expose private data
+1. **READ AGENTS.md "Primal API Rules" and "NoteContent Rendering Rules"** before changing ANY feed code
+2. **These files are tightly coupled** — read all 5 feed files before editing any of them
+3. **Preserve privacy controls** — don't accidentally expose private data
+4. **`extended_response: true`** is REQUIRED on Primal events endpoint for stats
+5. **Kind 6 reposts** — always look up stats by INNER event ID, not wrapper
+6. **Never fire-and-forget** — always await stats fetches and merge results
+7. **NoteContent regex** — must have ALL NIP-19 prefixes (npub1, note1, nprofile1, nevent1, naddr1)
+8. **Embedded notes** — must render media via EmbeddedNoteContent, never raw text
 
 ### FOR DEBUGGING:
-1. **Check `until` timestamp** - Must be current, not cached
-2. **Verify event types** - Should be objects, not strings
-3. **Monitor WebSocket** - Look for EOSE before timeout
-4. **Compare with Primal** - Open primal.net side-by-side
-5. **Test on live site** - Browser extensions don't work in iframe
+1. **Check `until` timestamp** — Must be current, not cached
+2. **Verify event types** — Should be objects, not strings
+3. **Monitor WebSocket** — Look for EOSE before timeout
+4. **Compare with Primal** — Open primal.net side-by-side
+5. **Test on live site** — Browser extensions don't work in iframe
 
 ---
 
@@ -392,7 +387,6 @@ We enforce privacy at multiple layers:
 ---
 
 **Last Updated:** February 16, 2026  
-**Next Action:** Read FEED_BUGS.md and start debugging with extensive logging  
-**Status:** Feed loads but has data quality issues - see bugs doc
+**Status:** All critical feed bugs resolved. Prevention rules in AGENTS.md.
 
 💜 Peace, LOVE, & Warm Aloha

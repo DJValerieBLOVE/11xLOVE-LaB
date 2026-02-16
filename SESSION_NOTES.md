@@ -1,134 +1,114 @@
 # Session Notes - February 16, 2026
 
-> **STATUS: Blurry text root cause IDENTIFIED** — Marcellus font only has weight 400. Feed page fixed. Rest of app still needs fix. See `MARCELLUS_FONT_FIX.md`.
+> **STATUS: Feed stats + content rendering FIXED** — Three root causes found and resolved. See AGENTS.md "Primal API Rules" and "NoteContent Rendering Rules" for prevention.
 
 ---
 
-## CURRENT SESSION SUMMARY (Opus 4.6 — Session 2)
+## CURRENT SESSION SUMMARY (Opus 4.6 — Session 3)
 
-### Bugs Fixed This Session
+### Bugs Fixed This Session (commit 9562c31)
 
-3. ✅ **ROOT CAUSE FOUND: Blurry/gray text = Marcellus font faux-bold** (commit 9e41e5e)
-   - Marcellus only ships weight 400. `font-medium`/`font-semibold`/`font-bold` cause browser to synthesize fake bold = blurry gray text
-   - Fixed on Feed page: username, My Tribes, Live Now, Upcoming Events
-   - **REST OF APP STILL NEEDS FIX** — see `MARCELLUS_FONT_FIX.md` for complete list
+1. **FIXED: Stats not showing (likes, reposts, zaps, replies)**
+   - **Root Cause A**: Primal's `events` endpoint needs `extended_response: true` to return stats (kind 10000100) and actions (kind 10000115). Without it, only events are returned.
+   - **Root Cause B**: Kind 6 reposts need stats looked up by the INNER event ID, not the repost wrapper ID. The inner event is embedded as JSON in the repost's `content` field.
+   - **Root Cause C**: Relay-sourced posts called `fetchPrimalEventStats()` but threw away the result with `.catch(() => {})`. Changed to await + merge.
 
-### Previous Session (Opus 4.6 — Session 1)
+2. **FIXED: `naddr1` references showing as raw text**
+   - **Root Cause**: NoteContent's nostr regex was missing `naddr1` prefix. Only had `npub1|note1|nprofile1|nevent1`.
+   - **Fix**: Added `naddr1` to regex + handler that renders labeled link chips.
 
-1. ✅ **FIXED: Gray/muted text colors** — Added plain `<style>` tag in `index.html` with `!important` CSS variable overrides that the Tailwind Play CDN cannot process. Applied explicit `text-black` classes on key components. Root cause was CDN reprocessing `<style type="text/tailwindcss">` and overriding custom variables.
+3. **FIXED: Embedded/quoted notes showing raw URLs instead of images**
+   - **Root Cause**: `EmbeddedNote` component dumped `event.content` as plain text `<p>{content}</p>` with zero media processing.
+   - **Fix**: Created `EmbeddedNoteContent` component that extracts image URLs, renders `<img>` tags, and replaces nostr references with compact labels.
 
-2. ✅ **IMPROVED: Feed freshness** — Added `since` parameter to direct relay queries (2-hour window), increased relay limit to 60, added 60-second auto-refresh, and full cache invalidation on manual refresh. Primal's inherent 20-30 min lag is supplemented by real-time direct relay queries.
+### Prevention: AGENTS.md Updated
 
-### Previous Session Work (Sonnet 4.5)
+Added three new CRITICAL sections to AGENTS.md to prevent regressions:
+- **Primal API Rules** — 4 rules with code examples
+- **NoteContent Rendering Rules** — 4 rules with code examples
+- **Feed File Reference** — dependency map of all feed files
 
-3. ✅ **Added link preview support** (kind 10000128 → LinkPreviewCard)
-4. ✅ **Changed tribe badges from pink to gray**
-5. ✅ **Added notification badge to Latest tab**
-6. ✅ **Primal custom kinds documented** (40+ kinds)
-7. ✅ **Feed system built** (Primal + direct relay parallel queries)
-8. ❌ **11 failed attempts to fix gray text** — all within `<style type="text/tailwindcss">` block
+### Previous Sessions
+
+4. **Session 2 (Opus 4.6)**: Root cause of blurry text = Marcellus font faux-bold. Fixed on Feed page.
+5. **Session 1 (Opus 4.6)**: Fixed gray text from Tailwind CDN overrides. Added feed freshness improvements.
+6. **Earlier (Sonnet 4.5)**: Built feed system, added link previews, documented Primal kinds.
 
 ---
 
 ## GIT HISTORY (Most Recent First)
 
 ```
-8dbafeb - Fix gray text bug + improve feed freshness (Opus 4.6) ✅
-b9a9f86 - Moved CSS vars outside @layer + restored muted vars (Sonnet 4.5) ❌
-4cb68a1 - REMOVE all color overrides - use pure black CSS variables only ❌
-73d0dfd - Replace inline styles with !important utility classes ❌
-b8b8955 - Add inline styles with hardcoded dark color (#1a1a1a) ❌
-806e624 - FIX: Dark mode CSS overriding light mode ❌
-47bce2f - DELETE muted color system completely ❌
-32f4a65 - Fix muted-foreground CSS to use DARK readable gray ❌
-d1fc265 - Remove ALL text-muted-foreground - replace with explicit colors ❌
-237a720 - Fix text color to dark/black across Feed sidebar ❌
+9562c31 - fix: stats not showing + raw naddr/image URLs in feed posts
+f1f7ba2 - fix: eliminate all pink brand accents, enforce no-bold rules in AGENTS.md
+4769e36 - Fix blurry text site-wide: replace faux-bold with font-normal
+9e41e5e - Fix blurry gray text on Feed page - username, My Tribes, etc.
+8dbafeb - Fix gray text bug + improve feed freshness
 ```
 
 ---
 
 ## REMAINING ISSUES
 
-### 🟡 Stats Not Showing Reliably
-**Symptom**: Like/repost/zap counts are sometimes 0 or missing
-**Status**: NEEDS TESTING — may be working better after feed improvements
-**Next Step**: Check console logs for `[Primal]` messages, verify stat counts
+### All Clear
 
-### 🟡 Primal Cache Lag (20-30 min)
-**Status**: By design — Primal infrastructure limitation
-**Mitigation**: Direct relay queries provide real-time fresh posts
+- Stats: **RESOLVED** (extended_response + inner ID lookup + await stats)
+- naddr rendering: **RESOLVED** (regex + handler)
+- Embedded media: **RESOLVED** (EmbeddedNoteContent component)
+- Blurry text: **RESOLVED** (font-normal everywhere)
+- Gray text: **RESOLVED** (plain style tag + text-black)
+- Stale data: **MITIGATED** (Primal lag is by design, direct relays supplement)
+
+### Primal Cache Lag (20-30 min)
+
+**Status**: By design — Primal infrastructure limitation. Not fixable.
+**Mitigation**: Direct relay queries provide real-time fresh posts alongside Primal's cached data.
 
 ---
 
-## FILES CHANGED THIS SESSION (Opus 4.6)
+## FILES CHANGED THIS SESSION
 
 | File | Changes |
 |------|---------|
-| `index.html` | Plain `<style>` with `!important` CSS variable overrides |
-| `src/components/ui/card.tsx` | `text-black` on Card and CardTitle |
-| `src/components/ui/tabs.tsx` | `text-black` on TabsList and TabsTrigger |
-| `src/components/FeedPost.tsx` | `text-black` on username link |
-| `src/pages/Feed.tsx` | `text-black` on headings, `useQueryClient` for cache invalidation |
-| `src/pages/Profile.tsx` | `text-black` on name and bio |
-| `src/components/Layout.tsx` | `text-gray-500` replacing `text-muted-foreground` |
-| `src/hooks/useFeedPosts.ts` | `since` filter, higher limits, auto-refresh, cache invalidation |
+| `src/lib/primalCache.ts` | Added `extended_response: true` to events payload, always fetch stats separately as safety net, handle newline-separated compressed responses |
+| `src/hooks/useFeedPosts.ts` | Look up stats by inner event ID for kind 6 reposts, await stats for relay posts instead of fire-and-forget |
+| `src/components/NoteContent.tsx` | Added `naddr1` to nostr regex, added naddr decode handler, created `EmbeddedNoteContent` component for rich media in quoted notes |
+| `src/components/FeedPost.tsx` | Removed noisy debug logging |
+| `AGENTS.md` | Added Primal API Rules, NoteContent Rendering Rules, Feed File Reference |
 
 ---
 
-## KEY TECHNICAL LESSONS
+## KEY TECHNICAL LESSONS (Updated)
+
+### Primal API — The Three Rules That Matter
+
+1. **`extended_response: true`** on `events` endpoint or you get NO stats
+2. **Kind 6 inner ID** — stats belong to the original note, not the repost
+3. **Await stats** — never fire-and-forget, always merge into the data
+
+### NoteContent — Never Show Raw Text
+
+1. **Regex must have ALL NIP-19 prefixes** — `npub1|note1|nprofile1|nevent1|naddr1`
+2. **Every prefix needs a decode handler** — link chip, embedded card, etc.
+3. **Embedded notes MUST render media** — use `EmbeddedNoteContent`, not raw `{content}`
+4. **Image hosts list must be comprehensive** — Blossom subdomains, CDN URLs, hash filenames
 
 ### Shakespeare + Tailwind CDN Workaround
 
-**Problem**: Shakespeare uses `<style type="text/tailwindcss">` → Tailwind Play CDN reprocesses everything → custom CSS variables overridden with gray defaults.
-
-**Solution**: Plain `<style>` tag (no `type` attribute) in `index.html` with `!important`. CDN ignores it completely.
-
-**Rules for future development**:
 - Use `text-black` instead of `text-foreground` for critical text
-- Use `text-gray-500` instead of `text-muted-foreground` for metadata
-- Keep the plain `<style>` tag in `index.html` — it's essential
-- Any new foreground CSS variables must be added to the plain `<style>` override
-
-### Feed Data Strategy
-
-**Primal** provides: stats, profiles, link previews (but 20-30 min delayed)
-**Direct relays** provide: fresh posts in real-time (but no stats)
-**Merge strategy**: Dedupe by event ID, sort by timestamp, Primal stats win when available
-
----
-
-## PRIMAL CUSTOM KINDS (Complete Reference)
-
-```typescript
-// Key kinds we parse:
-NoteStats: 10_000_100      // likes, reposts, replies, zaps
-NoteActions: 10_000_115    // user liked/reposted/zapped
-LinkMetadata: 10_000_128   // og:title, og:image, og:description
-MediaInfo: 10_000_119      // image dimensions
-
-// Kinds we silently ignore (not needed for feed display):
-Mentions: 10_000_107
-UserScore: 10_000_108
-FeedRange: 10_000_113      // pagination
-EventZapInfo: 10_000_129
-RelayHint: 10_000_141
-VerifiedUsersDict: 10_000_158
-LegendCustomization: 10_000_168
-MembershipCohortInfo: 10_000_169
-```
+- Keep the plain `<style>` tag in `index.html` — CDN ignores it
+- NEVER use `font-bold`/`font-semibold`/`font-medium` — Marcellus only has weight 400
 
 ---
 
 ## NEXT STEPS
 
-1. **Deploy and test on live site** — Verify text is black, feed is fresh
-2. **Test stats display** — Check if like/repost/zap counts show reliably
-3. **Chunk 9: Completion Receipts** — One-time sats earning per lesson
-4. **Chunk 10: Streak Tracking** — Daily check-ins, calendar, milestones
-5. **Chunk 12: Magic Mentor AI** — OpenRouter/Grok integration
+1. **Chunk 9: Completion Receipts** — One-time sats earning per lesson
+2. **Chunk 10: Streak Tracking** — Daily check-ins, calendar, milestones
+3. **Chunk 12: Magic Mentor AI** — OpenRouter/Grok integration
 
 ---
 
 **Last Updated:** February 16, 2026
 
-**Peace, LOVE, & Warm Aloha** 🌅💜
+**Peace, LOVE, & Warm Aloha**

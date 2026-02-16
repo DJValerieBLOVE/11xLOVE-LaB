@@ -1486,3 +1486,129 @@ Images use `object-fit: contain` to preserve aspect ratio without stretching:
 - Stats display (likes, reposts, zaps with real numbers)
 - User actions highlighted (filled heart if liked)
 - Private posts show lock badge, no share button
+
+---
+
+## CRITICAL: Primal API Rules (DO NOT BREAK)
+
+These rules exist because bugs in this area have caused multiple days of debugging. Follow them exactly.
+
+### Rule 1: `extended_response: true` on events endpoint
+
+When calling Primal's `events` cache method to fetch stats, you MUST include `extended_response: true`. Without it, Primal returns only the events themselves — no stats (kind 10000100) and no user actions (kind 10000115).
+
+```typescript
+// ✅ CORRECT — returns stats + actions
+const payload = {
+  event_ids: eventIds,
+  user_pubkey: userPubkey,
+  extended_response: true,   // REQUIRED for stats
+};
+const result = await primalRequest('events', payload, 10000);
+
+// ❌ WRONG — returns events only, NO stats
+const payload = {
+  event_ids: eventIds,
+  user_pubkey: userPubkey,
+  // Missing extended_response!
+};
+```
+
+### Rule 2: Kind 6 reposts — look up stats by INNER event ID
+
+A kind 6 repost wraps the original note as JSON in its `content` field. The stats (likes, zaps, reposts) belong to the **original inner note**, NOT the repost wrapper. You must extract the inner event ID for stats lookup.
+
+```typescript
+// ✅ CORRECT — extract inner event ID for stats
+let statsId = note.id;
+if (note.kind === 6 && note.content) {
+  try {
+    const inner = JSON.parse(note.content);
+    if (inner.id) statsId = inner.id;
+  } catch { /* use note.id as fallback */ }
+}
+const stats = primalResult.stats.get(statsId) || primalResult.stats.get(note.id);
+
+// ❌ WRONG — stats for the repost wrapper will always be empty
+const stats = primalResult.stats.get(note.id);
+```
+
+### Rule 3: Never fire-and-forget stats fetches
+
+When fetching stats for relay-sourced posts, you MUST await the result and merge it into the posts array. Fire-and-forget calls fetch data that is then thrown away.
+
+```typescript
+// ✅ CORRECT — await and merge stats
+const statsResult = await fetchPrimalEventStats(newEventIds, user.pubkey, signal);
+for (const [id, stats] of statsResult.stats) {
+  // merge into posts...
+}
+
+// ❌ WRONG — stats are fetched but never used
+fetchPrimalEventStats(newEventIds, user.pubkey).catch(() => {});
+```
+
+### Rule 4: Always fetch stats separately as a safety net
+
+Primal's `feed` endpoint sometimes includes stats inline, sometimes doesn't. Always check for missing stats after the feed response and fetch them separately if needed.
+
+```typescript
+// After getting feed result:
+const missingIds = noteIds.filter(id => !result.stats.has(id));
+if (missingIds.length > 0) {
+  const statsResult = await fetchPrimalEventStats(missingIds, userPubkey, signal);
+  // merge...
+}
+```
+
+---
+
+## CRITICAL: NoteContent Rendering Rules (DO NOT BREAK)
+
+These rules prevent raw text/URLs from showing where images and links should appear.
+
+### Rule 1: The nostr regex MUST include ALL NIP-19 prefixes
+
+The regex that parses `nostr:` references in text MUST include every NIP-19 bech32 prefix that can appear in post content. Missing a prefix = raw gibberish text in the feed.
+
+```typescript
+// ✅ CORRECT — all prefixes included
+const regex = /(https?:\/\/[^\s]+)|nostr:(npub1|note1|nprofile1|nevent1|naddr1)([023456789acdefghjklmnpqrstuvwxyz]+)|(#\w+)/g;
+
+// ❌ WRONG — missing naddr1, will show raw naddr text
+const regex = /(https?:\/\/[^\s]+)|nostr:(npub1|note1|nprofile1|nevent1)([023456789acdefghjklmnpqrstuvwxyz]+)|(#\w+)/g;
+```
+
+If a new NIP-19 prefix is ever added to Nostr (unlikely but possible), it must be added here.
+
+### Rule 2: Embedded/quoted notes MUST render media
+
+The `EmbeddedNote` component (for `note1`/`nevent1` quote posts) MUST render images and media from the quoted note's content. Never dump `event.content` as raw text — always extract URLs, detect media, and render `<img>` tags.
+
+**Current implementation**: `EmbeddedNoteContent` component handles this. If you touch `EmbeddedNote`, verify media still renders.
+
+### Rule 3: Image host detection must cover all Blossom/CDN patterns
+
+The `IMAGE_HOSTS` list in NoteContent.tsx and the `isImageUrl()` function must recognize:
+- Standard image extensions (`.jpg`, `.png`, `.webp`, `.gif`, etc.)
+- Blossom subdomains (`*.blossom.band`, `blossom.primal.net`, etc.)
+- Hash-based filenames without extensions (hex strings 32+ chars)
+- CDN URLs from `nostr.build`, `void.cat`, `primal.b-cdn.net`, etc.
+
+### Rule 4: Each naddr type needs a decode handler
+
+When adding `naddr1` (or any new Nostr reference type) to the regex, you MUST also add a corresponding handler in the decode switch statement that renders an appropriate UI element (link chip, embedded card, etc.) — never fall through to showing raw text.
+
+---
+
+## CRITICAL: Feed File Reference (READ BEFORE EDITING)
+
+These files are tightly interconnected. Breaking one breaks the whole feed. Always read the current state before editing.
+
+| File | What It Does | What Breaks If Wrong |
+|------|-------------|---------------------|
+| `/src/lib/primalCache.ts` | WebSocket client for Primal API, parses all custom kinds | Stats disappear, feed empty, raw JSON in posts |
+| `/src/hooks/useFeedPosts.ts` | Fetches + merges Primal data with relay data, maps stats to posts | Stats show 0, posts missing, wrong data on posts |
+| `/src/components/NoteContent.tsx` | Renders post text, extracts media URLs, handles nostr: refs | Raw URLs as text, no images, naddr gibberish |
+| `/src/components/FeedPost.tsx` | Displays post card with stats, actions, zap button | Stats not visible, buttons broken |
+| `/src/pages/Feed.tsx` | Feed page with tabs, composer, passes data to FeedPost | Wrong tab data, broken refresh |
