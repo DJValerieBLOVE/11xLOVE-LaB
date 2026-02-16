@@ -151,8 +151,18 @@ async function primalRequest(
           if (msgSubId !== subId) return;
           
           if (type === 'EVENT' && content) {
+            // Debug: Log event kinds
+            const kind = content?.kind;
+            if (kind >= 10000000) {
+              console.log('[Primal] Got EVENT kind', kind);
+            }
             processEvent(content, result);
           } else if (type === 'EVENTS' && Array.isArray(content)) {
+            // Debug: Log batch info
+            const kinds = content.map((e: { kind?: number }) => e?.kind).filter(Boolean);
+            const uniqueKinds = [...new Set(kinds)];
+            console.log('[Primal] Got EVENTS batch with', content.length, 'items, kinds:', uniqueKinds.join(','));
+            
             for (const item of content) {
               processEvent(item, result);
             }
@@ -224,6 +234,10 @@ function processEvent(eventData: unknown, result: PrimalFeedResult) {
       const stats = JSON.parse(content) as PrimalNoteStats;
       if (stats.event_id) {
         result.stats.set(stats.event_id, stats);
+        // Debug first few stats
+        if (result.stats.size <= 3) {
+          console.log('[Primal] Parsed stats:', stats.event_id.slice(0, 8), 'likes:', stats.likes, 'zaps:', stats.zaps);
+        }
       }
     } catch (e) {
       console.warn('[Primal] Failed to parse stats:', e);
@@ -239,6 +253,9 @@ function processEvent(eventData: unknown, result: PrimalFeedResult) {
     } catch (e) {
       console.warn('[Primal] Failed to parse actions:', e);
     }
+  } else if (kind > 10000000) {
+    // Log any other Primal custom kinds we might be missing
+    console.log('[Primal] Unknown kind', kind, '- content preview:', (event.content as string)?.slice(0, 100));
   }
 }
 
