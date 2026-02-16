@@ -75,7 +75,7 @@ const ConversationItemComponent = ({
               {isLoadingProfile ? (
                 <Skeleton className="h-[1.25rem] w-24" />
               ) : (
-                <span className="font-medium text-sm truncate">{displayName}</span>
+                <span className="font-normal text-sm truncate">{displayName}</span>
               )}
               {hasNIP4Messages && (
                 <TooltipProvider>
@@ -165,7 +165,7 @@ export const DMConversationList = ({
       {/* Header - always visible */}
       <div className="p-4 border-b flex-shrink-0 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="font-semibold text-lg">Messages</h2>
+          <h2 className="font-normal text-lg">Messages</h2>
           {(loadingPhase === LOADING_PHASES.CACHE || 
             loadingPhase === LOADING_PHASES.RELAYS || 
             loadingPhase === LOADING_PHASES.SUBSCRIPTIONS) && (
@@ -208,7 +208,7 @@ export const DMConversationList = ({
             className={cn(
               "text-xs py-2 px-3 rounded-md transition-colors",
               activeTab === 'known' 
-                ? "bg-background shadow-sm font-medium" 
+                ? "bg-background shadow-sm font-normal" 
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -219,7 +219,7 @@ export const DMConversationList = ({
             className={cn(
               "text-xs py-2 px-3 rounded-md transition-colors",
               activeTab === 'requests' 
-                ? "bg-background shadow-sm font-medium" 
+                ? "bg-background shadow-sm font-normal" 
                 : "text-muted-foreground hover:text-foreground"
             )}
           >

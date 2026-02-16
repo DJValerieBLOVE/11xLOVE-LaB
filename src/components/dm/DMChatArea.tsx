@@ -179,7 +179,7 @@ const ChatHeader = ({ pubkey, onBack }: { pubkey: string; onBack?: () => void })
       </Avatar>
       
       <div className="flex-1 min-w-0">
-        <h2 className="font-semibold truncate">{displayName}</h2>
+        <h2 className="font-normal truncate">{displayName}</h2>
         {metadata?.nip05 && (
           <p className="text-xs text-muted-foreground truncate">{metadata.nip05}</p>
         )}

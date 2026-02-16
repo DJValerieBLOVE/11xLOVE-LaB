@@ -12,7 +12,7 @@ const Messages = () => {
       <div className="container mx-auto p-4 h-screen flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold">Messages</h1>
+          <h1 className="text-2xl font-normal">Messages</h1>
         </div>
 
         <DMMessagingInterface className="flex-1" />

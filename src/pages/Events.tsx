@@ -105,7 +105,7 @@ const Events = () => {
                   <div className="flex gap-4 p-6">
                     {/* Event Image/Color Block */}
                     <div className={`w-32 h-32 rounded-lg bg-gradient-to-br ${event.color} flex-shrink-0 flex items-center justify-center`}>
-                      <span className="text-xs font-semibold text-white px-2 py-1 bg-black/20 rounded">
+                      <span className="text-xs font-normal text-white px-2 py-1 bg-black/20 rounded">
                         TODAY
                       </span>
                     </div>
@@ -114,7 +114,7 @@ const Events = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          <h3 className="text-xl font-bold mb-1">{event.title}</h3>
+                          <h3 className="text-xl font-normal mb-1">{event.title}</h3>
                           <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
                             <span>{event.time}</span>
                             <span>•</span>

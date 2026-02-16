@@ -482,7 +482,7 @@ function NostrMention({ pubkey }: { pubkey: string }) {
     <Link 
       to={`/${npub}`}
       className={cn(
-        "font-medium hover:underline",
+        "font-normal hover:underline",
         hasRealName 
           ? "text-[#6600ff]" 
           : "text-gray-500 hover:text-gray-700"
@@ -578,7 +578,7 @@ function EmbeddedNote({ eventId, relays }: { eventId: string; relays?: string[] 
         <Link 
           to={`/${npub}`}
           onClick={(e) => e.stopPropagation()}
-          className="font-medium text-sm hover:underline"
+          className="font-normal text-sm hover:underline"
         >
           {displayName}
         </Link>
@@ -641,7 +641,7 @@ function LinkPreviewCard({ url, preview }: { url: string; preview: PrimalLinkMet
             <span>{domain}</span>
             <ExternalLink className="h-3 w-3" />
           </div>
-          <h4 className="font-medium text-sm line-clamp-2">{title}</h4>
+          <h4 className="font-normal text-sm line-clamp-2">{title}</h4>
           {description && (
             <p className="text-xs text-gray-500 line-clamp-2">{description}</p>
           )}

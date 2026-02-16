@@ -166,7 +166,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] sm:max-w-sm max-h-[90dvh] p-0 gap-6 overflow-hidden rounded-2xl overflow-y-auto">
         <DialogHeader className="px-6 pt-6">
-          <DialogTitle className="text-lg font-semibold leading-none tracking-tight text-center">
+          <DialogTitle className="text-lg font-normal leading-none tracking-tight text-center">
             {getTitle()}
           </DialogTitle>
         </DialogHeader>
@@ -225,7 +225,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose }) => {
               <div className='mx-auto max-w-sm'>
                 <div className='p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800'>
                   <div className='flex items-center gap-2 mb-1'>
-                    <span className='text-xs font-semibold text-amber-800 dark:text-amber-200'>
+                    <span className='text-xs font-normal text-amber-800 dark:text-amber-200'>
                       Important Warning
                     </span>
                   </div>
@@ -245,7 +245,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose }) => {
                 <div className='p-4 rounded-lg bg-muted border'>
                   <div className='flex items-center justify-center gap-3'>
                     <div className='w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin' />
-                    <span className='text-sm font-medium'>
+                    <span className='text-sm font-normal'>
                       Publishing your profile...
                     </span>
                   </div>
@@ -253,9 +253,9 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose }) => {
               )}
 
               {/* Profile form */}
-              <div className={`space-y-4 text-left ${isPublishing ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div className={`space-y-4 text-left ${isPublishing ? 'opacity-50 pointer-events-none' : ''}`}>
                 <div className='space-y-2'>
-                  <label htmlFor='profile-name' className='text-sm font-medium'>
+                  <label htmlFor='profile-name' className='text-sm font-normal'>
                     Display Name
                   </label>
                   <Input
@@ -268,7 +268,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className='space-y-2'>
-                  <label htmlFor='profile-about' className='text-sm font-medium'>
+                  <label htmlFor='profile-about' className='text-sm font-normal'>
                     Bio
                   </label>
                   <Textarea
@@ -283,7 +283,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className='space-y-2'>
-                  <label htmlFor='profile-picture' className='text-sm font-medium'>
+                  <label htmlFor='profile-picture' className='text-sm font-normal'>
                     Avatar
                   </label>
                   <div className='flex gap-2'>

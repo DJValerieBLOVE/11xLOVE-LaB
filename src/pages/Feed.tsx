@@ -193,7 +193,7 @@ const Feed = () => {
           <div className="max-w-lg mx-auto text-center">
             <div className="mb-8">
               <Sparkles className="h-16 w-16 mx-auto text-[#6600ff] mb-4" />
-              <h1 className="text-3xl font-bold mb-4 text-black">Your Feed</h1>
+              <h1 className="text-3xl font-normal mb-4 text-black">Your Feed</h1>
               <p className="text-gray-600 mb-6">
                 See updates from your Tribes, accountability buddies, and the 11x LOVE community.
               </p>
@@ -225,7 +225,7 @@ const Feed = () => {
         {/* Centered header */}
         <div className="max-w-[580px] mx-auto px-4 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-2xl font-bold text-black">Your Feed</h1>
+            <h1 className="text-2xl font-normal text-black">Your Feed</h1>
             <Button variant="ghost" size="sm" onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
@@ -398,7 +398,7 @@ const Feed = () => {
                         <Users className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-medium text-sm text-black">{tribe.name}</p>
+                        <p className="font-normal text-sm text-black">{tribe.name}</p>
                         <p className="text-xs text-gray-500">{tribe.members} members</p>
                       </div>
                     </div>

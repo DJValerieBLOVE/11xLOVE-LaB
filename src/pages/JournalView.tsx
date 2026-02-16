@@ -78,7 +78,7 @@ export default function JournalView() {
           
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
+              <h1 className="text-4xl font-normal mb-2 flex items-center gap-3">
                 <BookOpen className="h-8 w-8 text-purple-600" />
                 My Journal
               </h1>
@@ -124,7 +124,7 @@ export default function JournalView() {
               {!isLoading && journal && journal.entries.length === 0 && (
                 <div className="text-center py-12">
                   <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">No Journal Entries Yet</h3>
+                  <h3 className="text-xl font-normal mb-2">No Journal Entries Yet</h3>
                   <p className="text-muted-foreground mb-6">
                     Start completing lessons to build your knowledge vault!
                   </p>
@@ -141,7 +141,7 @@ export default function JournalView() {
                   {journal.entries.map((entry, index) => (
                     <div key={index}>
                       <div className="mb-4">
-                        <h3 className="text-lg font-semibold mb-1">{entry.lessonTitle}</h3>
+                        <h3 className="text-lg font-normal mb-1">{entry.lessonTitle}</h3>
                         <p className="text-sm text-muted-foreground">{entry.timestamp}</p>
                       </div>
                       <div className="prose prose-sm max-w-none">

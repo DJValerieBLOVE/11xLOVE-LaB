@@ -118,14 +118,14 @@ const BigDreams = () => {
                     <span>{currentStreak} day streak</span>
                   </CardTitle>
                   <div className="flex gap-4 text-sm text-muted-foreground">
-                    <span className="text-purple-600 font-medium">Less</span>
+                    <span className="text-purple-600 font-normal">Less</span>
                     <div className="flex gap-1">
                       <div className="w-3 h-3 bg-purple-100 rounded-sm"></div>
                       <div className="w-3 h-3 bg-purple-300 rounded-sm"></div>
                       <div className="w-3 h-3 bg-purple-500 rounded-sm"></div>
                       <div className="w-3 h-3 bg-purple-700 rounded-sm"></div>
                     </div>
-                    <span className="text-purple-600 font-medium">More</span>
+                    <span className="text-purple-600 font-normal">More</span>
                   </div>
                 </div>
               </CardHeader>
@@ -174,7 +174,7 @@ const BigDreams = () => {
                       <span className="text-white text-2xl">💜</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold">Daily LOVE Practice</h3>
+                      <h3 className="text-xl font-normal">Daily LOVE Practice</h3>
                       <p className="text-sm text-muted-foreground">Friday, February 13</p>
                     </div>
                   </div>
@@ -190,7 +190,7 @@ const BigDreams = () => {
 
             {/* My 11 Big Dreams */}
             <div>
-              <h2 className="text-xl font-semibold mb-4">My 11 Big Dreams</h2>
+              <h2 className="text-xl font-normal mb-4">My 11 Big Dreams</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 Update your vision for each dimension
               </p>
@@ -231,7 +231,7 @@ const BigDreams = () => {
               <CardContent className="space-y-3">
                 {upcomingEvents.map((event, i) => (
                   <div key={i} className="border-b last:border-0 pb-3 last:pb-0">
-                    <p className="font-medium text-sm">{event.title}</p>
+                    <p className="font-normal text-sm">{event.title}</p>
                     <p className="text-xs text-muted-foreground">{event.date}</p>
                   </div>
                 ))}
@@ -250,7 +250,7 @@ const BigDreams = () => {
                 {courseProgress.map((course, i) => (
                   <div key={i}>
                     <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium text-sm">{course.title}</p>
+                      <p className="font-normal text-sm">{course.title}</p>
                       <span className="text-sm text-muted-foreground">{course.progress}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -274,7 +274,7 @@ const BigDreams = () => {
                   <div key={i} className="flex items-center gap-3">
                     <img src={buddy.avatar} alt={buddy.name} className="w-10 h-10 rounded-full" />
                     <div className="flex-1">
-                      <p className="font-medium text-sm">{buddy.name}</p>
+                      <p className="font-normal text-sm">{buddy.name}</p>
                       <p className="text-xs text-muted-foreground">🔥 {buddy.streak} day streak</p>
                     </div>
                   </div>

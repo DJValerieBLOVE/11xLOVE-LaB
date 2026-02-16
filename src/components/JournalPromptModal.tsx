@@ -123,7 +123,7 @@ export function JournalPromptModal({
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-orange-900">Login Required</p>
+                  <p className="text-sm font-normal text-orange-900">Login Required</p>
                   <p className="text-sm text-orange-700 mt-1">
                     You must be logged in to save journal entries to Nostr.
                   </p>
@@ -134,7 +134,7 @@ export function JournalPromptModal({
             {/* Previous Entries (Collapsed) */}
             {journal && journal.entries.length > 0 && (
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                <h3 className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
                   Previous Entries
                 </h3>
                 {journal.entries.map((entry, index) => (
@@ -149,7 +149,7 @@ export function JournalPromptModal({
                         className="w-full justify-between text-left font-normal"
                       >
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{entry.lessonTitle}</p>
+                          <p className="font-normal truncate">{entry.lessonTitle}</p>
                           <p className="text-xs text-muted-foreground">{entry.timestamp}</p>
                         </div>
                         <ChevronDown
@@ -172,7 +172,7 @@ export function JournalPromptModal({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-purple-600" />
-                <h3 className="font-semibold">Today's Reflection: {lesson.title}</h3>
+                <h3 className="font-normal">Today's Reflection: {lesson.title}</h3>
               </div>
               
               <div className="space-y-2">

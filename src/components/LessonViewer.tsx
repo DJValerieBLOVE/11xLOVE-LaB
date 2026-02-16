@@ -176,10 +176,10 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
       {/* LEFT COLUMN: Course Syllabus (25%) */}
       <aside className="w-1/4 border-r bg-muted/30 hidden lg:flex flex-col">
         <div className="p-4 border-b">
-          <h2 className="font-bold text-lg mb-1">{experiment.title}</h2>
+          <h2 className="font-normal text-lg mb-1">{experiment.title}</h2>
           <div className="flex items-center gap-2 mb-3">
             <Progress value={progressPercentage} className="flex-1" />
-            <span className="text-sm font-medium">{progressPercentage}%</span>
+            <span className="text-sm font-normal">{progressPercentage}%</span>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
             {completedCount} of {totalLessons} lessons complete
@@ -196,7 +196,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
           <div className="p-4 space-y-4">
             {experiment.modules.map((module, moduleIndex) => (
               <div key={module.id}>
-                <h3 className="font-semibold text-sm mb-2 text-muted-foreground uppercase tracking-wide">
+                <h3 className="font-normal text-sm mb-2 text-muted-foreground uppercase tracking-wide">
                   Module {moduleIndex + 1}
                 </h3>
                 <div className="space-y-1">
@@ -212,7 +212,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                         disabled={!isUnlocked}
                         className={`
                           w-full text-left px-3 py-2 rounded-lg text-sm transition-colors
-                          ${isCurrentLesson ? 'bg-primary/10 text-primary font-medium' : ''}
+                          ${isCurrentLesson ? 'bg-primary/10 text-primary font-normal' : ''}
                           ${!isUnlocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted cursor-pointer'}
                         `}
                       >
@@ -246,7 +246,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
               <ChevronRight className="h-4 w-4" />
               <span>{currentLesson.duration}</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">{currentLesson.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-normal mb-4">{currentLesson.title}</h1>
             
             {currentLesson.dimension && (
               <div className="flex items-center gap-2">
@@ -319,7 +319,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                     className="flex items-center justify-between p-3 rounded-lg border bg-white hover:bg-blue-50 transition-colors group"
                   >
                     <div>
-                      <p className="font-medium group-hover:text-primary transition-colors text-sm">
+                      <p className="font-normal group-hover:text-primary transition-colors text-sm">
                         {resource.title}
                       </p>
                       {resource.size && (
@@ -396,7 +396,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
             <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
               <CardContent className="p-6 text-center space-y-3">
                 <PartyPopper className="h-12 w-12 mx-auto text-purple-600" />
-                <h3 className="text-xl font-bold">Experiment Complete!</h3>
+                <h3 className="text-xl font-normal">Experiment Complete!</h3>
                 <p className="text-sm text-muted-foreground">
                   You crushed it! Share your victory with the world.
                 </p>
@@ -415,7 +415,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
       {/* RIGHT COLUMN: Comments (25%) */}
       <aside className="w-1/4 border-l bg-background hidden xl:flex flex-col">
         <div className="p-4 border-b">
-          <h3 className="font-semibold flex items-center gap-2">
+          <h3 className="font-normal flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Lesson Discussion
           </h3>
@@ -457,7 +457,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium truncate">
+                    <span className="text-sm font-normal truncate">
                       {metadata?.name || 'VIP Member'}
                     </span>
                     <span className="text-xs text-muted-foreground">2h ago</span>

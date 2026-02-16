@@ -150,7 +150,7 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
             <div className="space-y-6 py-6">
               {/* Question */}
               <div>
-                <h3 className="text-lg font-semibold mb-4">
+                <h3 className="text-lg font-normal mb-4">
                   {currentQuestion.question}
                 </h3>
 
@@ -233,7 +233,7 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
             <div className="py-6 text-center space-y-6">
               {/* Score Display */}
               <div className="space-y-2">
-                <div className="text-6xl font-bold text-primary">
+                <div className="text-6xl font-normal text-primary">
                   {score}%
                 </div>
                 <p className="text-muted-foreground">
@@ -244,7 +244,7 @@ export function QuizModal({ quiz, lessonId, open, onClose, onPass }: QuizModalPr
               {passed ? (
                 <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 space-y-3">
                   <Sparkles className="h-12 w-12 mx-auto text-green-600" />
-                  <h3 className="text-xl font-bold text-green-700">Lesson Complete!</h3>
+                  <h3 className="text-xl font-normal text-green-700">Lesson Complete!</h3>
                   <p className="text-sm text-green-600">
                     You mastered it! Ready for the next one?
                   </p>

@@ -100,7 +100,7 @@ const LoveBoard = () => {
           <div className="max-w-lg mx-auto text-center">
             <div className="mb-8">
               <Sparkles className="h-16 w-16 mx-auto text-[#eb00a8] mb-4" />
-              <h1 className="text-3xl font-bold mb-4">Love Board</h1>
+              <h1 className="text-3xl font-normal mb-4">Love Board</h1>
               <p className="text-muted-foreground mb-6">
                 Community bulletin board for jobs, services, and mutual support.
               </p>
@@ -185,7 +185,7 @@ const LoveBoard = () => {
               <div className="flex items-center gap-3">
                 <Crown className="h-5 w-5 text-amber-600" />
                 <div>
-                  <p className="font-medium text-amber-800">
+                  <p className="font-normal text-amber-800">
                     Upgrade to post listings
                   </p>
                   <p className="text-sm text-amber-700">

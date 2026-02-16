@@ -78,7 +78,7 @@ export function EQVisualizer({
               {/* Label (optional) */}
               {showLabels && (
                 <span 
-                  className="text-[10px] md:text-xs font-medium text-center truncate w-full"
+                  className="text-[10px] md:text-xs font-normal text-center truncate w-full"
                   style={{ color: dimension.color }}
                 >
                   {dimension.name}

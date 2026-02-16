@@ -90,14 +90,14 @@ const WalletContent = forwardRef<HTMLDivElement, {
   <div className="space-y-6 px-4 pb-4" ref={ref}>
     {/* Current Status */}
     <div className="space-y-3">
-      <h3 className="font-medium">Current Status</h3>
+      <h3 className="font-normal">Current Status</h3>
       <div className="grid gap-3">
         {/* WebLN */}
         <div className="flex items-center justify-between p-3 border rounded-lg">
           <div className="flex items-center gap-3">
             <Globe className="h-4 w-4 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium">WebLN</p>
+              <p className="text-sm font-normal">WebLN</p>
               <p className="text-xs text-muted-foreground">Browser extension</p>
             </div>
           </div>
@@ -113,7 +113,7 @@ const WalletContent = forwardRef<HTMLDivElement, {
           <div className="flex items-center gap-3">
             <WalletMinimal className="h-4 w-4 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium">Nostr Wallet Connect</p>
+              <p className="text-sm font-normal">Nostr Wallet Connect</p>
               <p className="text-xs text-muted-foreground">
                 {connections.length > 0
                   ? `${connections.length} wallet${connections.length !== 1 ? 's' : ''} connected`
@@ -135,7 +135,7 @@ const WalletContent = forwardRef<HTMLDivElement, {
     {/* NWC Management */}
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">Nostr Wallet Connect</h3>
+        <h3 className="font-normal">Nostr Wallet Connect</h3>
         <Button size="sm" variant="outline" onClick={() => setAddDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-1" />
           Add
@@ -156,7 +156,7 @@ const WalletContent = forwardRef<HTMLDivElement, {
                 <div className="flex items-center gap-3">
                   <WalletMinimal className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">
+                    <p className="text-sm font-normal">
                       {connection.alias || info?.alias || 'Lightning Wallet'}
                     </p>
                     <p className="text-xs text-muted-foreground">

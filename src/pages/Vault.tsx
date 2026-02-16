@@ -142,7 +142,7 @@ const Vault = () => {
           <div className="max-w-lg mx-auto text-center">
             <div className="mb-8">
               <Shield className="h-16 w-16 mx-auto text-[#6600ff] mb-4" />
-              <h1 className="text-3xl font-bold mb-4">The Vault</h1>
+              <h1 className="text-3xl font-normal mb-4">The Vault</h1>
               <p className="text-muted-foreground mb-6">
                 Your private space for growth, reflection, and data ownership.
               </p>
@@ -222,14 +222,14 @@ const Vault = () => {
                     <span>{currentStreak} day streak</span>
                   </CardTitle>
                   <div className="flex gap-4 text-sm text-muted-foreground">
-                    <span className="text-purple-600 font-medium">Less</span>
+                    <span className="text-purple-600 font-normal">Less</span>
                     <div className="flex gap-1">
                       <div className="w-3 h-3 bg-purple-100 rounded-sm"></div>
                       <div className="w-3 h-3 bg-purple-300 rounded-sm"></div>
                       <div className="w-3 h-3 bg-purple-500 rounded-sm"></div>
                       <div className="w-3 h-3 bg-purple-700 rounded-sm"></div>
                     </div>
-                    <span className="text-purple-600 font-medium">More</span>
+                    <span className="text-purple-600 font-normal">More</span>
                   </div>
                 </div>
               </CardHeader>
@@ -278,7 +278,7 @@ const Vault = () => {
                       <Heart className="h-6 w-6 text-white fill-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold">Daily LOVE Practice</h3>
+                      <h3 className="text-xl font-normal">Daily LOVE Practice</h3>
                       <p className="text-sm text-muted-foreground">
                         {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                       </p>
@@ -341,7 +341,7 @@ const Vault = () => {
                             <div className="flex items-center justify-between w-full pr-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-2 h-2 rounded-full bg-[#6600ff]"></div>
-                                <span className="font-medium text-left">{title}</span>
+                                <span className="font-normal text-left">{title}</span>
                               </div>
                               <span className="text-sm text-muted-foreground">{date}</span>
                             </div>
@@ -379,7 +379,7 @@ const Vault = () => {
               <CardContent className="space-y-6">
                 {/* What the mentor knows */}
                 <div className="p-4 bg-purple-50 rounded-lg">
-                  <h4 className="font-medium flex items-center gap-2 mb-3">
+                  <h4 className="font-normal flex items-center gap-2 mb-3">
                     <Brain className="h-4 w-4 text-[#6600ff]" />
                     What Your Mentor Knows About You
                   </h4>
@@ -449,7 +449,7 @@ const Vault = () => {
                       <Sparkles className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-bold">Ready to Chat with Your Mentor?</h3>
+                      <h3 className="font-normal">Ready to Chat with Your Mentor?</h3>
                       <p className="text-sm text-muted-foreground">
                         Your AI coach remembers everything and grows with you
                       </p>
@@ -514,7 +514,7 @@ const Vault = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <Button variant="outline" onClick={handleExportData} className="h-auto py-4">
                     <div className="text-left">
-                      <div className="flex items-center gap-2 font-medium">
+                      <div className="flex items-center gap-2 font-normal">
                         <FileText className="h-4 w-4" />
                         Export All Data (JSON)
                       </div>
@@ -525,7 +525,7 @@ const Vault = () => {
                   </Button>
                   <Button variant="outline" className="h-auto py-4">
                     <div className="text-left">
-                      <div className="flex items-center gap-2 font-medium">
+                      <div className="flex items-center gap-2 font-normal">
                         <BookText className="h-4 w-4" />
                         Export Journals Only
                       </div>
@@ -583,13 +583,13 @@ const Vault = () => {
                 <Separator />
 
                 <div className="space-y-3">
-                  <h4 className="font-medium">Connected Relays</h4>
+                  <h4 className="font-normal">Connected Relays</h4>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-green-500"></div>
                         <div>
-                          <p className="text-sm font-medium">11x LOVE LaB Relay</p>
+                          <p className="text-sm font-normal">11x LOVE LaB Relay</p>
                           <p className="text-xs text-muted-foreground">wss://nostr-rs-relay-production-1569.up.railway.app</p>
                         </div>
                       </div>

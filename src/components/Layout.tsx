@@ -79,7 +79,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center gap-3 px-4 py-3 text-base font-medium transition-colors rounded-lg ${
+                className={`flex items-center gap-3 px-4 py-3 text-base font-normal transition-colors rounded-lg ${
                   isActive(item.href)
                     ? 'text-[#6600ff] bg-purple-50'
                     : 'text-black hover:text-[#6600ff] hover:bg-purple-50/50'
@@ -117,7 +117,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     {/* Sent */}
                     <div className="flex items-center gap-1 text-orange-500" title={`${zapsSent.toLocaleString()} sats sent`}>
                       <ArrowUp className="h-4 w-4" />
-                      <span className="font-medium">{formatSats(zapsSent)}</span>
+                      <span className="font-normal">{formatSats(zapsSent)}</span>
                     </div>
                     
                     {/* Divider */}
@@ -126,7 +126,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     {/* Received */}
                     <div className="flex items-center gap-1 text-orange-500" title={`${zapsReceived.toLocaleString()} sats received`}>
                       <ArrowDown className="h-4 w-4" />
-                      <span className="font-medium">{formatSats(zapsReceived)}</span>
+                      <span className="font-normal">{formatSats(zapsReceived)}</span>
                     </div>
                   </div>
 
@@ -149,7 +149,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuLabel>
                         <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none text-black">
+                          <p className="text-sm font-normal leading-none text-black">
                             {metadata?.display_name || metadata?.name || genUserName(user.pubkey)}
                           </p>
                           <p className="text-xs leading-none text-gray-500">

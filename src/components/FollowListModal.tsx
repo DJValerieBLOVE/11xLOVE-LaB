@@ -129,7 +129,7 @@ function UserListItem({ pubkey }: { pubkey: string }) {
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm truncate">{displayName}</p>
+        <p className="font-normal text-sm truncate">{displayName}</p>
         {handle && (
           <p className="text-xs text-muted-foreground truncate">@{handle}</p>
         )}

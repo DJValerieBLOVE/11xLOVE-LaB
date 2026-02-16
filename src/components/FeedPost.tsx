@@ -390,7 +390,7 @@ export function FeedPost({
                 ))}
                 <div className="flex items-center gap-1 text-xs text-orange-500">
                   <Zap className="h-3 w-3 fill-current" />
-                  <span className="font-medium">{formatSats(zappersData.totalSats)}</span>
+                  <span className="font-normal">{formatSats(zappersData.totalSats)}</span>
                 </div>
               </div>
             )}

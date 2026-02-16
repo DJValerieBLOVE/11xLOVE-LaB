@@ -89,7 +89,7 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
       <div className="flex flex-col h-full min-h-0">
         {/* Payment amount display */}
         <div className="text-center pt-4">
-          <div className="text-2xl font-bold">{amount} sats</div>
+          <div className="text-2xl font-normal">{amount} sats</div>
         </div>
 
         <Separator className="my-4" />

@@ -48,8 +48,8 @@ function ZapperAvatar({ zapper, index }: { zapper: Zapper; index: number }) {
         </TooltipTrigger>
         <TooltipContent side="top" className="flex items-center gap-1.5 text-xs">
           <Zap className="h-3 w-3 text-orange-500" />
-          <span className="font-medium">{displayName}</span>
-          <span className="text-orange-500 font-bold">{formatSats(zapper.sats)} sats</span>
+          <span className="font-normal">{displayName}</span>
+          <span className="text-orange-500 font-normal">{formatSats(zapper.sats)} sats</span>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -87,7 +87,7 @@ export function TopZappers({
       {/* Total amount and count */}
       <div className="flex items-center gap-1 text-xs text-orange-500">
         <Zap className="h-3 w-3 fill-current" />
-        <span className="font-semibold">{formatSats(totalSats)}</span>
+        <span className="font-normal">{formatSats(totalSats)}</span>
         {remainingCount > 0 && (
           <span className="text-muted-foreground">+{remainingCount} more</span>
         )}
@@ -120,7 +120,7 @@ export function TopZappersCompact({
                 <MiniAvatar key={zapper.receipt.id} zapper={zapper} index={index} />
               ))}
             </div>
-            <span className="text-xs text-orange-500 font-medium">
+            <span className="text-xs text-orange-500 font-normal">
               {formatSats(totalSats)}
             </span>
           </div>
@@ -167,7 +167,7 @@ function ZapperLine({ zapper }: { zapper: Zapper }) {
 
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="font-medium">{displayName}</span>
+      <span className="font-normal">{displayName}</span>
       <span className="text-orange-500">{formatSats(zapper.sats)} sats</span>
     </div>
   );

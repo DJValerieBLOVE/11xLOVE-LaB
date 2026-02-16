@@ -153,7 +153,7 @@ export default function ExperimentBuilder() {
         <div className="container px-4 py-8">
           <div className="max-w-lg mx-auto text-center">
             <Sparkles className="h-16 w-16 mx-auto text-[#6600ff] mb-4" />
-            <h1 className="text-2xl font-bold mb-4">Become a Creator</h1>
+            <h1 className="text-2xl font-normal mb-4">Become a Creator</h1>
             <p className="text-muted-foreground mb-6">
               To create experiments, you need to be on the Creator tier or bring your own API key (BYOK).
             </p>
@@ -334,7 +334,7 @@ export default function ExperimentBuilder() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-2xl font-normal">
                 {isEditing ? 'Edit Experiment' : 'Create Experiment'}
               </h1>
               <p className="text-muted-foreground">
@@ -472,7 +472,7 @@ export default function ExperimentBuilder() {
                     <Label>Preview</Label>
                     <div className="border rounded-lg overflow-hidden">
                       <div className={`h-24 bg-gradient-to-br ${experiment.coverGradient} flex items-center justify-center p-4`}>
-                        <span className="text-white font-bold text-center line-clamp-2">
+                        <span className="text-white font-normal text-center line-clamp-2">
                           {experiment.title || 'Your Experiment Title'}
                         </span>
                       </div>
@@ -495,7 +495,7 @@ export default function ExperimentBuilder() {
                 <Card className="border-dashed">
                   <CardContent className="py-12 text-center">
                     <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="font-semibold mb-2">No modules yet</h3>
+                    <h3 className="font-normal mb-2">No modules yet</h3>
                     <p className="text-muted-foreground mb-4">
                       Add your first module to start building your experiment
                     </p>
@@ -534,7 +534,7 @@ export default function ExperimentBuilder() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Eye className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="font-semibold mb-2">Preview Coming Soon</h3>
+                <h3 className="font-normal mb-2">Preview Coming Soon</h3>
                 <p className="text-muted-foreground">
                   See how your experiment will look to students
                 </p>
@@ -588,7 +588,7 @@ function ModuleEditor({
               <Input
                 value={module.title}
                 onChange={(e) => onUpdate({ title: e.target.value })}
-                className="font-semibold text-lg h-auto py-1 px-2"
+                className="font-normal text-lg h-auto py-1 px-2"
                 placeholder="Module Title"
               />
             </div>
@@ -614,7 +614,7 @@ function ModuleEditor({
             
             {/* Lessons */}
             <div className="space-y-3">
-              <h4 className="font-medium text-sm text-muted-foreground">Lessons</h4>
+              <h4 className="font-normal text-sm text-muted-foreground">Lessons</h4>
               
               {module.lessons.length === 0 ? (
                 <div className="text-center py-6 border border-dashed rounded-lg">

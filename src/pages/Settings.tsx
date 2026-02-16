@@ -198,7 +198,7 @@ const Settings = () => {
                     <Label htmlFor="light" className="flex items-center gap-2 cursor-pointer flex-1">
                       <Sun className="h-4 w-4" />
                       <div>
-                        <div className="font-medium">Light</div>
+                        <div className="font-normal">Light</div>
                         <div className="text-sm text-muted-foreground">Bright and clean interface</div>
                       </div>
                     </Label>
@@ -208,7 +208,7 @@ const Settings = () => {
                     <Label htmlFor="dark" className="flex items-center gap-2 cursor-pointer flex-1">
                       <Moon className="h-4 w-4" />
                       <div>
-                        <div className="font-medium">Dark</div>
+                        <div className="font-normal">Dark</div>
                         <div className="text-sm text-muted-foreground">Easy on the eyes in low light</div>
                       </div>
                     </Label>

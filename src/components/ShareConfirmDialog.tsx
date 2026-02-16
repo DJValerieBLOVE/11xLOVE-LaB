@@ -83,8 +83,8 @@ export function ShareConfirmDialog({
             
             {title && (
               <div className="p-3 bg-muted rounded-lg">
-                <p className="text-sm font-medium text-foreground">
-                  {label}: "{title}"
+<p className="text-sm font-normal text-foreground">
+                   {label}: "{title}"
                 </p>
               </div>
             )}
@@ -92,7 +92,7 @@ export function ShareConfirmDialog({
             <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg text-sm">
               <Globe className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
               <div>
-                <p className="font-medium text-foreground">What this means:</p>
+                <p className="font-normal text-foreground">What this means:</p>
                 <ul className="mt-1 space-y-1 text-muted-foreground">
                   <li>• Visible on Nostr clients (Primal, Snort, etc.)</li>
                   <li>• Cannot be deleted once shared</li>

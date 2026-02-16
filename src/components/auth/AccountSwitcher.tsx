@@ -35,13 +35,13 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
             <AvatarFallback>{getDisplayName(currentUser).charAt(0)}</AvatarFallback>
           </Avatar>
           <div className='flex-1 text-left hidden md:block truncate'>
-            <p className='font-medium text-sm truncate'>{getDisplayName(currentUser)}</p>
+            <p className='font-normal text-sm truncate'>{getDisplayName(currentUser)}</p>
           </div>
           <ChevronDown className='w-4 h-4 text-muted-foreground' />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className='w-56 p-2 animate-scale-in'>
-        <div className='font-medium text-sm px-2 py-1.5'>Switch Account</div>
+        <div className='font-normal text-sm px-2 py-1.5'>Switch Account</div>
         {otherUsers.map((user) => (
           <DropdownMenuItem
             key={user.id}
@@ -53,7 +53,7 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
               <AvatarFallback>{getDisplayName(user)?.charAt(0) || <UserIcon />}</AvatarFallback>
             </Avatar>
             <div className='flex-1 truncate'>
-              <p className='text-sm font-medium'>{getDisplayName(user)}</p>
+              <p className='text-sm font-normal'>{getDisplayName(user)}</p>
             </div>
             {user.id === currentUser.id && <div className='w-2 h-2 rounded-full bg-primary'></div>}
           </DropdownMenuItem>

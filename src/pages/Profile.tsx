@@ -39,7 +39,7 @@ const Profile = () => {
               <CardContent className="pt-6">
                 <div className="flex items-center space-x-2 mb-2">
                   <Lock className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="font-semibold">Login Required</h2>
+                  <h2 className="font-normal">Login Required</h2>
                 </div>
                 <p className="text-muted-foreground">Please log in to view your profile.</p>
               </CardContent>
@@ -123,7 +123,7 @@ const Profile = () => {
           </div>
 
           {/* Name */}
-          <h1 className="text-2xl sm:text-3xl font-bold text-black mb-1">
+          <h1 className="text-2xl sm:text-3xl font-normal text-black mb-1">
             {displayName}
           </h1>
 
@@ -195,7 +195,7 @@ const Profile = () => {
                     setShowFollowModal(true);
                   }}
                 >
-                  <span className="font-semibold">{formatNumber(following)}</span>
+                  <span className="font-normal">{formatNumber(following)}</span>
                   <span className="text-muted-foreground">Following</span>
                 </button>
                 <button 
@@ -205,7 +205,7 @@ const Profile = () => {
                     setShowFollowModal(true);
                   }}
                 >
-                  <span className="font-semibold">{formatNumber(followers)}</span>
+                  <span className="font-normal">{formatNumber(followers)}</span>
                   <span className="text-muted-foreground">Followers</span>
                 </button>
               </>
@@ -215,7 +215,7 @@ const Profile = () => {
             ) : zapsReceived > 0 && (
               <div className="flex items-center gap-1.5">
                 <Zap className="h-4 w-4 text-orange-500" />
-                <span className="font-semibold">{formatNumber(zapsReceived)}</span>
+                <span className="font-normal">{formatNumber(zapsReceived)}</span>
                 <span className="text-muted-foreground">sats received</span>
               </div>
             )}

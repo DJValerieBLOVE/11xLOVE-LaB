@@ -88,7 +88,7 @@ export const DMStatusInfo = ({ clearCacheAndRefetch }: DMStatusInfoProps) => {
             <PhaseIcon className={`h-5 w-5 ${phaseInfo.color} ${loadingPhase !== LOADING_PHASES.READY ? 'animate-pulse' : ''}`} />
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
-                <p className="font-medium">{phaseInfo.label}</p>
+                <p className="font-normal">{phaseInfo.label}</p>
                 {isDoingInitialLoad && (
                   <Badge variant="secondary" className="text-xs">
                     Initial Load
@@ -106,7 +106,7 @@ export const DMStatusInfo = ({ clearCacheAndRefetch }: DMStatusInfoProps) => {
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-3">
-              <p className="text-sm font-medium">Scanning Messages</p>
+              <p className="text-sm font-normal">Scanning Messages</p>
               {scanProgress.nip4 !== null && (
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
@@ -134,7 +134,7 @@ export const DMStatusInfo = ({ clearCacheAndRefetch }: DMStatusInfoProps) => {
       <Card>
         <CardContent className="pt-6">
           <div className="space-y-3">
-            <p className="text-sm font-medium">Real-time Subscriptions</p>
+            <p className="text-sm font-normal">Real-time Subscriptions</p>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">NIP-4 (Legacy DMs)</span>
@@ -157,19 +157,19 @@ export const DMStatusInfo = ({ clearCacheAndRefetch }: DMStatusInfoProps) => {
       <Card>
         <CardContent className="pt-6">
           <div className="space-y-3">
-            <p className="text-sm font-medium">Cache Information</p>
+            <p className="text-sm font-normal">Cache Information</p>
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Conversations</span>
-                <span className="font-medium">{conversations.length}</span>
+                <span className="font-normal">{conversations.length}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Last NIP-4 sync</span>
-                <span className="font-medium">{formatTimestamp(lastSync.nip4)}</span>
+                <span className="font-normal">{formatTimestamp(lastSync.nip4)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Last NIP-17 sync</span>
-                <span className="font-medium">{formatTimestamp(lastSync.nip17)}</span>
+                <span className="font-normal">{formatTimestamp(lastSync.nip17)}</span>
               </div>
             </div>
           </div>
@@ -182,7 +182,7 @@ export const DMStatusInfo = ({ clearCacheAndRefetch }: DMStatusInfoProps) => {
           <Separator />
           <div className="space-y-3">
             <div className="space-y-1">
-              <p className="text-sm font-medium">Cache Management</p>
+              <p className="text-sm font-normal">Cache Management</p>
               <p className="text-xs text-muted-foreground">
                 Clear all cached messages and refetch from relays. This will force a fresh sync.
               </p>

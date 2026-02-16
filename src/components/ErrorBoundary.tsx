@@ -57,7 +57,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
           <div className="max-w-md w-full space-y-4">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-2">
+              <h2 className="text-2xl font-normal text-foreground mb-2">
                 Something went wrong
               </h2>
               <p className="text-muted-foreground">
@@ -67,7 +67,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
             <div className="bg-muted p-4 rounded-lg">
               <details className="text-sm">
-                <summary className="cursor-pointer font-medium text-foreground">
+                <summary className="cursor-pointer font-normal text-foreground">
                   Error details
                 </summary>
                 <div className="mt-2 space-y-2">
