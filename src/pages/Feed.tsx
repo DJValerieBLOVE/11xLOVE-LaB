@@ -222,9 +222,9 @@ const Feed = () => {
           Updates from your Tribes, buddies, and the community
         </p>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Feed Column */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid lg:grid-cols-12 gap-6 max-w-6xl mx-auto">
+          {/* Main Feed Column - narrower and centered */}
+          <div className="lg:col-span-7 lg:col-start-1 space-y-4">
             {/* Post Composer */}
             <Card>
               <CardContent className="p-4">
@@ -367,7 +367,7 @@ const Feed = () => {
 
                 {/* Posts */}
                 {!currentLoading && (
-                  <div className="space-y-4 mt-4">
+                  <div className="space-y-2 mt-4">
                     {currentPosts.length === 0 ? (
                       <Card className="border-dashed">
                         <CardContent className="py-12 text-center">
@@ -404,7 +404,7 @@ const Feed = () => {
           </div>
 
           {/* Right Sidebar */}
-          <div className="space-y-6">
+          <div className="lg:col-span-5 space-y-2">
             {/* My Tribes */}
             <Card>
               <CardHeader className="pb-3">
