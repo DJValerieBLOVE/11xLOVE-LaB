@@ -23,7 +23,7 @@
 2514512 - Add Primal custom kinds support and link previews
 cfadd2a - Update PLAN.md and SESSION_NOTES.md
 a5d6a76 - Fix stale feed data and username styling
-[pending] - Fix all text colors to use explicit dark gray
+be3a4c6 - Fix all text colors to use explicit dark gray
 ```
 
 ---
