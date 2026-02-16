@@ -54,13 +54,24 @@ function isImageUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     
-    // Check known image hosts
-    if (IMAGE_HOSTS.some(host => parsed.hostname.includes(host))) return true;
+    // Check known image hosts - these often serve images without extensions
+    if (IMAGE_HOSTS.some(host => parsed.hostname.includes(host))) {
+      // For known image hosts, assume it's an image unless it looks like a webpage
+      const path = parsed.pathname.toLowerCase();
+      // Skip if path ends with common webpage indicators
+      if (path.endsWith('/') || path.endsWith('.html') || path.endsWith('.htm')) {
+        return false;
+      }
+      return true;
+    }
     
     // Check if URL path looks like an image (hash-based filenames common on Blossom)
     // e.g., /abc123def456... (32+ hex chars)
     const pathWithoutSlash = parsed.pathname.slice(1);
     if (/^[a-f0-9]{32,}$/i.test(pathWithoutSlash)) return true;
+    
+    // Also check for common CDN patterns with hash-like filenames
+    if (/\/[a-f0-9]{40,}\/?$/i.test(parsed.pathname)) return true;
     
     return false;
   } catch {
@@ -118,6 +129,11 @@ export function NoteContent({
   // Collect media URLs from content and imeta tags
   const { textContent, mediaItems } = useMemo(() => {
     const text = event.content;
+    
+    // Debug: Log content for troubleshooting
+    if (text.length > 0) {
+      console.log('[NoteContent] Processing:', text.slice(0, 80), '...');
+    }
     const media: Array<{ url: string; type: 'image' | 'video' | 'audio' | 'youtube'; thumbnailUrl?: string }> = [];
     
     // Extract URLs from content - handle trailing punctuation
