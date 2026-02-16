@@ -218,19 +218,27 @@ function processEvent(eventData: unknown, result: PrimalFeedResult) {
     // Note or repost - ensure it's a proper object
     result.notes.push(event as unknown as NostrEvent);
   } else if (kind === 10000100) {
-    // Stats
+    // Stats from Primal
     try {
       const content = event.content as string;
       const stats = JSON.parse(content) as PrimalNoteStats;
-      result.stats.set(stats.event_id, stats);
-    } catch { /* ignore */ }
+      if (stats.event_id) {
+        result.stats.set(stats.event_id, stats);
+      }
+    } catch (e) {
+      console.warn('[Primal] Failed to parse stats:', e);
+    }
   } else if (kind === 10000115) {
-    // User actions
+    // User actions from Primal
     try {
       const content = event.content as string;
       const actions = JSON.parse(content) as PrimalNoteActions;
-      result.actions.set(actions.event_id, actions);
-    } catch { /* ignore */ }
+      if (actions.event_id) {
+        result.actions.set(actions.event_id, actions);
+      }
+    } catch (e) {
+      console.warn('[Primal] Failed to parse actions:', e);
+    }
   }
 }
 

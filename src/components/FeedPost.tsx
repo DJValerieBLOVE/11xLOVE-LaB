@@ -204,14 +204,19 @@ export function FeedPost({
   // Check if post has zaps (for useZappers hook - must be before the hook call)
   const hasZaps = (stats?.satsZapped ?? 0) > 0;
   
-  // Fetch top zappers for this post
-  const { data: zappersData } = useZappers(event.id, hasZaps);
+  // Fetch top zappers for this post (use displayEvent for reposts)
+  const { data: zappersData } = useZappers(displayEvent.id, hasZaps);
 
   // Calculate display counts (stats + local optimistic updates)
   const likeCount = (stats?.likes ?? 0) + localLikeCount;
   const repostCount = (stats?.reposts ?? 0) + localRepostCount;
   const replyCount = stats?.replies ?? 0;
   const satsZapped = stats?.satsZapped ?? 0;
+  
+  // Debug: Log stats if present
+  if (stats && (stats.likes > 0 || stats.reposts > 0 || stats.zaps > 0)) {
+    console.log('[FeedPost] Stats for', displayEvent.id.slice(0, 8), ':', stats);
+  }
   
   // Check if author has lightning address for zapping
   const hasLightningAddress = !!(metadata?.lud16 || metadata?.lud06);
@@ -299,7 +304,7 @@ export function FeedPost({
             {/* Header */}
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <Link to={`/${npub}`} className="font-semibold hover:underline text-sm sm:text-base">
+                <Link to={`/${npub}`} className="font-bold text-foreground hover:underline text-sm sm:text-base">
                   {displayName}
                 </Link>
                 <span className="text-muted-foreground text-xs sm:text-sm">• {timeAgo}</span>

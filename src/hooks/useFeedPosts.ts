@@ -103,7 +103,7 @@ export function useFollowingPosts(limit: number = 40) {
       console.time('[Feed] Primal fetch');
       const primalResult = await fetchPrimalNetworkFeed(user.pubkey, limit, now, signal);
       console.timeEnd('[Feed] Primal fetch');
-      console.log('[Feed] Got', primalResult.notes.length, 'notes from Primal');
+      console.log('[Feed] Got', primalResult.notes.length, 'notes,', primalResult.stats.size, 'stats,', primalResult.profiles.size, 'profiles from Primal');
       
       for (const note of primalResult.notes) {
         if (seenIds.has(note.id)) continue;
