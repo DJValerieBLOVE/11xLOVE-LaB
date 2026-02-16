@@ -247,7 +247,7 @@ export async function fetchPrimalNetworkFeed(
     return { notes: [], profiles: new Map(), stats: new Map(), actions: new Map() };
   }
   
-  const timestamp = until || Math.floor(Date.now() / 1000);
+  const timestamp = until ?? Math.ceil(Date.now() / 1000);
   
   console.log(`[Primal] Fetching feed for ${userPubkey.slice(0, 8)}...`);
   

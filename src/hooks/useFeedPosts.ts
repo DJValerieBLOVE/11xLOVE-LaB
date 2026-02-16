@@ -87,7 +87,7 @@ export function useFollowingPosts(limit: number = 40) {
   return useQuery({
     queryKey: ['following-posts-v4', user?.pubkey, limit],
     queryFn: async ({ signal }): Promise<FeedPost[]> => {
-      const now = Math.floor(Date.now() / 1000);
+      const now = Math.ceil(Date.now() / 1000);
       console.log('[Feed] Starting feed fetch, user:', user?.pubkey?.slice(0, 8), 'at:', now);
       if (!user) {
         console.log('[Feed] No user, returning empty');
