@@ -1599,6 +1599,22 @@ The `IMAGE_HOSTS` list in NoteContent.tsx and the `isImageUrl()` function must r
 
 When adding `naddr1` (or any new Nostr reference type) to the regex, you MUST also add a corresponding handler in the decode switch statement that renders an appropriate UI element (link chip, embedded card, etc.) — never fall through to showing raw text.
 
+### Rule 5: Link previews need URL normalization AND a client-side fallback
+
+Primal's link metadata (kind 10000128) may store the URL differently from how it appears in post content (http vs https, trailing slash, etc.). The `findLinkPreview()` helper tries multiple URL variants. When Primal has NO preview at all, `ClientLinkPreview` fetches og:tags via CORS proxy as a fallback.
+
+**Current implementation**: `findLinkPreview()` normalizes URLs, `ClientLinkPreview` fetches og:tags client-side. Both are in NoteContent.tsx.
+
+**Never rely on exact URL match alone:**
+```typescript
+// ❌ WRONG — exact match fails if http vs https or trailing slash differs
+const preview = linkPreviews.get(url);
+
+// ✅ CORRECT — try normalized variants, then client-side fallback
+const preview = findLinkPreview(url, linkPreviews);
+if (!preview) return <ClientLinkPreview url={url} />;
+```
+
 ---
 
 ## CRITICAL: Feed File Reference (READ BEFORE EDITING)

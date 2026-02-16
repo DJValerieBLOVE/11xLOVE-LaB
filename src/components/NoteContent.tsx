@@ -404,13 +404,17 @@ export function NoteContent({
         </div>
       )}
       
-      {/* Link Previews - Primal style cards */}
-      {linkPreviews && linkUrls.length > 0 && (
+      {/* Link Previews - Primal style cards or client-side fallback */}
+      {linkUrls.length > 0 && (
         <div className="space-y-2">
           {linkUrls.slice(0, 1).map((url) => {
-            const preview = linkPreviews.get(url);
-            if (!preview || (!preview.title && !preview.md_title)) return null;
-            return <LinkPreviewCard key={url} url={url} preview={preview} />;
+            // Try exact match first, then normalized variants
+            const preview = findLinkPreview(url, linkPreviews);
+            if (preview) {
+              return <LinkPreviewCard key={url} url={url} preview={preview} />;
+            }
+            // Client-side fallback when Primal doesn't have the preview
+            return <ClientLinkPreview key={url} url={url} />;
           })}
         </div>
       )}
@@ -675,6 +679,143 @@ function EmbeddedNoteContent({ event }: { event: NostrEvent }) {
       )}
     </div>
   );
+}
+
+/**
+ * Find a link preview by trying multiple URL variants.
+ * Primal may store the URL differently than what appears in the post content.
+ */
+function findLinkPreview(
+  url: string, 
+  linkPreviews?: Map<string, PrimalLinkMetadata>
+): PrimalLinkMetadata | null {
+  if (!linkPreviews || linkPreviews.size === 0) return null;
+  
+  // Try exact match first
+  const exact = linkPreviews.get(url);
+  if (exact && (exact.title || exact.md_title)) return exact;
+  
+  // Try http/https variants
+  const httpVariant = url.replace(/^https:/, 'http:');
+  const httpsVariant = url.replace(/^http:/, 'https:');
+  
+  for (const variant of [httpVariant, httpsVariant]) {
+    const match = linkPreviews.get(variant);
+    if (match && (match.title || match.md_title)) return match;
+  }
+  
+  // Try with/without trailing slash
+  const withSlash = url.endsWith('/') ? url : url + '/';
+  const withoutSlash = url.endsWith('/') ? url.slice(0, -1) : url;
+  
+  for (const variant of [withSlash, withoutSlash]) {
+    const match = linkPreviews.get(variant);
+    if (match && (match.title || match.md_title)) return match;
+    // Also try http/https with trailing slash
+    const httpV = variant.replace(/^https:/, 'http:');
+    const httpsV = variant.replace(/^http:/, 'https:');
+    const matchH = linkPreviews.get(httpV) || linkPreviews.get(httpsV);
+    if (matchH && (matchH.title || matchH.md_title)) return matchH;
+  }
+  
+  // Try partial URL match (hostname + path) against all entries
+  try {
+    const parsed = new URL(url);
+    const urlPath = parsed.hostname + parsed.pathname;
+    for (const [key, value] of linkPreviews) {
+      try {
+        const keyParsed = new URL(key);
+        if (keyParsed.hostname + keyParsed.pathname === urlPath && (value.title || value.md_title)) {
+          return value;
+        }
+      } catch { /* skip invalid URLs */ }
+    }
+  } catch { /* skip invalid URLs */ }
+  
+  return null;
+}
+
+/** 
+ * Client-side link preview fetcher.
+ * When Primal doesn't provide a link preview, fetch og:tags via CORS proxy.
+ */
+function ClientLinkPreview({ url }: { url: string }) {
+  const { data: preview, isLoading } = useQuery({
+    queryKey: ['link-preview', url],
+    queryFn: async (): Promise<PrimalLinkMetadata | null> => {
+      try {
+        const proxyUrl = `https://proxy.shakespeare.diy/?url=${encodeURIComponent(url)}`;
+        const response = await fetch(proxyUrl, { 
+          signal: AbortSignal.timeout(6000),
+          headers: { 'Accept': 'text/html' },
+        });
+        if (!response.ok) return null;
+        
+        const html = await response.text();
+        
+        // Parse og:tags from HTML
+        const getMetaContent = (property: string): string | undefined => {
+          // Match both property="" and name="" attributes
+          const regex = new RegExp(
+            `<meta[^>]*(?:property|name)=["']${property}["'][^>]*content=["']([^"']*?)["']|<meta[^>]*content=["']([^"']*?)["'][^>]*(?:property|name)=["']${property}["']`,
+            'i'
+          );
+          const match = html.match(regex);
+          return match?.[1] || match?.[2] || undefined;
+        };
+        
+        const title = getMetaContent('og:title') || getMetaContent('twitter:title');
+        const description = getMetaContent('og:description') || getMetaContent('twitter:description') || getMetaContent('description');
+        const image = getMetaContent('og:image') || getMetaContent('twitter:image');
+        
+        // Also try to extract <title> as fallback
+        const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+        const pageTitle = titleMatch?.[1]?.trim();
+        
+        const finalTitle = title || pageTitle;
+        if (!finalTitle) return null;
+        
+        // Extract favicon
+        const iconMatch = html.match(/<link[^>]*rel=["'](?:icon|shortcut icon)["'][^>]*href=["']([^"']*?)["']/i);
+        let iconUrl = iconMatch?.[1];
+        if (iconUrl && !iconUrl.startsWith('http')) {
+          try {
+            const base = new URL(url);
+            iconUrl = new URL(iconUrl, base.origin).href;
+          } catch { /* ignore */ }
+        }
+        
+        return {
+          url,
+          title: finalTitle,
+          description: description || undefined,
+          image: image || undefined,
+          icon_url: iconUrl,
+        };
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    retry: false,
+  });
+  
+  if (isLoading) {
+    // Show minimal loading skeleton for the preview
+    return (
+      <div className="rounded-xl border overflow-hidden animate-pulse">
+        <div className="h-[140px] bg-muted" />
+        <div className="p-3 space-y-2">
+          <div className="h-3 w-24 bg-muted rounded" />
+          <div className="h-4 w-3/4 bg-muted rounded" />
+        </div>
+      </div>
+    );
+  }
+  
+  if (!preview) return null;
+  
+  return <LinkPreviewCard url={url} preview={preview} />;
 }
 
 // Link Preview Card - Primal style
