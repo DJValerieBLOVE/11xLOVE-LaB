@@ -1340,3 +1340,112 @@ The project uses a private Railway relay for LaB-specific data:
    - Add proper type annotations to function parameters
    - Use optional chaining (`?.`) for potentially undefined values
    - Import types explicitly with `import type { X }`
+
+---
+
+## Feed System Architecture
+
+The feed system uses **Primal's WebSocket cache server** for fast loading, exactly like the Primal app does.
+
+### Primal Cache Client (`/src/lib/primalCache.ts`)
+
+```typescript
+// Connection
+const ws = new WebSocket('wss://cache.primal.net/v1');
+
+// Request format
+ws.send(JSON.stringify([
+  'REQ',
+  subId,
+  { cache: ['feed', { pubkey, user_pubkey, limit }] }
+]));
+
+// Response includes ALL data in one stream:
+// - Kind 0: User profiles
+// - Kind 1: Notes  
+// - Kind 10000100: Stats (likes, reposts, replies, zaps, satszapped)
+// - Kind 10000115: User actions (did I like/repost/zap?)
+```
+
+### Feed Hooks (`/src/hooks/useFeedPosts.ts`)
+
+| Hook | Purpose |
+|------|---------|
+| `useFollowingPosts()` | Main feed from Primal + user's custom relays |
+| `useFeedPosts()` | Combined feed (Primal + LaB relay) |
+| `useTribePosts()` | Private posts from Railway relay ONLY |
+| `useNewPostsCount()` | Check for new posts (notification badges) |
+| `useFollowList()` | Get user's follow list |
+
+### Feed Data Flow
+
+```
+1. Connect to wss://cache.primal.net/v1 (WebSocket)
+2. Send: ["REQ", id, {cache: ["feed", {pubkey, limit}]}]
+3. Receive: Profiles + Notes + Stats + Actions (all at once)
+4. Also query user's custom relays for posts Primal missed
+5. Merge, dedupe, sort by timestamp
+6. Display with stats and user actions
+
+For PRIVATE posts:
+1. Query Railway relay for kinds 11, 12 (Tribe messages)
+2. Show with lock badge, NO share button
+```
+
+### Primal Custom Kinds (NOT standard Nostr)
+
+```typescript
+// From Primal's constants.ts
+NoteStats = 10_000_100      // likes, reposts, replies, zaps, satszapped
+NoteActions = 10_000_115    // liked, replied, reposted, zapped (booleans)
+FeedRange = 10_000_113      // pagination info
+UserStats = 10_000_105      // follower counts, etc.
+```
+
+### Privacy Enforcement
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   THREE-TIER PRIVACY SYSTEM                     │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  🔴 NEVER SHAREABLE - Tribe messages (kinds 9, 11, 12)         │
+│     → Railway relay ONLY, NO share button                       │
+│                                                                 │
+│  🟡 PRIVATE BY DEFAULT - Big Dreams, Journals, Progress        │
+│     → Railway relay by default, share with warning              │
+│                                                                 │
+│  🟢 SHAREABLE - Completion posts, Feed posts, Reactions        │
+│     → User chooses: LaB only OR LaB + public relays             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Key Feed Files
+
+| File | Purpose |
+|------|---------|
+| `/src/lib/primalCache.ts` | WebSocket client for Primal cache |
+| `/src/lib/relays.ts` | Privacy levels, relay helpers |
+| `/src/hooks/useFeedPosts.ts` | All feed data hooks |
+| `/src/hooks/useLabPublish.ts` | Secure publishing (LaB vs public) |
+| `/src/pages/Feed.tsx` | Feed page with tabs and notifications |
+| `/src/components/FeedPost.tsx` | Individual post component |
+| `/src/components/NoteContent.tsx` | Rich text + media rendering |
+
+### Image Display
+
+Images use `object-fit: contain` to preserve aspect ratio without stretching:
+- Max height: 500px
+- Natural width
+- Single column layout for media
+- Rounded corners (xl)
+
+### Feed UI Features
+
+- Three tabs: Latest, Tribes, Buddies
+- Pink notification badges when new posts arrive
+- Post composer at top
+- Stats display (likes, reposts, zaps with real numbers)
+- User actions highlighted (filled heart if liked)
+- Private posts show lock badge, no share button

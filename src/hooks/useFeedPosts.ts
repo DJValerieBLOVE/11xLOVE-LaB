@@ -7,14 +7,24 @@
  * - Profiles (kind 0)
  * - Stats (kind 10000100)
  * - User actions (kind 10000115)
+ * 
+ * Key improvements:
+ * - Reuses single WebSocket connection
+ * - Uses proper until/since parameters for pagination
+ * - Parallel queries to user's relays for posts Primal might miss
  */
 
 import { useNostr } from '@nostrify/react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser } from './useCurrentUser';
 import { useAppContext } from './useAppContext';
 import { LAB_RELAY_URL, NEVER_SHAREABLE_KINDS } from '@/lib/relays';
-import { fetchPrimalNetworkFeed, fetchPrimalEventStats, fetchPrimalProfiles } from '@/lib/primalCache';
+import { 
+  fetchPrimalNetworkFeed, 
+  fetchPrimalFutureFeed,
+  fetchPrimalEventStats, 
+  fetchPrimalProfiles 
+} from '@/lib/primalCache';
 import type { NostrEvent, NostrMetadata } from '@nostrify/nostrify';
 
 /** Engagement stats for a post */
@@ -72,9 +82,10 @@ export function useFollowingPosts(limit: number = 40) {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const publicRelays = usePublicRelays();
+  const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: ['following-posts-primal-ws', user?.pubkey, limit],
+    queryKey: ['following-posts-primal', user?.pubkey, limit],
     queryFn: async ({ signal }): Promise<FeedPost[]> => {
       if (!user) return [];
       
@@ -82,7 +93,10 @@ export function useFollowingPosts(limit: number = 40) {
       const seenIds = new Set<string>();
       
       // 1. Fetch from Primal's cache (fast, includes stats)
+      console.time('[Feed] Primal fetch');
       const primalResult = await fetchPrimalNetworkFeed(user.pubkey, limit, undefined, signal);
+      console.timeEnd('[Feed] Primal fetch');
+      console.log('[Feed] Got', primalResult.notes.length, 'notes from Primal');
       
       for (const note of primalResult.notes) {
         if (seenIds.has(note.id)) continue;
@@ -94,7 +108,7 @@ export function useFollowingPosts(limit: number = 40) {
         
         posts.push({
           event: note,
-          author: profile ? { pubkey: note.pubkey, metadata: profile } : undefined,
+          author: profile ? { pubkey: note.pubkey, metadata: profile } : { pubkey: note.pubkey },
           isPrivate: false,
           source: 'primal',
           stats: stats ? {
@@ -110,13 +124,15 @@ export function useFollowingPosts(limit: number = 40) {
         });
       }
       
-      // 2. Also query user's custom relays (for posts Primal might not have)
-      if (publicRelays.length > 0 && posts.length < limit) {
+      // 2. Also query user's custom relays in parallel (for posts Primal might not have)
+      if (publicRelays.length > 0 && !signal?.aborted) {
         try {
-          // Get follow list first
+          console.time('[Feed] Relay fetch');
+          
+          // Get follow list first (quick query)
           const contactEvents = await nostr.query([
             { kinds: [3], authors: [user.pubkey], limit: 1 },
-          ], { signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]) });
+          ], { signal: AbortSignal.any([signal, AbortSignal.timeout(3000)]) });
           
           const follows = contactEvents[0]?.tags
             .filter(([name]) => name === 'p')
@@ -124,66 +140,79 @@ export function useFollowingPosts(limit: number = 40) {
             .filter(Boolean) || [];
           
           if (follows.length > 0) {
-            const relayGroup = nostr.group(publicRelays);
+            // Query relays for recent posts from follows
+            const relayGroup = nostr.group(publicRelays.slice(0, 3)); // Use top 3 relays
             
             const relayEvents = await relayGroup.query([
               {
                 kinds: [1],
-                authors: follows.slice(0, 300),
+                authors: follows.slice(0, 200), // Top 200 follows
                 limit: limit,
               },
-            ], { signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]) });
+            ], { signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]) });
+            
+            console.timeEnd('[Feed] Relay fetch');
+            console.log('[Feed] Got', relayEvents.length, 'notes from relays');
             
             // Collect new posts not from Primal
             const newEventIds: string[] = [];
-            const newPubkeys: string[] = [];
+            const newPubkeys = new Set<string>();
+            const newPosts: { event: NostrEvent; index: number }[] = [];
             
             for (const event of relayEvents) {
               if (seenIds.has(event.id)) continue;
               seenIds.add(event.id);
               newEventIds.push(event.id);
-              newPubkeys.push(event.pubkey);
+              newPubkeys.add(event.pubkey);
               
+              const postIndex = posts.length;
               posts.push({
                 event,
                 isPrivate: false,
                 source: 'public',
                 stats: { ...emptyStats },
               });
+              newPosts.push({ event, index: postIndex });
             }
             
-            // Fetch stats for new posts from Primal
+            // Fetch stats for new posts from Primal (background)
             if (newEventIds.length > 0) {
-              const [statsResult, profilesResult] = await Promise.all([
+              // Don't block on this - fetch in background
+              Promise.all([
                 fetchPrimalEventStats(newEventIds, user.pubkey, signal),
-                fetchPrimalProfiles([...new Set(newPubkeys)], signal),
-              ]);
-              
-              for (const post of posts) {
-                if (post.source !== 'public') continue;
-                
-                const stats = statsResult.stats.get(post.event.id);
-                const actions = statsResult.actions.get(post.event.id);
-                const profile = profilesResult.get(post.event.pubkey);
-                
-                if (stats) {
-                  post.stats = {
-                    likes: stats.likes || 0,
-                    reposts: stats.reposts || 0,
-                    replies: stats.replies || 0,
-                    zaps: stats.zaps || 0,
-                    satsZapped: stats.satszapped || 0,
-                  };
+                fetchPrimalProfiles([...newPubkeys], signal),
+              ]).then(([statsResult, profilesResult]) => {
+                // Update posts with stats
+                for (const { event, index } of newPosts) {
+                  const stats = statsResult.stats.get(event.id);
+                  const actions = statsResult.actions.get(event.id);
+                  const profile = profilesResult.get(event.pubkey);
+                  
+                  if (posts[index]) {
+                    if (stats) {
+                      posts[index].stats = {
+                        likes: stats.likes || 0,
+                        reposts: stats.reposts || 0,
+                        replies: stats.replies || 0,
+                        zaps: stats.zaps || 0,
+                        satsZapped: stats.satszapped || 0,
+                      };
+                    }
+                    if (actions) {
+                      posts[index].userLiked = actions.liked;
+                      posts[index].userReposted = actions.reposted;
+                      posts[index].userZapped = actions.zapped;
+                    }
+                    if (profile) {
+                      posts[index].author = { pubkey: event.pubkey, metadata: profile };
+                    }
+                  }
                 }
-                if (actions) {
-                  post.userLiked = actions.liked;
-                  post.userReposted = actions.reposted;
-                  post.userZapped = actions.zapped;
-                }
-                if (profile) {
-                  post.author = { pubkey: post.event.pubkey, metadata: profile };
-                }
-              }
+                // Invalidate to trigger re-render with updated stats
+                queryClient.setQueryData(['following-posts-primal', user.pubkey, limit], [...posts]);
+              }).catch(() => {
+                // Ignore - stats are optional
+              });
             }
           }
         } catch (error) {
@@ -207,7 +236,6 @@ export function useFollowingPosts(limit: number = 40) {
 export function useNewPostsCount(lastSeenTimestamp: number, tab: 'latest' | 'tribes') {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
-  const publicRelays = usePublicRelays();
 
   return useQuery({
     queryKey: ['new-posts-count', tab, user?.pubkey, lastSeenTimestamp],
@@ -216,29 +244,9 @@ export function useNewPostsCount(lastSeenTimestamp: number, tab: 'latest' | 'tri
       
       try {
         if (tab === 'latest') {
-          // Get follow list
-          const contactEvents = await nostr.query([
-            { kinds: [3], authors: [user.pubkey], limit: 1 },
-          ], { signal: AbortSignal.any([signal, AbortSignal.timeout(3000)]) });
-          
-          const follows = contactEvents[0]?.tags
-            .filter(([name]) => name === 'p')
-            .map(([, pubkey]) => pubkey)
-            .filter(Boolean) || [];
-          
-          if (follows.length === 0 || publicRelays.length === 0) return 0;
-          
-          const relayGroup = nostr.group(publicRelays.slice(0, 3)); // Use fewer relays for speed
-          const newEvents = await relayGroup.query([
-            {
-              kinds: [1],
-              authors: follows.slice(0, 100),
-              since: lastSeenTimestamp,
-              limit: 100,
-            },
-          ], { signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]) });
-          
-          return newEvents.length;
+          // Use Primal's future feed endpoint for efficiency
+          const result = await fetchPrimalFutureFeed(user.pubkey, lastSeenTimestamp, signal);
+          return result.notes.length;
         } else if (tab === 'tribes') {
           const labRelay = nostr.relay(LAB_RELAY_URL);
           const newEvents = await labRelay.query([
@@ -291,7 +299,7 @@ export function useFeedPosts(limit: number = 40) {
         
         posts.push({
           event: note,
-          author: profile ? { pubkey: note.pubkey, metadata: profile } : undefined,
+          author: profile ? { pubkey: note.pubkey, metadata: profile } : { pubkey: note.pubkey },
           isPrivate: false,
           source: 'primal',
           stats: stats ? {

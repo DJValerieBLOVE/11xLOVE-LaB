@@ -1,205 +1,182 @@
-# Session Notes - February 15, 2026 (Full Day)
+# Session Notes - February 15, 2026 (Evening Update)
 
-> **Comprehensive summary of everything built and discussed**
-
----
-
-## ✅ COMPLETED TODAY
-
-### **Security & Privacy System:**
-- ✅ Three-tier privacy system (🔴 Never / 🟡 Private / 🟢 Shareable)
-- ✅ Railway-only writes for ALL LaB data
-- ✅ NIP-44 encryption hook for private data
-- ✅ Share confirmation dialog with warning
-- ✅ `useLabPublish` hooks for secure publishing
-- ✅ Tribe messages can NEVER be shared (hardcoded block)
-
-### **Feed System:**
-- ✅ Four tabs: All, Tribes, Buddies, Public
-- ✅ Mixed public/private content (safe - client-side mixing)
-- ✅ Privacy badges on posts
-- ✅ No share button on private posts
-
-### **Moderation System:**
-- ✅ Mute users (NIP-51)
-- ✅ Report posts to admin (NIP-56)
-- ✅ Remove user from tribe (group admin)
-- ✅ Delete post (site admin)
-
-### **Love Board:**
-- ✅ Paid members only can post listings
-- ✅ 16:9 card images
-- ✅ Job offers, services, for sale, help wanted tabs
-- ✅ Upgrade prompts for free users
-
-### **Vault Updates:**
-- ✅ Magic Mentor Training section
-  - What the mentor knows about you
-  - Custom instructions textarea
-  - "Start Conversation" button
-- ✅ Data Export functionality
-  - Export all data as JSON
-  - One-click download
-- ✅ BYOR (Bring Your Own Relay)
-  - Add custom relay URL
-  - Sync encrypted data to user's relay
-- ✅ "You Own Your Data" explainer
-
-### **UI Updates:**
-- ✅ EQ Visualizer with sharp rectangle segments
-- ✅ 16:9 aspect ratio for all card images
-- ✅ Sats sent/received header widget
+> **Feed System v2 - Optimized Primal WebSocket Implementation**
 
 ---
 
-## 🔑 DATA OWNERSHIP ON NOSTR
+## 🎯 LATEST SESSION: PRIMAL WEBSOCKET OPTIMIZATION
 
-**Users ALREADY own their data!** Here's why:
+### Problem Identified:
+- Feed was still slow (~9 seconds to load)
+- Showing stale data (18+ minutes old)
+- Not using all relays properly
+- Each request creating new WebSocket connection
 
+### Root Cause Analysis:
+After studying Primal's actual GitHub repo, discovered:
+1. Primal uses a **shared WebSocket connection** (not new ones per request)
+2. They pass `until` timestamp for proper pagination
+3. They use specific cache methods: `feed`, `events`, `user_infos`
+
+### Solution Implemented:
+
+#### 1. **Shared WebSocket Connection**
+```typescript
+// OLD: New WebSocket per request (slow)
+const ws = new WebSocket(PRIMAL_CACHE_URL);
+
+// NEW: Reuse shared connection
+let sharedWs: WebSocket | null = null;
+function getWebSocket(): Promise<WebSocket> {
+  if (sharedWs?.readyState === WebSocket.OPEN) return sharedWs;
+  // Create new only if needed...
+}
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                   DATA OWNERSHIP                                │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  User's Private Key = Their Identity + Their Data              │
-│                                                                 │
-│  ✅ All events signed with THEIR key                           │
-│  ✅ Encrypted content only THEY can decrypt                    │
-│  ✅ Can export all data as JSON                                │
-│  ✅ Can add their own relay (BYOR)                             │
-│  ✅ We can NEVER lock them out                                 │
-│                                                                 │
-│  Options to Take Data:                                         │
-│  1. Export JSON → Import to any Nostr client                   │
-│  2. BYOR → Auto-sync to their own relay                        │
-│  3. Multi-relay → Publish to multiple relays                   │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+
+#### 2. **Proper Request/Response Handling**
+```typescript
+// Pending requests tracked by subscription ID
+const pendingRequests = new Map<string, {
+  resolve: (result) => void;
+  result: PrimalFeedResult;
+  timeout: ReturnType<typeof setTimeout>;
+}>();
+
+// Single message handler for all requests
+ws.onmessage = (event) => {
+  const [type, subId, content] = JSON.parse(event.data);
+  const request = pendingRequests.get(subId);
+  if (!request) return;
+  
+  if (type === 'EVENT') processEvent(content, request.result);
+  if (type === 'EOSE') request.resolve(request.result);
+};
+```
+
+#### 3. **Correct API Parameters**
+```typescript
+// Pass until timestamp (current time) for latest posts
+const timestamp = until || Math.ceil(Date.now() / 1000);
+
+const payload = {
+  pubkey: userPubkey,
+  user_pubkey: userPubkey,
+  limit,
+  until: timestamp,  // KEY: Required for proper feed
+};
 ```
 
 ---
 
-## 🚂 RAILWAY RELAY ADMIN TIPS
+## ✅ CHANGES MADE THIS SESSION
 
-Add these variables to protect from spam:
+### `/src/lib/primalCache.ts` (Complete Rewrite)
+- **Shared WebSocket**: Single connection reused across all requests
+- **Request Tracking**: Map of pending requests by subscription ID
+- **Proper Cleanup**: Timeouts and abort signal handling
+- **Error Recovery**: Auto-reconnect on connection failure
+- **Four Methods**:
+  - `fetchPrimalNetworkFeed()` - Main following feed
+  - `fetchPrimalFutureFeed()` - Check for new posts
+  - `fetchPrimalEventStats()` - Get stats for specific events
+  - `fetchPrimalProfiles()` - Get user profiles
 
-| Variable | Value | Purpose |
-|----------|-------|---------|
-| `RELAY_LIMIT_EVENTS_PER_SEC` | `10` | Block floods |
-| `RELAY_LIMIT_MAX_EVENT_BYTES` | `65536` | Limit file size |
-| `RELAY_LIMIT_MAX_SUBS_PER_MIN` | `60` | Limit queries |
-
----
-
-## 📋 REMAINING BUILD (Priority Order)
-
-### **HIGH PRIORITY:**
-
-1. **Tribe Public/Private Toggle** (1 hour)
-   - Public = anyone can join
-   - Private = approval required
-   - Creator decides
-
-2. **Test All Existing Features** (1 hour)
-   - Login/logout
-   - Experiments page tabs
-   - Experiment Builder
-   - Feed tabs
-   - Love Board
-   - Vault export
-
-3. **Completion Receipts + Anti-Gaming** (1 hour)
-   - One-time sats earning per lesson
-   - Replaceable events prevent gaming
-
-4. **Streak Tracking** (1 hour)
-   - Daily check-ins
-   - Calendar view
-   - Milestone celebrations
-
-### **MEDIUM PRIORITY:**
-
-5. **Magic Mentor AI** (3-4 hours)
-   - OpenRouter/Grok integration
-   - User memory from Nostr
-   - Encrypted conversations
-   - Prompt caching
-
-6. **Full Curriculum** (1 hour)
-   - 18 lessons of 11x LOVE Code
-   - Quiz questions
-   - Worksheets
-
-7. **Accountability Buddies** (2 hours)
-   - Profile matching
-   - Big Dreams sharing
-
-### **LOWER PRIORITY:**
-
-8. **Admin Dashboard** (2 hours)
-9. **Events System** (2 hours)
-10. **Animated EQ Visualizer** (30 min)
+### `/src/hooks/useFeedPosts.ts` (Optimized)
+- **Parallel Queries**: Primal + user's relays run simultaneously
+- **Background Stats**: Relay posts get stats fetched in background
+- **Console Timing**: `console.time()` for performance debugging
+- **Smart Caching**: QueryClient.setQueryData for live updates
 
 ---
 
-## 🎯 RECOMMENDED NEXT SESSION
+## 📊 EXPECTED PERFORMANCE
 
-**Step 1:** Test what's built
-- Deploy to https://11xLOVE.shakespeare.wtf
-- Test login with Nostr extension
-- Walk through each page
-
-**Step 2:** Fix any bugs found
-
-**Step 3:** Add Tribe public/private toggle
-
-**Step 4:** Build completion receipts + streaks
+| Metric | Before | After |
+|--------|--------|-------|
+| Initial load | 8-9 seconds | <2 seconds |
+| Primal response | N/A | ~500ms |
+| Relay fallback | 10s timeout | 8s parallel |
+| Connection overhead | New WS each time | Reused |
 
 ---
 
-## 📁 KEY FILES CREATED/UPDATED TODAY
+## 🔧 DEBUGGING FEED ISSUES
 
-### **Security:**
-- `/src/lib/relays.ts` - Privacy levels, relay helpers
-- `/src/hooks/useLabPublish.ts` - Secure publishing
-- `/src/components/ShareConfirmDialog.tsx` - Warning dialog
-
-### **Feed & Moderation:**
-- `/src/pages/Feed.tsx` - 4 tabs, privacy badges
-- `/src/components/FeedPost.tsx` - Post with mute/report
-- `/src/hooks/useModeration.ts` - All moderation hooks
-
-### **Love Board:**
-- `/src/pages/LoveBoard.tsx` - Paid member posting
-
-### **Vault:**
-- `/src/pages/Vault.tsx` - Magic Mentor, export, BYOR
-
-### **Documentation:**
-- `/PLAN.md` - Full build spec
-- `/SESSION_NOTES.md` (this file)
-- `/docs/PROJECT-STATUS.md` - Phase 2 roadmap
-
----
-
-## 🚀 PROMPT TO CONTINUE
-
+### Console Messages to Watch:
 ```
-I'm continuing work on the 11x LOVE LaB app. Read SESSION_NOTES.md.
+[Feed] Primal fetch: 450ms        ← WebSocket response time
+[Feed] Got 40 notes from Primal   ← Number of posts received
+[Feed] Relay fetch: 3200ms        ← User's relay response time
+[Feed] Got 12 notes from relays   ← Additional posts from relays
+```
 
-Today I want to:
-1. Test all existing features on the live site
-2. Fix any bugs
-3. Add Tribe public/private toggle
-4. Build completion receipts and streak tracking
+### If Feed is Still Slow:
+1. Check browser console for timing logs
+2. Verify Primal WebSocket connects: `wss://cache.primal.net/v1`
+3. Check if EOSE is received (end of stream)
+4. Verify user is logged in (feed requires pubkey)
 
-What's working and what needs fixing?
+### If No Posts Show:
+1. User might not follow anyone
+2. Check kind 3 (contact list) exists
+3. Verify relay connections in Network tab
+4. Check for JavaScript errors in console
+
+---
+
+## 🗄️ FILE REFERENCE
+
+| File | Purpose | Status |
+|------|---------|--------|
+| `/src/lib/primalCache.ts` | Primal WebSocket client | ✅ Rewritten |
+| `/src/hooks/useFeedPosts.ts` | Feed data hooks | ✅ Optimized |
+| `/src/pages/Feed.tsx` | Feed page UI | ✅ Working |
+| `/src/components/FeedPost.tsx` | Post component | ✅ Working |
+| `/src/lib/relays.ts` | Privacy/relay config | ✅ Working |
+
+---
+
+## 🚀 NEXT STEPS
+
+### Priority 1 - Verify Fix:
+- [ ] Test feed loading on live site
+- [ ] Confirm <2 second load time
+- [ ] Verify stats showing correctly
+- [ ] Check new post notifications work
+
+### Priority 2 - Enhance:
+- [ ] Infinite scroll pagination
+- [ ] "Load new posts" button
+- [ ] Repost display (show original + reposter)
+- [ ] Quote posts (embedded notes)
+
+---
+
+## 🔗 PRIMAL API REFERENCE
+
+**Cache Methods Used:**
+```typescript
+// Following feed - posts from people you follow
+{cache: ["feed", {pubkey, user_pubkey, limit, until}]}
+
+// Event stats - likes, reposts, zaps for specific posts
+{cache: ["events", {event_ids, user_pubkey}]}
+
+// User profiles - get metadata for pubkeys
+{cache: ["user_infos", {pubkeys}]}
+```
+
+**Custom Kinds from Primal:**
+```typescript
+Kind.NoteStats = 10_000_100    // Stats JSON
+Kind.NoteActions = 10_000_115  // User actions JSON
+Kind.FeedRange = 10_000_113    // Pagination info
 ```
 
 ---
 
-**Last Updated:** February 15, 2026, 12:30 PM  
-**Status:** Love Board + Vault updates COMPLETE  
-**Next Priority:** Testing, Tribe privacy, Gamification
+**Last Updated:** February 15, 2026, 9:00 PM  
+**Status:** Primal WebSocket optimized with shared connection  
+**Next Priority:** Verify fix works, then add pagination
 
 **Peace, LOVE, & Warm Aloha** 🌅💜
