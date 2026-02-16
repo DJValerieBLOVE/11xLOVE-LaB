@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { type NostrEvent } from '@nostrify/nostrify';
 import { Link } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
@@ -9,7 +9,13 @@ import { useAppContext } from '@/hooks/useAppContext';
 import { genUserName } from '@/lib/genUserName';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
+import { ChevronDown, ChevronUp, ImageIcon } from 'lucide-react';
+
+// Content limits like Primal
+const MAX_CONTENT_LENGTH = 500;
+const MAX_IMAGES_PREVIEW = 4;
 
 interface NoteContentProps {
   event: NostrEvent;
@@ -109,7 +115,10 @@ function isYouTubeUrl(url: string): { isYouTube: boolean; videoId?: string } {
 export function NoteContent({
   event, 
   className, 
-}: NoteContentProps) {  
+}: NoteContentProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showAllMedia, setShowAllMedia] = useState(false);
+  
   // Debug: Check if event is actually an object
   if (typeof event === 'string') {
     console.error('[NoteContent] Received string instead of event object:', event.slice(0, 100));
@@ -298,21 +307,77 @@ export function NoteContent({
     return parts;
   }, [textContent, mediaItems]);
 
+  // Check if content needs truncation
+  const needsTruncation = textContent.length > MAX_CONTENT_LENGTH && !isExpanded;
+  const truncatedText = needsTruncation 
+    ? textContent.slice(0, MAX_CONTENT_LENGTH) + '...'
+    : textContent;
+  
+  // Check if media needs limiting
+  const hasMoreMedia = mediaItems.length > MAX_IMAGES_PREVIEW && !showAllMedia;
+  const displayedMedia = hasMoreMedia 
+    ? mediaItems.slice(0, MAX_IMAGES_PREVIEW)
+    : mediaItems;
+  const hiddenMediaCount = mediaItems.length - MAX_IMAGES_PREVIEW;
+
+  // Re-process content if truncated
+  const displayContent = useMemo(() => {
+    if (!needsTruncation) return processedContent;
+    
+    // For truncated content, just show plain text truncated
+    return [truncatedText];
+  }, [needsTruncation, truncatedText, processedContent]);
+
   return (
     <div className={cn("space-y-3", className)}>
       {/* Text content */}
-      {processedContent.length > 0 && (
+      {displayContent.length > 0 && (
         <div className="whitespace-pre-wrap break-words">
-          {processedContent}
+          {displayContent}
+          {needsTruncation && (
+            <Button
+              variant="link"
+              size="sm"
+              onClick={() => setIsExpanded(true)}
+              className="text-[#6600ff] p-0 h-auto font-normal ml-1"
+            >
+              Show more
+              <ChevronDown className="h-3 w-3 ml-0.5" />
+            </Button>
+          )}
+          {isExpanded && textContent.length > MAX_CONTENT_LENGTH && (
+            <Button
+              variant="link"
+              size="sm"
+              onClick={() => setIsExpanded(false)}
+              className="text-[#6600ff] p-0 h-auto font-normal ml-1"
+            >
+              Show less
+              <ChevronUp className="h-3 w-3 ml-0.5" />
+            </Button>
+          )}
         </div>
       )}
       
-      {/* Media gallery - Primal style: single column, natural sizing */}
-      {mediaItems.length > 0 && (
+      {/* Media gallery - Primal style: limited preview with show more */}
+      {displayedMedia.length > 0 && (
         <div className="space-y-2">
-          {mediaItems.map((media, index) => (
+          {displayedMedia.map((media, index) => (
             <MediaItem key={`media-${index}`} {...media} />
           ))}
+          
+          {/* Show more media button */}
+          {hasMoreMedia && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAllMedia(true)}
+              className="w-full gap-2"
+            >
+              <ImageIcon className="h-4 w-4" />
+              Show {hiddenMediaCount} more image{hiddenMediaCount > 1 ? 's' : ''}
+            </Button>
+          )}
         </div>
       )}
     </div>

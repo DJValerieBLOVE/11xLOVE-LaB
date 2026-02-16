@@ -48,44 +48,80 @@ const Feed = () => {
   const [activeTab, setActiveTab] = useState('latest');
   const [postContent, setPostContent] = useState('');
   
-  // Track last seen timestamps for new post notifications
-  const [lastSeenLatest, setLastSeenLatest] = useState(() => Math.floor(Date.now() / 1000));
-  const [lastSeenTribes, setLastSeenTribes] = useState(() => Math.floor(Date.now() / 1000));
+  // Track displayed posts (frozen) vs new posts available
+  const [displayedLatestPosts, setDisplayedLatestPosts] = useState<import('@/hooks/useFeedPosts').FeedPost[]>([]);
+  const [displayedTribePosts, setDisplayedTribePosts] = useState<import('@/hooks/useFeedPosts').FeedPost[]>([]);
+  const [pendingLatestCount, setPendingLatestCount] = useState(0);
+  const [pendingTribesCount, setPendingTribesCount] = useState(0);
 
   // Real Nostr queries - all use user's configured relays
   const { data: allPosts, isLoading: allLoading, refetch: refetchAll } = useFeedPosts(50);
   const { data: tribePosts, isLoading: tribeLoading, refetch: refetchTribe } = useTribePosts(50);
   const { data: followingPosts, isLoading: followingLoading, refetch: refetchFollowing } = useFollowingPosts(50);
   
-  // Check for new posts (for notification badges)
+  // Check for new posts (for notification badges) - only when we have displayed posts
+  const lastSeenLatest = displayedLatestPosts.length > 0 
+    ? Math.max(...displayedLatestPosts.map(p => p.event.created_at))
+    : Math.floor(Date.now() / 1000);
+  const lastSeenTribes = displayedTribePosts.length > 0 
+    ? Math.max(...displayedTribePosts.map(p => p.event.created_at))
+    : Math.floor(Date.now() / 1000);
+    
   const { data: newLatestCount = 0 } = useNewPostsCount(lastSeenLatest, 'latest');
   const { data: newTribesCount = 0 } = useNewPostsCount(lastSeenTribes, 'tribes');
+  
+  // Update pending counts when new posts are detected
+  useEffect(() => {
+    if (newLatestCount > 0 && displayedLatestPosts.length > 0) {
+      setPendingLatestCount(newLatestCount);
+    }
+  }, [newLatestCount, displayedLatestPosts.length]);
+  
+  useEffect(() => {
+    if (newTribesCount > 0 && displayedTribePosts.length > 0) {
+      setPendingTribesCount(newTribesCount);
+    }
+  }, [newTribesCount, displayedTribePosts.length]);
+  
+  // Initialize displayed posts on first load
+  useEffect(() => {
+    if (followingPosts && followingPosts.length > 0 && displayedLatestPosts.length === 0) {
+      setDisplayedLatestPosts(followingPosts);
+    }
+  }, [followingPosts, displayedLatestPosts.length]);
+  
+  useEffect(() => {
+    if (tribePosts && tribePosts.length > 0 && displayedTribePosts.length === 0) {
+      setDisplayedTribePosts(tribePosts);
+    }
+  }, [tribePosts, displayedTribePosts.length]);
+  
+  // Handle showing new posts (user clicks the button)
+  const handleShowNewPosts = useCallback((tab: 'latest' | 'tribes') => {
+    if (tab === 'latest' && followingPosts) {
+      setDisplayedLatestPosts(followingPosts);
+      setPendingLatestCount(0);
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (tab === 'tribes' && tribePosts) {
+      setDisplayedTribePosts(tribePosts);
+      setPendingTribesCount(0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [followingPosts, tribePosts]);
   
   // Update last seen timestamp when switching to a tab
   const handleTabChange = useCallback((tab: string) => {
     setActiveTab(tab);
-    const now = Math.floor(Date.now() / 1000);
-    if (tab === 'latest') {
-      setLastSeenLatest(now);
-    } else if (tab === 'tribes') {
-      setLastSeenTribes(now);
+    // When switching tabs, show any pending new posts
+    if (tab === 'latest' && followingPosts) {
+      setDisplayedLatestPosts(followingPosts);
+      setPendingLatestCount(0);
+    } else if (tab === 'tribes' && tribePosts) {
+      setDisplayedTribePosts(tribePosts);
+      setPendingTribesCount(0);
     }
-  }, []);
-  
-  // Update last seen when posts are loaded
-  useEffect(() => {
-    if (followingPosts && followingPosts.length > 0 && activeTab === 'latest') {
-      const newestTimestamp = Math.max(...followingPosts.map(p => p.event.created_at));
-      setLastSeenLatest(newestTimestamp);
-    }
-  }, [followingPosts, activeTab]);
-  
-  useEffect(() => {
-    if (tribePosts && tribePosts.length > 0 && activeTab === 'tribes') {
-      const newestTimestamp = Math.max(...tribePosts.map(p => p.event.created_at));
-      setLastSeenTribes(newestTimestamp);
-    }
-  }, [tribePosts, activeTab]);
+  }, [followingPosts, tribePosts]);
 
   // Publishing hook
   const { mutate: publishPost, isPending: isPosting } = useLabPublish();
@@ -95,41 +131,61 @@ const Feed = () => {
     description: 'Your personalized feed with updates from Tribes, accountability buddies, and the community',
   });
 
-  // Get posts for current tab
+  // Get posts for current tab - use displayed (frozen) posts, not live data
   const getCurrentPosts = () => {
     switch (activeTab) {
       case 'latest':
-        // Latest = posts from people you follow on your configured relays
-        return { posts: followingPosts || [], loading: followingLoading };
+        // Use frozen displayed posts, fall back to live data if not yet initialized
+        return { 
+          posts: displayedLatestPosts.length > 0 ? displayedLatestPosts : (followingPosts || []), 
+          loading: followingLoading && displayedLatestPosts.length === 0,
+          pendingCount: pendingLatestCount,
+        };
       case 'tribes':
-        // Tribes = PRIVATE posts from Railway relay only
-        return { posts: tribePosts || [], loading: tribeLoading };
+        return { 
+          posts: displayedTribePosts.length > 0 ? displayedTribePosts : (tribePosts || []), 
+          loading: tribeLoading && displayedTribePosts.length === 0,
+          pendingCount: pendingTribesCount,
+        };
       case 'buddies':
-        // Buddies = TODO: filter to accountability buddies
-        return { posts: [], loading: false };
+        return { posts: [], loading: false, pendingCount: 0 };
       default:
-        return { posts: followingPosts || [], loading: followingLoading };
+        return { 
+          posts: displayedLatestPosts.length > 0 ? displayedLatestPosts : (followingPosts || []), 
+          loading: followingLoading && displayedLatestPosts.length === 0,
+          pendingCount: pendingLatestCount,
+        };
     }
   };
 
-  const { posts: currentPosts, loading: currentLoading } = getCurrentPosts();
+  const { posts: currentPosts, loading: currentLoading, pendingCount } = getCurrentPosts();
 
-  // Handle refresh
-  const handleRefresh = () => {
-    switch (activeTab) {
-      case 'latest':
-        refetchFollowing();
-        break;
-      case 'tribes':
-        refetchTribe();
-        break;
-      default:
-        refetchAll();
-    }
+  // Handle refresh - this fetches new data AND shows it immediately
+  const handleRefresh = async () => {
     toast({
       title: 'Refreshing...',
       description: 'Fetching latest posts',
     });
+    
+    switch (activeTab) {
+      case 'latest':
+        await refetchFollowing();
+        // After refetch, update displayed posts
+        if (followingPosts) {
+          setDisplayedLatestPosts(followingPosts);
+          setPendingLatestCount(0);
+        }
+        break;
+      case 'tribes':
+        await refetchTribe();
+        if (tribePosts) {
+          setDisplayedTribePosts(tribePosts);
+          setPendingTribesCount(0);
+        }
+        break;
+      default:
+        await refetchAll();
+    }
   };
 
   // Handle posting
@@ -339,6 +395,19 @@ const Feed = () => {
 
               {/* Tab Content */}
               <TabsContent value={activeTab} className="mt-0">
+                {/* New Posts Button - Primal style */}
+                {pendingCount > 0 && (
+                  <div className="sticky top-16 z-10 mt-4 mb-2">
+                    <Button
+                      onClick={() => handleShowNewPosts(activeTab as 'latest' | 'tribes')}
+                      className="w-full bg-[#6600ff] hover:bg-[#5500dd] text-white shadow-lg"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      {pendingCount} new post{pendingCount > 1 ? 's' : ''}
+                    </Button>
+                  </div>
+                )}
+                
                 {/* Privacy Notice for Tribes tab */}
                 {activeTab === 'tribes' && (
                   <div className="flex items-center gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg mt-4 mb-2">

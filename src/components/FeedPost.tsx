@@ -6,9 +6,10 @@
  * - Highlights if current user has engaged
  * - Private posts (Tribe): No share/repost button
  * - All posts have: Zap, Like, Reply, Bookmark, Mute, Report
+ * - Handles kind 6 reposts by showing "reposted by" header
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
 import type { NostrEvent } from '@nostrify/nostrify';
@@ -28,6 +29,7 @@ import {
   UserMinus,
   Bookmark,
   ExternalLink,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -141,11 +143,44 @@ export function FeedPost({
   onRemoveFromGroup,
   onDelete,
 }: FeedPostProps) {
+  // Handle kind 6 reposts - extract the original note
+  const { isRepost, repostedEvent, reposterPubkey } = useMemo(() => {
+    if (event.kind === 6) {
+      // Kind 6 repost - content is the JSON of the original event
+      try {
+        const originalEvent = JSON.parse(event.content) as NostrEvent;
+        return {
+          isRepost: true,
+          repostedEvent: originalEvent,
+          reposterPubkey: event.pubkey,
+        };
+      } catch {
+        // Failed to parse, might be a simple repost without embedded event
+        // Check for e tag pointing to original
+        const eTag = event.tags.find(([name]) => name === 'e');
+        if (eTag) {
+          // We don't have the content, show a placeholder
+          return {
+            isRepost: true,
+            repostedEvent: null,
+            reposterPubkey: event.pubkey,
+          };
+        }
+      }
+    }
+    return { isRepost: false, repostedEvent: null, reposterPubkey: null };
+  }, [event]);
+
+  // Use the original event for display if this is a repost
+  const displayEvent = repostedEvent || event;
+  const displayPubkey = repostedEvent?.pubkey || event.pubkey;
+
   // Use provided author metadata (from Primal API) or fetch it
-  const author = useAuthor(authorMetadata?.metadata ? undefined : event.pubkey);
+  const author = useAuthor(authorMetadata?.metadata ? undefined : displayPubkey);
+  const reposterAuthor = useAuthor(reposterPubkey || undefined);
   const { user } = useCurrentUser();
   // Prefer Primal-provided metadata, fall back to fetched
-  const metadata = authorMetadata?.metadata || author.data?.metadata;
+  const metadata = (repostedEvent ? author.data?.metadata : authorMetadata?.metadata) || author.data?.metadata;
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
@@ -157,10 +192,14 @@ export function FeedPost({
   const [localLikeCount, setLocalLikeCount] = useState(0);
   const [localRepostCount, setLocalRepostCount] = useState(0);
 
-  const displayName = metadata?.display_name || metadata?.name || genUserName(event.pubkey);
-  const npub = nip19.npubEncode(event.pubkey);
-  const noteId = nip19.noteEncode(event.id);
-  const timeAgo = formatDistanceToNow(new Date(event.created_at * 1000), { addSuffix: true });
+  const displayName = metadata?.display_name || metadata?.name || genUserName(displayPubkey);
+  const npub = nip19.npubEncode(displayPubkey);
+  const noteId = nip19.noteEncode(displayEvent.id);
+  const timeAgo = formatDistanceToNow(new Date(displayEvent.created_at * 1000), { addSuffix: true });
+  
+  // Reposter info
+  const reposterMetadata = reposterAuthor.data?.metadata;
+  const reposterName = reposterMetadata?.display_name || reposterMetadata?.name || (reposterPubkey ? genUserName(reposterPubkey) : '');
 
   // Check if post has zaps (for useZappers hook - must be before the hook call)
   const hasZaps = (stats?.satsZapped ?? 0) > 0;
@@ -218,9 +257,33 @@ export function FeedPost({
     // TODO: Add to NIP-51 bookmark list
   };
 
+  // If this is a repost but we couldn't parse the original event, show minimal info
+  if (isRepost && !repostedEvent) {
+    return (
+      <div className="p-3 sm:p-4 text-muted-foreground text-sm">
+        <div className="flex items-center gap-1 mb-2">
+          <Repeat2 className="h-3 w-3" />
+          <span>{reposterName} reposted</span>
+        </div>
+        <p className="italic">Referenced note not available</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="p-3 sm:p-4">
+        {/* Repost Header */}
+        {isRepost && reposterPubkey && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2 ml-11">
+            <Repeat2 className="h-3 w-3" />
+            <Link to={`/${nip19.npubEncode(reposterPubkey)}`} className="hover:underline">
+              {reposterName}
+            </Link>
+            <span>reposted</span>
+          </div>
+        )}
+        
         <div className="flex gap-3">
           {/* Avatar - same size as header avatar (h-8 w-8) */}
           <Link to={`/${npub}`}>
@@ -308,7 +371,7 @@ export function FeedPost({
 
             {/* Content */}
             <div className="mb-2">
-              <NoteContent event={event} className="text-sm" />
+              <NoteContent event={displayEvent} className="text-sm" />
             </div>
 
             {/* Top Zappers Row - Primal style (above action buttons) */}
