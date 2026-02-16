@@ -46,7 +46,19 @@ Kind 10000115: User Actions (PRIMAL CUSTOM - did you like/zap this?)
 }]
 ```
 
-**Key Insight:** The `until` parameter MUST be current timestamp to get latest posts. If missing or old, you get stale data.
+**Key Insight from Primal's Source Code:**
+```typescript
+// From Primal's lib/feed.ts
+const time = until === 0 ? Math.ceil((new Date()).getTime()/1_000 ): until;
+
+let payload = { limit, until: time, pubkey };
+```
+
+**CRITICAL:** The `until` parameter:
+- MUST be `Math.ceil(Date.now() / 1000)` for current timestamp
+- If `until === 0`, Primal uses CURRENT time (not old data)
+- If missing or old timestamp, you get STALE data
+- This is why feed shows old posts!
 
 ---
 
@@ -66,8 +78,8 @@ Kind 10000115: User Actions (PRIMAL CUSTOM - did you like/zap this?)
 │  PRIVATE FEED (Tribes Tab)                             │
 │  └─ Railway Relay ONLY: Private NIP-29 group messages  │
 │                                                         │
-│  BUDDIES FEED (Buddies Tab)                            │
-│  └─ TODO: Filter to accountability partners            │
+│  BUDDIES FEED (Buddies Tab) - NEVER SHAREABLE          │
+│  └─ Railway relay ONLY: Private messages with buddies  │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -77,7 +89,7 @@ Kind 10000115: User Actions (PRIMAL CUSTOM - did you like/zap this?)
 |-----|------------|---------|--------------|
 | **Latest** | Primal + User's public relays | Public | ✅ Yes |
 | **Tribes** | Railway relay ONLY (NIP-29) | Private | ❌ NO |
-| **Buddies** | TBD (accountability buddies) | Mixed | Conditional |
+| **Buddies** | TBD (accountability buddies) | **PRIVATE** | **❌ NO - NEVER SHAREABLE** |
 
 ---
 
@@ -88,6 +100,7 @@ Kind 10000115: User Actions (PRIMAL CUSTOM - did you like/zap this?)
 ```
 🔴 NEVER SHAREABLE
    - Tribe messages (kinds 9, 11, 12)
+   - Buddy messages (accountability partners)
    - Railway relay ONLY
    - NO share button (blocked in code)
    - Lock badge on UI
@@ -108,6 +121,7 @@ Kind 10000115: User Actions (PRIMAL CUSTOM - did you like/zap this?)
 | Content Type | Railway Relay | Public Relays | Encrypted |
 |--------------|---------------|---------------|-----------|
 | Tribe messages | ✅ ONLY | ❌ NEVER | ✅ Yes (NIP-29) |
+| Buddy messages | ✅ ONLY | ❌ NEVER | ✅ Yes (NIP-44/NIP-17) |
 | Big Dreams | ✅ Default | ⚠️ Optional (with warning) | ✅ Yes (NIP-44) |
 | Feed posts | ✅ Always | ✅ User choice | ❌ No |
 | Reactions/Zaps | ✅ Always | ✅ Yes | ❌ No |
