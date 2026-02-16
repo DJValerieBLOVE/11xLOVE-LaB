@@ -214,9 +214,9 @@ const Feed = () => {
           Updates from your Tribes, buddies, and the community
         </p>
 
-        {/* Grid layout - feed centered with sidebar */}
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+        {/* Grid layout - Primal-style: narrower feed, sidebar on right */}
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,600px)_280px] gap-6 justify-center">
           
           {/* Main Feed Column - centered */}
           <div className="space-y-3">
