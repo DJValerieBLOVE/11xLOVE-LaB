@@ -234,7 +234,7 @@ const Feed = () => {
         </p>
 
         {/* Grid layout - feed centered, sidebar on right */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(0,680px)_minmax(0,260px)_1fr] gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(0,680px)_minmax(0,300px)_1fr] gap-5">
           {/* Left spacer */}
           <div className="hidden lg:block" />
           
