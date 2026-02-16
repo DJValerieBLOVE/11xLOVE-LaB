@@ -315,15 +315,15 @@ export function FeedPost({
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-0.5 sm:gap-1 flex-wrap -ml-2">
+            {/* Action Buttons - evenly spaced */}
+            <div className="flex items-center justify-between">
               {/* Reply */}
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 gap-1 h-8 px-2 sm:px-3"
+                className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 gap-1.5 h-9 px-3"
               >
-                <MessageCircle className="h-4 w-4" />
+                <MessageCircle className="h-[18px] w-[18px]" />
                 {replyCount > 0 && <span className="text-xs">{formatCount(replyCount)}</span>}
               </Button>
 
@@ -333,13 +333,13 @@ export function FeedPost({
                 size="sm" 
                 onClick={handleLike}
                 className={cn(
-                  "gap-1 h-8 px-2 sm:px-3",
+                  "gap-1.5 h-9 px-3",
                   isLiked 
                     ? "text-red-500 hover:text-red-600 hover:bg-red-50" 
                     : "text-gray-400 hover:text-red-500 hover:bg-red-50"
                 )}
               >
-                <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
+                <Heart className={cn("h-[18px] w-[18px]", isLiked && "fill-current")} />
                 {likeCount > 0 && <span className="text-xs">{formatCount(likeCount)}</span>}
               </Button>
 
@@ -350,13 +350,13 @@ export function FeedPost({
                     variant="ghost" 
                     size="sm" 
                     className={cn(
-                      "gap-1 h-8 px-2 sm:px-3",
+                      "gap-1.5 h-9 px-3",
                       userZapped
                         ? "text-orange-500 hover:text-orange-600 hover:bg-orange-50"
                         : "text-gray-400 hover:text-orange-500 hover:bg-orange-50"
                     )}
                   >
-                    <Zap className={cn("h-4 w-4", userZapped && "fill-current")} />
+                    <Zap className={cn("h-[18px] w-[18px]", userZapped && "fill-current")} />
                     {satsZapped > 0 && <span className="text-xs">{formatSats(satsZapped)}</span>}
                   </Button>
                 </ZapDialog>
@@ -365,11 +365,32 @@ export function FeedPost({
                   variant="ghost" 
                   size="sm" 
                   disabled 
-                  className="text-gray-300 gap-1 h-8 px-2 sm:px-3 cursor-not-allowed"
+                  className="text-gray-300 gap-1.5 h-9 px-3 cursor-not-allowed"
                   title={!user ? "Login to zap" : user.pubkey === event.pubkey ? "Can't zap yourself" : "No lightning address"}
                 >
-                  <Zap className="h-4 w-4" />
+                  <Zap className="h-[18px] w-[18px]" />
                 </Button>
+              )}
+
+              {/* Repost - Only for public posts */}
+              {!isPrivate ? (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleRepost}
+                  className={cn(
+                    "gap-1.5 h-9 px-3",
+                    isReposted
+                      ? "text-green-500 hover:text-green-600 hover:bg-green-50"
+                      : "text-gray-400 hover:text-green-500 hover:bg-green-50"
+                  )}
+                >
+                  <Repeat2 className={cn("h-[18px] w-[18px]", isReposted && "stroke-[2.5px]")} />
+                  {repostCount > 0 && <span className="text-xs">{formatCount(repostCount)}</span>}
+                </Button>
+              ) : (
+                /* Placeholder for private posts to maintain spacing */
+                <div className="h-9 px-3" />
               )}
 
               {/* Bookmark */}
@@ -378,43 +399,28 @@ export function FeedPost({
                 size="sm" 
                 onClick={handleBookmark}
                 className={cn(
-                  "h-8 px-2 sm:px-3",
+                  "h-9 px-3",
                   isBookmarked 
                     ? "text-[#6600ff] hover:text-[#5500dd] hover:bg-[#6600ff]/10" 
                     : "text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10"
                 )}
               >
-                <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-current")} />
+                <Bookmark className={cn("h-[18px] w-[18px]", isBookmarked && "fill-current")} />
               </Button>
 
-              {/* Repost - Only for public posts */}
-              {!isPrivate && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleRepost}
-                  className={cn(
-                    "gap-1 h-8 px-2 sm:px-3",
-                    isReposted
-                      ? "text-green-500 hover:text-green-600 hover:bg-green-50"
-                      : "text-gray-400 hover:text-green-500 hover:bg-green-50"
-                  )}
-                >
-                  <Repeat2 className={cn("h-4 w-4", isReposted && "stroke-[2.5px]")} />
-                  {repostCount > 0 && <span className="text-xs">{formatCount(repostCount)}</span>}
-                </Button>
-              )}
-
               {/* Share - Only for public posts */}
-              {!isPrivate && (
+              {!isPrivate ? (
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={handleShare}
-                  className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 h-8 px-2 sm:px-3"
+                  className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 h-9 px-3"
                 >
-                  <Share2 className="h-4 w-4" />
+                  <Share2 className="h-[18px] w-[18px]" />
                 </Button>
+              ) : (
+                /* Placeholder for private posts to maintain spacing */
+                <div className="h-9 px-3" />
               )}
             </div>
           </div>

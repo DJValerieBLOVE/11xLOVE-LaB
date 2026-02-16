@@ -222,8 +222,8 @@ const Feed = () => {
         </p>
 
         <div className="grid lg:grid-cols-12 gap-6 max-w-6xl mx-auto">
-          {/* Main Feed Column - narrower and centered */}
-          <div className="lg:col-span-7 lg:col-start-1 space-y-4">
+          {/* Main Feed Column - narrower (6 cols = 50%) */}
+          <div className="lg:col-span-6 lg:col-start-1 space-y-4">
             {/* Post Composer */}
             <Card>
               <CardContent className="p-4">
@@ -406,8 +406,8 @@ const Feed = () => {
             </Tabs>
           </div>
 
-          {/* Right Sidebar */}
-          <div className="lg:col-span-5 space-y-2">
+          {/* Right Sidebar - 5 cols with offset for gap */}
+          <div className="lg:col-span-5 lg:col-start-8 space-y-2">
             {/* My Tribes */}
             <Card>
               <CardHeader className="pb-3">

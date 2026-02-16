@@ -31,13 +31,33 @@ const IMAGE_HOSTS = [
   'nostpic.com',
   'm.primal.net',
   'media.snort.social',
+  'noster.social',
+  'satellite.earth',
+  'nostrcheck.me',
+  'cdn.satellite.earth',
+  'i.nostr.build',
+  'pfp.nostr.build',
+  'media.primal.net',
+  'blossom.band',
+  'files.blossom.band',
 ];
 
 function isImageUrl(url: string): boolean {
+  // Check by extension first
   if (IMAGE_EXTENSIONS.test(url)) return true;
+  
   try {
     const parsed = new URL(url);
-    return IMAGE_HOSTS.some(host => parsed.hostname.includes(host));
+    
+    // Check known image hosts
+    if (IMAGE_HOSTS.some(host => parsed.hostname.includes(host))) return true;
+    
+    // Check if URL path looks like an image (hash-based filenames common on Blossom)
+    // e.g., /abc123def456... (32+ hex chars)
+    const pathWithoutSlash = parsed.pathname.slice(1);
+    if (/^[a-f0-9]{32,}$/i.test(pathWithoutSlash)) return true;
+    
+    return false;
   } catch {
     return false;
   }
@@ -253,16 +273,26 @@ export function NoteContent({
 function MediaItem({ url, type }: { url: string; type: 'image' | 'video' | 'audio' | 'youtube'; thumbnailUrl?: string }) {
   if (type === 'image') {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer">
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block">
         <img
           src={url}
           alt="Embedded media"
-          className="rounded-xl max-h-96 w-full object-cover hover:opacity-90 transition-opacity"
+          className="rounded-xl max-h-[400px] w-full object-cover hover:opacity-90 transition-opacity bg-gray-100"
           loading="lazy"
           onError={(e) => {
             // Hide broken images
-            (e.target as HTMLImageElement).style.display = 'none';
+            const img = e.target as HTMLImageElement;
+            img.style.display = 'none';
+            // Also hide the parent link
+            const parent = img.parentElement;
+            if (parent) parent.style.display = 'none';
           }}
+          onLoad={(e) => {
+            // Ensure image is visible after loading
+            const img = e.target as HTMLImageElement;
+            img.style.opacity = '1';
+          }}
+          style={{ minHeight: '100px' }}
         />
       </a>
     );
