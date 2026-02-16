@@ -288,6 +288,22 @@ export async function fetchPrimalNetworkFeed(
   if (result.notes.length > 0) {
     const authors = [...new Set(result.notes.slice(0, 5).map(n => n.pubkey.slice(0, 8)))];
     console.log(`[Primal] Feed authors (first 5 posts):`, authors.join(', '));
+    
+    // Primal doesn't return stats with feed - fetch them separately
+    if (result.stats.size === 0) {
+      console.log(`[Primal] No stats in feed response, fetching separately...`);
+      const eventIds = result.notes.map(n => n.id);
+      const statsResult = await fetchPrimalEventStats(eventIds, userPubkey, signal);
+      
+      // Merge stats into result
+      for (const [id, stats] of statsResult.stats) {
+        result.stats.set(id, stats);
+      }
+      for (const [id, actions] of statsResult.actions) {
+        result.actions.set(id, actions);
+      }
+      console.log(`[Primal] Fetched ${result.stats.size} stats, ${result.actions.size} actions`);
+    }
   }
   
   return result;
