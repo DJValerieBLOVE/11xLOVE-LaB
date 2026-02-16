@@ -149,10 +149,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuLabel>
                         <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">
+                          <p className="text-sm font-medium leading-none text-black">
                             {metadata?.display_name || metadata?.name || genUserName(user.pubkey)}
                           </p>
-                          <p className="text-xs leading-none text-muted-foreground">
+                          <p className="text-xs leading-none text-gray-500">
                             {user.pubkey.slice(0, 8)}...{user.pubkey.slice(-8)}
                           </p>
                         </div>

@@ -125,12 +125,15 @@ export function useFollowingPosts(limit: number = 40) {
           if (follows.length === 0) return [];
 
           // Query relays directly for fresh posts
+          // Use a 2-hour window to get the freshest posts (relays are real-time, unlike Primal cache)
+          const twoHoursAgo = Math.floor(Date.now() / 1000) - 7200;
           const relayGroup = nostr.group(publicRelays.slice(0, 3));
           return await relayGroup.query([
             {
               kinds: [1, 6],
               authors: follows.slice(0, 150),
-              limit: Math.min(limit, 40),
+              since: twoHoursAgo,
+              limit: Math.min(limit, 60),
             },
           ], { signal: AbortSignal.any([signal, AbortSignal.timeout(6000)]) });
         } catch (err) {
@@ -213,6 +216,7 @@ export function useFollowingPosts(limit: number = 40) {
     gcTime: 30000, // 30 second garbage collection (was 60s)
     refetchOnMount: 'always',
     refetchOnWindowFocus: 'always',
+    refetchInterval: 60000, // Auto-refresh every 60 seconds for fresh data
     networkMode: 'always',
   });
 }

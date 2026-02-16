@@ -13,6 +13,30 @@
     <meta property="og:description" content="Your transformation playground where you build your Divine Masterpiece one experiment at a time. 11 minutes a day." />
     
     <link rel="manifest" href="/manifest.webmanifest">
+    
+    <!-- 
+      CRITICAL: Plain <style> tag (NOT type="text/tailwindcss") so the Tailwind Play CDN 
+      does NOT reprocess these values. These override the CDN's default gray variables.
+      Unlayered styles always beat @layer styles per CSS Cascade spec.
+    -->
+    <style>
+      :root,
+      :root.light,
+      html:not(.dark) {
+        --foreground: 0 0% 0% !important;
+        --card-foreground: 0 0% 0% !important;
+        --popover-foreground: 0 0% 0% !important;
+        --secondary-foreground: 0 0% 0% !important;
+        --accent-foreground: 0 0% 0% !important;
+        --sidebar-foreground: 0 0% 0% !important;
+        --sidebar-primary: 0 0% 0% !important;
+        --sidebar-accent-foreground: 0 0% 0% !important;
+      }
+      /* Force body text color to black in light mode */
+      body {
+        color: hsl(0 0% 0%) !important;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

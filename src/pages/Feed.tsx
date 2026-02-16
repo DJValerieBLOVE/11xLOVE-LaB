@@ -15,6 +15,7 @@
 
 import { useState, useCallback } from 'react';
 import { useSeoMeta } from '@unhead/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useFeedPosts, useTribePosts, useFollowingPosts } from '@/hooks/useFeedPosts';
@@ -45,6 +46,7 @@ import { useLabPublish } from '@/hooks/useLabPublish';
 const Feed = () => {
   const { user, metadata } = useCurrentUser();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('latest');
   const [postContent, setPostContent] = useState('');
   
@@ -91,12 +93,17 @@ const Feed = () => {
 
   const { posts: currentPosts, loading: currentLoading } = getCurrentPosts();
 
-  // Handle refresh
+  // Handle refresh - invalidate cache and force fresh fetch
   const handleRefresh = async () => {
     toast({
       title: 'Refreshing...',
       description: 'Fetching latest posts',
     });
+    
+    // Invalidate ALL feed-related queries to force fresh data
+    await queryClient.invalidateQueries({ queryKey: ['following-posts-v5'] });
+    await queryClient.invalidateQueries({ queryKey: ['feed-posts-combined'] });
+    await queryClient.invalidateQueries({ queryKey: ['tribe-posts'] });
     
     switch (activeTab) {
       case 'latest':
@@ -186,7 +193,7 @@ const Feed = () => {
           <div className="max-w-lg mx-auto text-center">
             <div className="mb-8">
               <Sparkles className="h-16 w-16 mx-auto text-[#6600ff] mb-4" />
-              <h1 className="text-3xl font-bold mb-4">Your Feed</h1>
+              <h1 className="text-3xl font-bold mb-4 text-black">Your Feed</h1>
               <p className="text-gray-600 mb-6">
                 See updates from your Tribes, accountability buddies, and the 11x LOVE community.
               </p>
@@ -218,7 +225,7 @@ const Feed = () => {
         {/* Centered header */}
         <div className="max-w-[580px] mx-auto px-4 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-2xl font-bold">Your Feed</h1>
+            <h1 className="text-2xl font-bold text-black">Your Feed</h1>
             <Button variant="ghost" size="sm" onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
@@ -378,7 +385,7 @@ const Feed = () => {
             {/* My Tribes */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
+                <CardTitle className="flex items-center gap-2 text-base text-black">
                   <Users className="h-4 w-4 text-[#6600ff]" />
                   My Tribes
                 </CardTitle>
@@ -391,7 +398,7 @@ const Feed = () => {
                         <Users className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-medium text-sm">{tribe.name}</p>
+                        <p className="font-medium text-sm text-black">{tribe.name}</p>
                         <p className="text-xs text-gray-500">{tribe.members} members</p>
                       </div>
                     </div>
@@ -409,7 +416,7 @@ const Feed = () => {
             {/* Live Now */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
+                <CardTitle className="flex items-center gap-2 text-base text-black">
                   <Radio className="h-4 w-4 text-red-500" />
                   Live Now
                 </CardTitle>
@@ -421,7 +428,7 @@ const Feed = () => {
                       <AvatarFallback>{item.host.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm leading-tight">{item.title}</p>
+                      <p className="font-medium text-sm leading-tight text-black">{item.title}</p>
                       <p className="text-xs text-gray-500">{item.host}</p>
                       <Badge variant="secondary" className="mt-1 text-xs">
                         {item.type}
@@ -435,12 +442,12 @@ const Feed = () => {
             {/* Upcoming Events */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base text-foreground">Upcoming Events</CardTitle>
+                <CardTitle className="text-base text-black">Upcoming Events</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {upcomingEvents.map((event, i) => (
                   <div key={i}>
-                    <p className="font-medium text-sm">{event.title}</p>
+                    <p className="font-medium text-sm text-black">{event.title}</p>
                     <p className="text-xs text-gray-500">{event.date}</p>
                     {i < upcomingEvents.length - 1 && <Separator className="mt-3" />}
                   </div>

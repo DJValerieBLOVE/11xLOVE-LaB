@@ -123,7 +123,7 @@ const Profile = () => {
           </div>
 
           {/* Name */}
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-black mb-1">
             {displayName}
           </h1>
 
@@ -134,7 +134,7 @@ const Profile = () => {
 
           {/* Bio */}
           {about && (
-            <p className="text-foreground whitespace-pre-wrap leading-relaxed mb-4">
+            <p className="text-black whitespace-pre-wrap leading-relaxed mb-4">
               {about}
             </p>
           )}
