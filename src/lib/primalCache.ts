@@ -12,6 +12,58 @@ import type { NostrEvent, NostrMetadata } from '@nostrify/nostrify';
 
 const PRIMAL_CACHE_URL = 'wss://cache.primal.net/v1';
 
+/**
+ * Primal Custom Kind Numbers
+ * From: https://github.com/PrimalHQ/primal-web-app/blob/main/src/constants.ts
+ */
+export const PrimalKind = {
+  NoteStats: 10_000_100,        // likes, reposts, replies, zaps, satszapped
+  NetStats: 10_000_101,         // network stats
+  LegendStats: 10_000_102,      // legend stats
+  UserStats: 10_000_105,        // follower counts
+  OldestEvent: 10_000_106,      // oldest event
+  Mentions: 10_000_107,         // mentions info
+  UserScore: 10_000_108,        // user score
+  Notification: 10_000_110,     // notifications
+  Timestamp: 10_000_111,        // timestamp
+  NotificationStats: 10_000_112, // notification counts
+  FeedRange: 10_000_113,        // pagination info (since, until, order_by)
+  NoteActions: 10_000_115,      // user actions (liked, reposted, zapped)
+  MessageStats: 10_000_117,     // message stats
+  MessagePerSenderStats: 10_000_118, // message per sender stats
+  MediaInfo: 10_000_119,        // image dimensions, thumbnails
+  Upload: 10_000_120,           // upload info
+  Uploaded: 10_000_121,         // uploaded status
+  Releases: 10_000_124,         // releases
+  ImportResponse: 10_000_127,   // import response
+  LinkMetadata: 10_000_128,     // og:title, og:description, og:image
+  EventZapInfo: 10_000_129,     // zap info for events
+  FilteringReason: 10_000_131,  // content filtering reason
+  UserFollowerCounts: 10_000_133, // follower counts
+  SuggestedUsers: 10_000_134,   // suggested users
+  UploadChunk: 10_000_135,      // upload chunk
+  UserRelays: 10_000_139,       // user relays
+  RelayHint: 10_000_141,        // relay hints for events
+  NoteQuoteStats: 10_000_143,   // quote stats
+  WordCount: 10_000_144,        // word count
+  FeaturedAuthors: 10_000_148,  // featured authors
+  DVMFollowsActions: 10_000_156, // DVM follows actions
+  UserFollowerIncrease: 10_000_157, // follower increase
+  VerifiedUsersDict: 10_000_158, // verified users dictionary
+  DVMMetadata: 10_000_159,      // DVM metadata
+  NoteTopicStat: 10_000_160,    // topic stats
+  MediaStats: 10_000_163,       // media stats
+  MediaList: 10_000_164,        // media list
+  ContentStats: 10_000_166,     // content stats
+  BroadcastStatus: 10_000_167,  // broadcast status
+  LegendCustomization: 10_000_168, // legend customization
+  MembershipCohortInfo: 10_000_169, // membership info
+  LegendLeaderboard: 10_000_170, // legend leaderboard
+  PremiumLeaderboard: 10_000_171, // premium leaderboard
+  ArticlesStats: 10_000_174,    // articles stats
+  LiveEventStats: 10_000_176,   // live event stats
+} as const;
+
 /** Stats for a note from Primal */
 export interface PrimalNoteStats {
   event_id: string;
@@ -33,12 +85,41 @@ export interface PrimalNoteActions {
   zapped: boolean;
 }
 
+/** Link metadata from Primal (kind 10000128) */
+export interface PrimalLinkMetadata {
+  url: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  icon_url?: string;
+  md_title?: string;
+  md_description?: string;
+  md_image?: string;
+}
+
+/** Media info from Primal (kind 10000119) */
+export interface PrimalMediaInfo {
+  event_id: string;
+  resources?: Array<{
+    url: string;
+    variants?: Array<{
+      w: number;
+      h: number;
+      s: string; // small/medium/large
+      a: number; // aspect ratio
+      media_url: string;
+    }>;
+  }>;
+}
+
 /** Result from fetching feed */
 export interface PrimalFeedResult {
   notes: NostrEvent[];
   profiles: Map<string, NostrMetadata>;
   stats: Map<string, PrimalNoteStats>;
   actions: Map<string, PrimalNoteActions>;
+  linkPreviews: Map<string, PrimalLinkMetadata>;
+  mediaInfo: Map<string, PrimalMediaInfo>;
 }
 
 /**
@@ -67,6 +148,8 @@ async function primalRequest(
       profiles: new Map(),
       stats: new Map(),
       actions: new Map(),
+      linkPreviews: new Map(),
+      mediaInfo: new Map(),
     };
     
     const subId = `${method}_${Date.now()}`;
@@ -216,6 +299,7 @@ function processEvent(eventData: unknown, result: PrimalFeedResult) {
   
   const kind = event.kind as number;
   
+  // Standard Nostr kinds
   if (kind === 0) {
     // Profile
     try {
@@ -227,35 +311,64 @@ function processEvent(eventData: unknown, result: PrimalFeedResult) {
   } else if (kind === 1 || kind === 6) {
     // Note or repost - ensure it's a proper object
     result.notes.push(event as unknown as NostrEvent);
-  } else if (kind === 10000100) {
-    // Stats from Primal
+  } 
+  // Primal custom kinds
+  else if (kind === PrimalKind.NoteStats) {
+    // Stats from Primal (10000100)
     try {
       const content = event.content as string;
       const stats = JSON.parse(content) as PrimalNoteStats;
       if (stats.event_id) {
         result.stats.set(stats.event_id, stats);
-        // Debug first few stats
-        if (result.stats.size <= 3) {
-          console.log('[Primal] Parsed stats:', stats.event_id.slice(0, 8), 'likes:', stats.likes, 'zaps:', stats.zaps);
-        }
       }
-    } catch (e) {
-      console.warn('[Primal] Failed to parse stats:', e);
-    }
-  } else if (kind === 10000115) {
-    // User actions from Primal
+    } catch { /* ignore */ }
+  } else if (kind === PrimalKind.NoteActions) {
+    // User actions from Primal (10000115)
     try {
       const content = event.content as string;
       const actions = JSON.parse(content) as PrimalNoteActions;
       if (actions.event_id) {
         result.actions.set(actions.event_id, actions);
       }
-    } catch (e) {
-      console.warn('[Primal] Failed to parse actions:', e);
-    }
-  } else if (kind > 10000000) {
-    // Log any other Primal custom kinds we might be missing
-    console.log('[Primal] Unknown kind', kind, '- content preview:', (event.content as string)?.slice(0, 100));
+    } catch { /* ignore */ }
+  } else if (kind === PrimalKind.LinkMetadata) {
+    // Link previews (10000128)
+    try {
+      const content = event.content as string;
+      const linkData = JSON.parse(content) as PrimalLinkMetadata;
+      if (linkData.url) {
+        result.linkPreviews.set(linkData.url, linkData);
+      }
+    } catch { /* ignore */ }
+  } else if (kind === PrimalKind.MediaInfo) {
+    // Media info (10000119) - image dimensions, variants
+    try {
+      const content = event.content as string;
+      const mediaData = JSON.parse(content) as PrimalMediaInfo;
+      if (mediaData.event_id) {
+        result.mediaInfo.set(mediaData.event_id, mediaData);
+      }
+    } catch { /* ignore */ }
+  }
+  // Known Primal kinds we can safely ignore (not needed for feed display)
+  else if (
+    kind === PrimalKind.FeedRange ||           // 10000113 - pagination
+    kind === PrimalKind.Mentions ||            // 10000107 - mentions
+    kind === PrimalKind.UserScore ||           // 10000108 - user score
+    kind === PrimalKind.UserStats ||           // 10000105 - follower counts
+    kind === PrimalKind.EventZapInfo ||        // 10000129 - zap info
+    kind === PrimalKind.RelayHint ||           // 10000141 - relay hints
+    kind === PrimalKind.VerifiedUsersDict ||   // 10000158 - verified users
+    kind === PrimalKind.LegendCustomization || // 10000168 - legend customization
+    kind === PrimalKind.MembershipCohortInfo   // 10000169 - membership info
+  ) {
+    // These are known kinds we don't need to display warnings for
+    // They provide supplementary data that we're not using yet
+  }
+  // Unknown Primal kinds - log for debugging
+  else if (kind > 10000000) {
+    // Only log truly unknown kinds
+    console.log('[Primal] Unhandled kind', kind);
   }
 }
 
@@ -269,7 +382,7 @@ export async function fetchPrimalNetworkFeed(
   signal?: AbortSignal
 ): Promise<PrimalFeedResult> {
   if (signal?.aborted) {
-    return { notes: [], profiles: new Map(), stats: new Map(), actions: new Map() };
+    return { notes: [], profiles: new Map(), stats: new Map(), actions: new Map(), linkPreviews: new Map(), mediaInfo: new Map() };
   }
   
   const timestamp = until ?? Math.ceil(Date.now() / 1000);
@@ -318,7 +431,7 @@ export async function fetchPrimalFutureFeed(
   signal?: AbortSignal
 ): Promise<PrimalFeedResult> {
   if (signal?.aborted) {
-    return { notes: [], profiles: new Map(), stats: new Map(), actions: new Map() };
+    return { notes: [], profiles: new Map(), stats: new Map(), actions: new Map(), linkPreviews: new Map(), mediaInfo: new Map() };
   }
   
   return primalRequest('feed', {

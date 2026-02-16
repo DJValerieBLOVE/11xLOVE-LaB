@@ -103,6 +103,8 @@ interface FeedPostProps {
   isGroupAdmin?: boolean;
   /** Whether current user is site admin */
   isSiteAdmin?: boolean;
+  /** Link previews for URLs in the post (from Primal) */
+  linkPreviews?: Map<string, import('@/lib/primalCache').PrimalLinkMetadata>;
   /** Callback when user mutes this author */
   onMute?: (pubkey: string) => void;
   /** Callback when user reports this post */
@@ -138,6 +140,7 @@ export function FeedPost({
   userZapped = false,
   isGroupAdmin = false,
   isSiteAdmin = false,
+  linkPreviews,
   onMute,
   onReport,
   onRemoveFromGroup,
@@ -376,7 +379,7 @@ export function FeedPost({
 
             {/* Content */}
             <div className="mb-2">
-              <NoteContent event={displayEvent} className="text-sm" />
+              <NoteContent event={displayEvent} className="text-sm" linkPreviews={linkPreviews} />
             </div>
 
             {/* Top Zappers Row - Primal style (above action buttons) */}

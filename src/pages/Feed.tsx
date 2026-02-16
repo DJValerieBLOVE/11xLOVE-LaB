@@ -467,6 +467,7 @@ const Feed = () => {
                             userLiked={post.userLiked}
                             userReposted={post.userReposted}
                             userZapped={post.userZapped}
+                            linkPreviews={post.linkPreviews}
                             onMute={handleMute}
                             onReport={handleReport}
                           />

@@ -23,7 +23,8 @@ import {
   fetchPrimalNetworkFeed, 
   fetchPrimalFutureFeed,
   fetchPrimalEventStats, 
-  fetchPrimalProfiles 
+  fetchPrimalProfiles,
+  type PrimalLinkMetadata,
 } from '@/lib/primalCache';
 import type { NostrEvent, NostrMetadata } from '@nostrify/nostrify';
 
@@ -53,6 +54,8 @@ export interface FeedPost {
   userLiked?: boolean;
   userReposted?: boolean;
   userZapped?: boolean;
+  /** Link previews for URLs in the post (from Primal) */
+  linkPreviews?: Map<string, PrimalLinkMetadata>;
 }
 
 /** Default empty stats */
@@ -128,6 +131,7 @@ export function useFollowingPosts(limit: number = 40) {
           userLiked: actions?.liked || false,
           userReposted: actions?.reposted || false,
           userZapped: actions?.zapped || false,
+          linkPreviews: primalResult.linkPreviews.size > 0 ? primalResult.linkPreviews : undefined,
         });
       }
       
@@ -311,6 +315,7 @@ export function useFeedPosts(limit: number = 40) {
           userLiked: actions?.liked || false,
           userReposted: actions?.reposted || false,
           userZapped: actions?.zapped || false,
+          linkPreviews: primalResult.linkPreviews.size > 0 ? primalResult.linkPreviews : undefined,
         });
       }
 

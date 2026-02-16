@@ -10,8 +10,10 @@ import { genUserName } from '@/lib/genUserName';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
-import { ChevronDown, ChevronUp, ImageIcon } from 'lucide-react';
+import { ChevronDown, ChevronUp, ImageIcon, ExternalLink } from 'lucide-react';
+import type { PrimalLinkMetadata } from '@/lib/primalCache';
 
 // Content limits like Primal - show 2 images max, click for more
 const MAX_CONTENT_LENGTH = 500;
@@ -20,6 +22,8 @@ const MAX_IMAGES_PREVIEW = 2;
 interface NoteContentProps {
   event: NostrEvent;
   className?: string;
+  /** Link previews from Primal cache (kind 10000128) */
+  linkPreviews?: Map<string, PrimalLinkMetadata>;
 }
 
 // Media URL detection patterns
@@ -114,7 +118,8 @@ function isYouTubeUrl(url: string): { isYouTube: boolean; videoId?: string } {
 /** Parses content of text note events so that URLs and hashtags are linkified, and media is embedded. */
 export function NoteContent({
   event, 
-  className, 
+  className,
+  linkPreviews,
 }: NoteContentProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAllMedia, setShowAllMedia] = useState(false);
@@ -135,15 +140,12 @@ export function NoteContent({
     return <div className={className}>Invalid event</div>;
   }
   
-  // Collect media URLs from content and imeta tags
-  const { textContent, mediaItems } = useMemo(() => {
+  // Collect media URLs and link URLs from content and imeta tags
+  const { textContent, mediaItems, linkUrls } = useMemo(() => {
     const text = event.content;
     
-    // Debug: Log content for troubleshooting
-    if (text.length > 0) {
-      console.log('[NoteContent] Processing:', text.slice(0, 80), '...');
-    }
     const media: Array<{ url: string; type: 'image' | 'video' | 'audio' | 'youtube'; thumbnailUrl?: string }> = [];
+    const links: string[] = []; // URLs that should get link previews
     
     // Extract URLs from content - handle trailing punctuation
     const urlRegex = /https?:\/\/[^\s<>"]+/g;
@@ -162,6 +164,9 @@ export function NoteContent({
         media.push({ url, type: 'video' });
       } else if (isAudioUrl(url)) {
         media.push({ url, type: 'audio' });
+      } else {
+        // Not a media URL - might have a link preview
+        links.push(url);
       }
     });
     
@@ -192,7 +197,7 @@ export function NoteContent({
       cleanedText = cleanedText.replace(m.url, '').trim();
     });
     
-    return { textContent: cleanedText, mediaItems: media };
+    return { textContent: cleanedText, mediaItems: media, linkUrls: links };
   }, [event]);
   
   // Process the text content to render mentions, links, etc.
@@ -379,6 +384,17 @@ export function NoteContent({
               Show {hiddenMediaCount} more image{hiddenMediaCount > 1 ? 's' : ''}
             </Button>
           )}
+        </div>
+      )}
+      
+      {/* Link Previews - Primal style cards */}
+      {linkPreviews && linkUrls.length > 0 && (
+        <div className="space-y-2">
+          {linkUrls.slice(0, 1).map((url) => {
+            const preview = linkPreviews.get(url);
+            if (!preview || (!preview.title && !preview.md_title)) return null;
+            return <LinkPreviewCard key={url} url={url} preview={preview} />;
+          })}
         </div>
       )}
     </div>
@@ -570,5 +586,67 @@ function EmbeddedNote({ eventId, relays }: { eventId: string; relays?: string[] 
       </div>
       <p className="text-sm whitespace-pre-wrap break-words">{content}</p>
     </Link>
+  );
+}
+
+// Link Preview Card - Primal style
+function LinkPreviewCard({ url, preview }: { url: string; preview: PrimalLinkMetadata }) {
+  const title = preview.md_title || preview.title;
+  const description = preview.md_description || preview.description;
+  const image = preview.md_image || preview.image;
+  
+  // Extract domain from URL
+  let domain = '';
+  try {
+    domain = new URL(url).hostname.replace('www.', '');
+  } catch {
+    domain = url;
+  }
+  
+  if (!title) return null;
+  
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block"
+    >
+      <Card className="overflow-hidden hover:bg-muted/50 transition-colors">
+        {image && (
+          <div className="aspect-video bg-muted overflow-hidden">
+            <img
+              src={image}
+              alt={title}
+              className="w-full h-full object-cover"
+              loading="lazy"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+        <div className="p-3 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            {preview.icon_url && (
+              <img 
+                src={preview.icon_url} 
+                alt="" 
+                className="h-4 w-4 rounded"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            )}
+            <span>{domain}</span>
+            <ExternalLink className="h-3 w-3" />
+          </div>
+          <h4 className="font-medium text-sm line-clamp-2">{title}</h4>
+          {description && (
+            <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
+          )}
+        </div>
+      </Card>
+    </a>
   );
 }

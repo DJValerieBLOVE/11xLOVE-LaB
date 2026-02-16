@@ -1,196 +1,234 @@
-# Session Notes - February 15, 2026 (Evening Update)
+# Session Notes - February 16, 2026
 
-> **STATUS: FEED SYSTEM HAS CRITICAL BUGS - SEE FEED_BUGS.md**
-
-## CRITICAL: Read FEED_BUGS.md First!
-
-The feed system has multiple unresolved bugs that need debugging:
-1. Feed shows stale/old data (reverts after refresh)
-2. Some posts display raw JSON instead of content
-3. Images not loading
-4. Links not working properly
-
-See `FEED_BUGS.md` for full bug documentation and debug plan.
+> **STATUS: FEED SYSTEM IMPROVEMENTS MADE - TESTING NEEDED**
 
 ---
 
-> **Feed System v2 - Optimized Primal WebSocket Implementation**
+## MY UNDERSTANDING OF THE PROJECT
+
+### What 11x LOVE LaB Is
+A $1,000/year selective coaching community platform built on Nostr. It's a private coaching platform where members:
+- Complete "Experiments" (lessons) to grow in 11 life dimensions
+- Earn sats for progress (gamification)
+- Join "Tribes" (private groups)
+- Connect with "Accountability Buddies"
+- Get AI coaching from "Magic Mentor"
+- Track streaks and achievements
+
+### Architecture
+- **Frontend**: React + TailwindCSS + shadcn/ui
+- **Identity**: Nostr login (NIP-07/NIP-46)
+- **Private Data**: Railway relay (`wss://nostr-rs-relay-production-1569.up.railway.app`)
+- **Public Data**: Primal cache + public relays
+- **No backend server** - Nostr relays ARE the database
+
+### Feed System Goal
+Match Primal's feed functionality EXACTLY:
+- Same posts from people you follow
+- Same order (newest first)
+- Same stats (likes, reposts, zaps, replies)
+- Same user actions (did I like/repost/zap this?)
+- Fast loading via Primal's WebSocket cache
 
 ---
 
-## 🎯 LATEST SESSION: PRIMAL WEBSOCKET OPTIMIZATION
+## WHAT HAS BEEN DONE
 
-### Problem Identified:
-- Feed was still slow (~9 seconds to load)
-- Showing stale data (18+ minutes old)
-- Not using all relays properly
-- Each request creating new WebSocket connection
+### Completed Features
+1. ✅ App shell with navigation
+2. ✅ Nostr login working
+3. ✅ Private Railway relay connected
+4. ✅ Three-tier privacy system
+5. ✅ Experiment catalog and builder
+6. ✅ Feed page with tabs (Latest, Tribes, Buddies)
+7. ✅ Post composer
+8. ✅ FeedPost component with stats display
+9. ✅ NoteContent for rich text/media
 
-### Root Cause Analysis:
-After studying Primal's actual GitHub repo, discovered:
-1. Primal uses a **shared WebSocket connection** (not new ones per request)
-2. They pass `until` timestamp for proper pagination
-3. They use specific cache methods: `feed`, `events`, `user_infos`
+### Feed System Work Done
+1. ✅ Primal WebSocket client (`/src/lib/primalCache.ts`)
+2. ✅ Zlib compression enabled for Primal
+3. ✅ Feed hooks (`useFollowingPosts`, `useFeedPosts`, `useTribePosts`)
+4. ✅ Stats parsing for kind 10000100
+5. ✅ User actions parsing for kind 10000115
+6. ✅ Profile parsing for kind 0
+7. ✅ Note parsing for kind 1 and 6 (reposts)
 
-### Solution Implemented:
+### THIS SESSION (February 16, 2026)
+1. ✅ **Researched ALL Primal custom kinds** from their GitHub repo
+2. ✅ **Added complete PrimalKind enum** with 40+ kinds
+3. ✅ **Added link preview support** (kind 10000128)
+4. ✅ **Added media info support** (kind 10000119)
+5. ✅ **Silenced known Primal kinds** that don't need warnings
+6. ✅ **Created LinkPreviewCard component** - renders URL cards like Primal
+7. ✅ **Updated NoteContent** to display link previews
+8. ✅ **Passed linkPreviews through** FeedPost → NoteContent pipeline
 
-#### 1. **Shared WebSocket Connection**
+---
+
+## CURRENT BUGS
+
+### BUG 1: Feed Shows Different Posts Than Primal
+**Symptom**: The posts shown are NOT the same as what Primal shows
+**Status**: NEEDS INVESTIGATION
+
+**Possible Causes**:
+- Different API method being used (are we calling the right endpoint?)
+- Missing parameters in request
+- Feed filtering logic differs
+- Need to verify we're using `network_feed` or similar
+
+### ~~BUG 2: Unknown Primal Kinds Not Being Handled~~ ✅ FIXED
+All Primal custom kinds are now documented and handled:
+- `10000107` - Mentions (silenced, not needed for display)
+- `10000108` - User Score (silenced)
+- `10000113` - Feed Range (silenced, pagination info)
+- `10000119` - Media Info (now parsed)
+- `10000128` - Link Metadata (now parsed and displayed!)
+- `10000129` - Event Zap Info (silenced)
+- `10000141` - Relay Hints (silenced)
+- `10000158` - Verified Users Dict (silenced)
+- `10000168` - Legend Customization (silenced)
+- `10000169` - Membership Cohort Info (silenced)
+
+### BUG 3: Stats Not Showing Reliably
+**Symptom**: Like/repost/zap counts are 0 or missing
+**Status**: NEEDS TESTING
+**Possible Causes**:
+- Stats being fetched separately but not merged correctly
+- Event ID mismatch between notes and stats
+- Race condition
+
+### ~~BUG 4: Some Posts Show Raw Text Instead of Previews~~ ✅ FIXED
+Link preview support has been added via kind 10000128 parsing and LinkPreviewCard component.
+
+### BUG 5: Posts May Show Raw JSON
+**Symptom**: Some posts display JSON instead of content
+**Status**: NEEDS TESTING
+**Cause**: Event coming as string instead of parsed object (handled in NoteContent)
+
+---
+
+## PRIMAL API RESEARCH NEEDED
+
+### What We Need to Understand
+1. **Exact API call Primal uses** for "Following" feed
+2. **All custom kinds** and their schemas:
+   - 10000107, 10000108, 10000113, 10000119
+   - 10000128, 10000129, 10000141
+   - 10000158, 10000168, 10000169
+3. **Link preview rendering** - how Primal shows URL cards
+4. **Image rendering** - how Primal knows dimensions
+
+### Known Primal Kinds (from their codebase)
 ```typescript
-// OLD: New WebSocket per request (slow)
-const ws = new WebSocket(PRIMAL_CACHE_URL);
-
-// NEW: Reuse shared connection
-let sharedWs: WebSocket | null = null;
-function getWebSocket(): Promise<WebSocket> {
-  if (sharedWs?.readyState === WebSocket.OPEN) return sharedWs;
-  // Create new only if needed...
-}
+// From primal-web/src/constants.ts
+NoteStats = 10_000_100      // likes, reposts, replies, zaps, satszapped
+NoteActions = 10_000_115    // liked, replied, reposted, zapped (booleans)
+FeedRange = 10_000_113      // pagination info (since, until, order_by)
+UserStats = 10_000_105      // follower counts
+MediaInfo = 10_000_119      // image dimensions, thumbnails
+LinkMetadata = 10_000_128   // og:title, og:description, og:image
 ```
 
-#### 2. **Proper Request/Response Handling**
-```typescript
-// Pending requests tracked by subscription ID
-const pendingRequests = new Map<string, {
-  resolve: (result) => void;
-  result: PrimalFeedResult;
-  timeout: ReturnType<typeof setTimeout>;
-}>();
-
-// Single message handler for all requests
-ws.onmessage = (event) => {
-  const [type, subId, content] = JSON.parse(event.data);
-  const request = pendingRequests.get(subId);
-  if (!request) return;
-  
-  if (type === 'EVENT') processEvent(content, request.result);
-  if (type === 'EOSE') request.resolve(request.result);
-};
-```
-
-#### 3. **Correct API Parameters**
-```typescript
-// Pass until timestamp (current time) for latest posts
-const timestamp = until || Math.ceil(Date.now() / 1000);
-
-const payload = {
-  pubkey: userPubkey,
-  user_pubkey: userPubkey,
-  limit,
-  until: timestamp,  // KEY: Required for proper feed
-};
-```
+### Unknown Kinds to Research
+- 10000107 - possibly user scores?
+- 10000108 - possibly mentions?
+- 10000129 - possibly content warnings?
+- 10000141 - possibly related events?
+- 10000158 - possibly highlights?
+- 10000168 - possibly wordcount/readtime?
+- 10000169 - possibly article metadata?
 
 ---
 
-## ✅ CHANGES MADE THIS SESSION
+## NEXT STEPS
 
-### `/src/lib/primalCache.ts` (Complete Rewrite)
-- **Shared WebSocket**: Single connection reused across all requests
-- **Request Tracking**: Map of pending requests by subscription ID
-- **Proper Cleanup**: Timeouts and abort signal handling
-- **Error Recovery**: Auto-reconnect on connection failure
-- **Four Methods**:
-  - `fetchPrimalNetworkFeed()` - Main following feed
-  - `fetchPrimalFutureFeed()` - Check for new posts
-  - `fetchPrimalEventStats()` - Get stats for specific events
-  - `fetchPrimalProfiles()` - Get user profiles
+### Priority 1: Test Current Changes
+1. Deploy and test on live site
+2. Check if link previews appear
+3. Check if stats display correctly
+4. Check console for remaining "Unknown kind" warnings
 
-### `/src/hooks/useFeedPosts.ts` (Optimized)
-- **Parallel Queries**: Primal + user's relays run simultaneously
-- **Background Stats**: Relay posts get stats fetched in background
-- **Console Timing**: `console.time()` for performance debugging
-- **Smart Caching**: QueryClient.setQueryData for live updates
+### Priority 2: Investigate Feed Mismatch (if still an issue)
+1. Open primal.net in Network tab
+2. See what WebSocket request they make for "Following" feed
+3. Compare with our request in primalCache.ts
+4. May need to use different Primal API method (e.g., `network_feed` vs `feed`)
 
----
-
-## 📊 EXPECTED PERFORMANCE
-
-| Metric | Before | After |
-|--------|--------|-------|
-| Initial load | 8-9 seconds | <2 seconds |
-| Primal response | N/A | ~500ms |
-| Relay fallback | 10s timeout | 8s parallel |
-| Connection overhead | New WS each time | Reused |
+### Priority 3: Debug Stats (if still an issue)
+1. Add logging to verify event_id matching
+2. Check if stats are being parsed from response
+3. Verify stats map keys match note IDs
 
 ---
 
-## 🔧 DEBUGGING FEED ISSUES
-
-### Console Messages to Watch:
-```
-[Feed] Primal fetch: 450ms        ← WebSocket response time
-[Feed] Got 40 notes from Primal   ← Number of posts received
-[Feed] Relay fetch: 3200ms        ← User's relay response time
-[Feed] Got 12 notes from relays   ← Additional posts from relays
-```
-
-### If Feed is Still Slow:
-1. Check browser console for timing logs
-2. Verify Primal WebSocket connects: `wss://cache.primal.net/v1`
-3. Check if EOSE is received (end of stream)
-4. Verify user is logged in (feed requires pubkey)
-
-### If No Posts Show:
-1. User might not follow anyone
-2. Check kind 3 (contact list) exists
-3. Verify relay connections in Network tab
-4. Check for JavaScript errors in console
-
----
-
-## 🗄️ FILE REFERENCE
+## FILES INVOLVED
 
 | File | Purpose | Status |
 |------|---------|--------|
-| `/src/lib/primalCache.ts` | Primal WebSocket client | ✅ Rewritten |
-| `/src/hooks/useFeedPosts.ts` | Feed data hooks | ✅ Optimized |
-| `/src/pages/Feed.tsx` | Feed page UI | ✅ Working |
-| `/src/components/FeedPost.tsx` | Post component | ✅ Working |
-| `/src/lib/relays.ts` | Privacy/relay config | ✅ Working |
+| `/src/lib/primalCache.ts` | Primal WebSocket client | ✅ UPDATED - all kinds documented |
+| `/src/hooks/useFeedPosts.ts` | Feed data hooks | ✅ UPDATED - passes linkPreviews |
+| `/src/components/FeedPost.tsx` | Post component | ✅ UPDATED - passes linkPreviews to NoteContent |
+| `/src/components/NoteContent.tsx` | Content renderer | ✅ UPDATED - renders link preview cards |
+| `/src/pages/Feed.tsx` | Feed page | ✅ UPDATED - passes linkPreviews to FeedPost |
 
 ---
 
-## 🚀 NEXT STEPS
+## HOW TO DEBUG
 
-### Priority 1 - Verify Fix:
-- [ ] Test feed loading on live site
-- [ ] Confirm <2 second load time
-- [ ] Verify stats showing correctly
-- [ ] Check new post notifications work
+### Check What Primal Returns
+Open browser console on primal.net, go to Network tab, filter by WS (WebSocket), look at messages.
 
-### Priority 2 - Enhance:
-- [ ] Infinite scroll pagination
-- [ ] "Load new posts" button
-- [ ] Repost display (show original + reposter)
-- [ ] Quote posts (embedded notes)
+### Check What We're Receiving
+Our code logs: `[Primal] Unknown kind XXXXX - content preview: ...`
+
+### Compare Posts
+1. Open primal.net in one tab
+2. Open 11xLOVE LaB in another
+3. Compare: Same posts? Same order? Same stats?
 
 ---
 
-## 🔗 PRIMAL API REFERENCE
+**Last Updated:** February 16, 2026, 8:30 AM
+**Status:** Primal custom kinds documented, link previews implemented
+**Next Priority:** Test on live site, investigate feed content mismatch if needed
 
-**Cache Methods Used:**
+---
+
+## PRIMAL API REFERENCE (Complete)
+
+### All Primal Custom Kinds (from their codebase)
 ```typescript
-// Following feed - posts from people you follow
-{cache: ["feed", {pubkey, user_pubkey, limit, until}]}
-
-// Event stats - likes, reposts, zaps for specific posts
-{cache: ["events", {event_ids, user_pubkey}]}
-
-// User profiles - get metadata for pubkeys
-{cache: ["user_infos", {pubkeys}]}
+PrimalKind = {
+  NoteStats: 10_000_100,        // likes, reposts, replies, zaps
+  NetStats: 10_000_101,         // network stats
+  LegendStats: 10_000_102,      // legend stats
+  UserStats: 10_000_105,        // follower counts
+  OldestEvent: 10_000_106,      // oldest event
+  Mentions: 10_000_107,         // mentions info
+  UserScore: 10_000_108,        // user score
+  Notification: 10_000_110,     // notifications
+  Timestamp: 10_000_111,        // timestamp
+  NotificationStats: 10_000_112, // notification counts
+  FeedRange: 10_000_113,        // pagination info
+  NoteActions: 10_000_115,      // user actions (liked, reposted, zapped)
+  MessageStats: 10_000_117,     // message stats
+  MediaInfo: 10_000_119,        // image dimensions
+  LinkMetadata: 10_000_128,     // og:title, og:image, og:description
+  EventZapInfo: 10_000_129,     // zap info
+  RelayHint: 10_000_141,        // relay hints
+  VerifiedUsersDict: 10_000_158, // verified users
+  LegendCustomization: 10_000_168, // legend settings
+  MembershipCohortInfo: 10_000_169, // membership info
+  // ... and more (see /src/lib/primalCache.ts for full list)
+}
 ```
 
-**Custom Kinds from Primal:**
-```typescript
-Kind.NoteStats = 10_000_100    // Stats JSON
-Kind.NoteActions = 10_000_115  // User actions JSON
-Kind.FeedRange = 10_000_113    // Pagination info
-```
-
----
-
-**Last Updated:** February 15, 2026, 9:00 PM  
-**Status:** Primal WebSocket optimized with shared connection  
-**Next Priority:** Verify fix works, then add pagination
+### Cache Methods
+- `feed` - Following feed (what we use)
+- `events` - Stats for specific event IDs
+- `user_infos` - Profile metadata for pubkeys
+- `network_feed` - May be another feed endpoint to investigate
 
 **Peace, LOVE, & Warm Aloha** 🌅💜
