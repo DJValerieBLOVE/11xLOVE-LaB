@@ -1,5 +1,19 @@
 # Session Notes - February 15, 2026 (Evening Update)
 
+> **STATUS: FEED SYSTEM HAS CRITICAL BUGS - SEE FEED_BUGS.md**
+
+## CRITICAL: Read FEED_BUGS.md First!
+
+The feed system has multiple unresolved bugs that need debugging:
+1. Feed shows stale/old data (reverts after refresh)
+2. Some posts display raw JSON instead of content
+3. Images not loading
+4. Links not working properly
+
+See `FEED_BUGS.md` for full bug documentation and debug plan.
+
+---
+
 > **Feed System v2 - Optimized Primal WebSocket Implementation**
 
 ---
