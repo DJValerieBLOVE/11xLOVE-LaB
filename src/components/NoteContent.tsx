@@ -2,9 +2,13 @@ import { useMemo } from 'react';
 import { type NostrEvent } from '@nostrify/nostrify';
 import { Link } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
+import { useNostr } from '@nostrify/react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthor } from '@/hooks/useAuthor';
 import { genUserName } from '@/lib/genUserName';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatDistanceToNow } from 'date-fns';
 
 interface NoteContentProps {
   event: NostrEvent;
@@ -203,6 +207,23 @@ export function NoteContent({
             parts.push(
               <NostrMention key={`mention-${keyCounter++}`} pubkey={pubkey} />
             );
+          } else if (decoded.type === 'note') {
+            // Embedded note quote
+            parts.push(
+              <EmbeddedNote 
+                key={`note-${keyCounter++}`} 
+                eventId={decoded.data} 
+              />
+            );
+          } else if (decoded.type === 'nevent') {
+            // Embedded nevent quote
+            parts.push(
+              <EmbeddedNote 
+                key={`nevent-${keyCounter++}`} 
+                eventId={decoded.data.id}
+                relays={decoded.data.relays}
+              />
+            );
           } else {
             // For other types, just show as a link
             parts.push(
@@ -364,6 +385,96 @@ function NostrMention({ pubkey }: { pubkey: string }) {
       )}
     >
       @{displayName}
+    </Link>
+  );
+}
+
+// Embedded note component for quote posts (like Primal)
+function EmbeddedNote({ eventId, relays }: { eventId: string; relays?: string[] }) {
+  const { nostr } = useNostr();
+  
+  // Fetch the referenced event
+  const { data: event, isLoading } = useQuery({
+    queryKey: ['embedded-note', eventId],
+    queryFn: async () => {
+      // Use provided relays or default public relays
+      const relayUrls = relays?.length ? relays.slice(0, 3) : [
+        'wss://relay.primal.net',
+        'wss://relay.damus.io',
+      ];
+      const relayGroup = nostr.group(relayUrls);
+      
+      const events = await relayGroup.query(
+        [{ ids: [eventId], limit: 1 }],
+        { signal: AbortSignal.timeout(5000) }
+      );
+      
+      return events[0] || null;
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    retry: 1,
+  });
+  
+  const author = useAuthor(event?.pubkey);
+  
+  if (isLoading) {
+    return (
+      <div className="my-2 p-3 border rounded-xl bg-muted/30 animate-pulse">
+        <div className="flex gap-2 items-center">
+          <div className="h-6 w-6 rounded-full bg-muted" />
+          <div className="h-4 w-24 bg-muted rounded" />
+        </div>
+        <div className="mt-2 h-4 w-full bg-muted rounded" />
+      </div>
+    );
+  }
+  
+  if (!event) {
+    const noteId = nip19.noteEncode(eventId);
+    return (
+      <Link 
+        to={`/${noteId}`}
+        className="my-2 block p-3 border rounded-xl bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-colors"
+      >
+        <span className="text-sm">Referenced note not found</span>
+      </Link>
+    );
+  }
+  
+  const metadata = author.data?.metadata;
+  const displayName = metadata?.display_name || metadata?.name || genUserName(event.pubkey);
+  const noteId = nip19.noteEncode(event.id);
+  const npub = nip19.npubEncode(event.pubkey);
+  const timeAgo = formatDistanceToNow(new Date(event.created_at * 1000), { addSuffix: true });
+  
+  // Truncate content if too long
+  const maxLength = 280;
+  const content = event.content.length > maxLength 
+    ? event.content.slice(0, maxLength) + '...' 
+    : event.content;
+  
+  return (
+    <Link 
+      to={`/${noteId}`}
+      className="my-2 block p-3 border rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <Avatar className="h-5 w-5">
+          <AvatarImage src={metadata?.picture} />
+          <AvatarFallback className="text-[8px] bg-[#6600ff]/10 text-[#6600ff]">
+            {displayName.slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <Link 
+          to={`/${npub}`}
+          onClick={(e) => e.stopPropagation()}
+          className="font-medium text-sm hover:underline"
+        >
+          {displayName}
+        </Link>
+        <span className="text-xs text-muted-foreground">• {timeAgo}</span>
+      </div>
+      <p className="text-sm whitespace-pre-wrap break-words">{content}</p>
     </Link>
   );
 }

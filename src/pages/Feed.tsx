@@ -31,6 +31,7 @@ import {
   RefreshCw,
   UserPlus,
   ChevronDown,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -233,10 +234,9 @@ const Feed = () => {
           Updates from your Tribes, buddies, and the community
         </p>
 
-        {/* Grid layout - feed centered, sidebar on right */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(0,680px)_minmax(0,300px)_1fr] gap-5">
-          {/* Left spacer */}
-          <div className="hidden lg:block" />
+        {/* Grid layout - feed centered with sidebar */}
+        <div className="max-w-[1200px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6">
           
           {/* Main Feed Column - centered */}
           <div className="space-y-3">
@@ -496,9 +496,7 @@ const Feed = () => {
               </CardContent>
             </Card>
           </div>
-          
-          {/* Right spacer */}
-          <div className="hidden lg:block" />
+        </div>
         </div>
       </div>
     </Layout>
