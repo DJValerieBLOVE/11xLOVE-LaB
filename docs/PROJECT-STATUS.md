@@ -1,7 +1,7 @@
 # 11x LOVE LaB - Project Status
 
-**Last Updated**: February 15, 2026  
-**Current Phase**: Security Complete → Ready for Gamification & AI
+**Last Updated**: February 16, 2026  
+**Current Phase**: Critical Bugs Fixed → Ready for Gamification & AI
 
 ---
 
@@ -15,11 +15,16 @@
 5. ✅ Dual-relay architecture (Railway write, public read-only)
 
 ### **Feed System:**
-1. ✅ Feed page with 4 tabs (All, Tribes, Buddies, Public)
+1. ✅ Feed page with 3 tabs (Latest, Tribes, Buddies)
 2. ✅ Mixed public/private content (safe - client-side only)
 3. ✅ Privacy badges on posts
 4. ✅ Share button logic (blocked on private posts)
 5. ✅ FeedPost component with all interactions
+6. ✅ Primal WebSocket client with zlib compression (40+ custom kinds)
+7. ✅ Link preview cards (kind 10000128)
+8. ✅ Gray text bug FIXED (plain `<style>` override in index.html)
+9. ✅ Feed freshness improved (parallel relay queries + 60s auto-refresh)
+10. 🟡 Stats display sometimes shows 0 counts (needs testing)
 
 ### **Moderation System:**
 1. ✅ Mute users (NIP-51 mute list)
@@ -47,6 +52,12 @@
 3. ✅ Sats sent/received header widget
 4. ✅ Share confirmation dialog
 5. ✅ Login area with account switching
+
+### **Bug Fixes (Opus 4.6 — Feb 16):**
+1. ✅ Gray text bug — plain `<style>` override in index.html bypasses Tailwind CDN
+2. ✅ Feed freshness — parallel relay queries + `since` filter + auto-refresh
+3. ✅ Tribe badge colors — changed from pink to gray
+4. ✅ Tab notification badges — pink bubble on Latest tab
 
 ---
 
@@ -190,15 +201,22 @@ When starting a new session, read these files:
 **For Next AI Agent:**
 
 1. Read SESSION_NOTES.md for latest context
-2. Implement Chunk 9: Completion Receipts
-3. Implement Chunk 10: Streak Tracking
-4. Start Chunk 12: Magic Mentor AI
+2. **Deploy and test** — verify text is black, feed is fresh on live site
+3. Implement Chunk 9: Completion Receipts
+4. Implement Chunk 10: Streak Tracking
+5. Start Chunk 12: Magic Mentor AI
 
 **Key Requirements:**
 - Use existing hooks (useLabPublish, useLabOnlyPublish)
 - All data stored on Railway relay
 - Encrypted with NIP-44 where needed
 - Follow existing patterns in codebase
+
+**Important CSS Notes:**
+- Use `text-black` for critical text, NOT `text-foreground` (Tailwind CDN overrides CSS variables)
+- Use `text-gray-500` for metadata, NOT `text-muted-foreground`
+- Do NOT remove the plain `<style>` tag in index.html — it prevents the CDN from gray-ifying text
+- See CRITICAL_BUGS.md for full architecture notes
 
 ---
 

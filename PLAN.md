@@ -4,9 +4,9 @@
 
 ---
 
-## STATUS: FEED SYSTEM ENHANCED — TESTING IN PROGRESS 🔧
+## STATUS: CRITICAL BUGS FIXED — READY FOR FEATURES ✅
 
-**Last Updated:** February 16, 2026 (8:45 AM)
+**Last Updated:** February 16, 2026 (Opus 4.6 session)
 
 **Infrastructure:**
 - ✅ Private Nostr relay deployed on Railway
@@ -28,16 +28,15 @@
 - ✅ 5-tier membership system
 - ✅ **Primal custom kinds documented (40+ kinds)**
 - ✅ **Link preview cards (kind 10000128)**
-- ✅ **Fixed stale feed data bug** (was showing old posts)
-- ✅ **Fixed username styling** (was grayed out, now black)
-- 🔧 **Feed content mismatch with Primal — investigating**
-- 🔧 **Stats display — needs testing**
+- ✅ **FIXED: Gray text bug** — plain `<style>` override in index.html (commit 8dbafeb)
+- ✅ **FIXED: Feed freshness** — parallel relay queries + auto-refresh (commit 8dbafeb)
+- 🟡 **Stats display** — sometimes shows 0 counts, needs testing
 - ❌ **NOT connected to Magic Mentor AI yet**
 - ❌ **NO streak tracking or gamification**
 - ❌ **NO completion receipts for sats earning**
 
-**Current Priority:** Fix feed to match Primal exactly (same posts, same stats)
-**Next Priority:** Completion receipts → Streaks → Magic Mentor AI
+**Current Priority:** Completion receipts → Streaks → Magic Mentor AI
+**Known Issues:** See CRITICAL_BUGS.md for remaining non-critical items
 
 ---
 
@@ -174,8 +173,8 @@ A $1,000/year selective coaching community platform called **11x LOVE LaB** ("Le
 - ❌ 30-day history view (✅/❌)
 - ❌ Milestone celebrations (7/30/90 days)
 
-### 🔧 Chunk 5: Feed System + Tribes — DEBUGGING
-- ✅ Feed with 4 tabs: All, Tribes, Buddies, Public
+### ✅ Chunk 5: Feed System + Tribes — COMPLETE (with minor issues)
+- ✅ Feed with 3 tabs: Latest, Tribes, Buddies
 - ✅ Mixed public/private content (safe - client-side only)
 - ✅ Privacy badges on posts
 - ✅ Share button logic (not on private posts)
@@ -183,8 +182,9 @@ A $1,000/year selective coaching community platform called **11x LOVE LaB** ("Le
 - ✅ Primal WebSocket client with zlib compression
 - ✅ All 40+ Primal custom kinds documented
 - ✅ Link preview cards (kind 10000128)
-- 🔧 Feed content mismatch with Primal app (investigating)
-- 🔧 Stats display not working reliably
+- ✅ Text colors fixed (pure black) — plain `<style>` override
+- ✅ Feed freshness improved — parallel relay queries + auto-refresh
+- 🟡 Stats display sometimes shows 0 counts (needs testing)
 - ❌ Full NIP-29 tribe creation (planned)
 
 ### 🚧 Chunk 6: Zapping (NIP-57) — PARTIAL

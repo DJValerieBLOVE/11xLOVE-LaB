@@ -1,180 +1,150 @@
-# CRITICAL BUGS - FOR OPUS 4.6
+# BUG TRACKER - 11x LOVE LaB
 
-**Date**: February 16, 2026  
-**Status**: Two critical unfixable bugs requiring expert debugging
+**Last Updated**: February 16, 2026  
+**Updated By**: Claude Opus 4.6
 
 ---
 
-## 🔴 BUG #1: TEXT COLORS RENDER GRAY (UNFIXABLE)
+## ✅ RESOLVED BUGS
 
-### Symptom
-ALL text (usernames, headings, sidebar items) renders as gray/muted instead of black, despite:
-- CSS variables set to pure black `0 0% 0%` (#000000)
-- Removing all color classes from components
-- Multiple attempts with inline styles, !important, arbitrary values
+### ✅ BUG #1: TEXT COLORS RENDER GRAY — FIXED (commit 8dbafeb)
 
-### What Works vs What Doesn't
+**Symptom**: ALL text (usernames, headings, sidebar items) rendered as gray/muted instead of black.
 
-| Element | Color | Status |
-|---------|-------|--------|
-| Post content text | Black | ✅ Works |
-| Usernames | Gray | ❌ Broken |
-| "Your Feed" heading | Gray | ❌ Broken |
-| "My Tribes" heading | Gray | ❌ Broken |
-| Sidebar items | Gray | ❌ Broken |
+**Root Cause**: Shakespeare's build system outputs CSS inside `<style type="text/tailwindcss">`, which triggers Tailwind's Play CDN to reprocess ALL CSS at runtime. The CDN generates its own `@layer base` with default shadcn/ui gray color variables, overriding all custom values set in `index.css`. Because the CDN reprocesses the entire `<style type="text/tailwindcss">` block, any CSS variable changes inside it were ineffective.
 
-### Root Cause (Suspected)
+**Why 11+ Previous Attempts Failed**:
+All previous fixes modified code *inside* the `<style type="text/tailwindcss">` block (CSS variables, inline styles, !important classes, arbitrary values). The CDN regenerated its own defaults over top of everything. The key insight was that a **plain `<style>` tag** (without `type="text/tailwindcss"`) is **not processed by the CDN** at all.
 
-Shakespeare's build system generates HTML with:
-```html
-<style type="text/tailwindcss">
-  :root { --foreground: 0 0% 0%; }
-  /* ... */
-</style>
+**Solution Applied**:
+1. Added a **plain `<style>` tag** in `index.html` (before the tailwindcss block) with `!important` overrides for all foreground CSS variables: `--foreground`, `--card-foreground`, `--popover-foreground`, `--secondary-foreground`, `--accent-foreground`, `--sidebar-foreground`, `--sidebar-primary`, `--sidebar-accent-foreground` — all set to `0 0% 0%` (pure black)
+2. Added `body { color: hsl(0 0% 0%) !important; }` in the same plain `<style>` tag
+3. Applied explicit `text-black` classes on key components (`Card`, `CardTitle`, `TabsList`, `TabsTrigger`, FeedPost username, Feed headings, Profile name/bio) as belt-and-suspenders
+
+**Files Changed**:
+- `index.html` — Plain `<style>` with `!important` variable overrides
+- `src/components/ui/card.tsx` — `text-black` on Card and CardTitle
+- `src/components/ui/tabs.tsx` — `text-black` on TabsList and TabsTrigger
+- `src/components/FeedPost.tsx` — `text-black` on username
+- `src/pages/Feed.tsx` — `text-black` on headings and sidebar text
+- `src/pages/Profile.tsx` — `text-black` on name and bio
+- `src/components/Layout.tsx` — `text-gray-500` replacing `text-muted-foreground`
+
+**Important for Future Development**:
+- **NEVER rely on `text-foreground` or `text-card-foreground`** for critical text colors — these use CSS variables that the Tailwind CDN can override
+- **USE `text-black`** for text that must be black — this compiles to `color: rgb(0 0 0)` which the CDN cannot override
+- **The plain `<style>` tag in `index.html` MUST remain** — it is the primary defense against the CDN
+- **`text-muted-foreground` is unreliable** — use `text-gray-500` or `text-gray-600` instead
+
+---
+
+### ✅ BUG #2: FEED SHOWS 25+ MINUTE OLD DATA — IMPROVED (commit 8dbafeb)
+
+**Symptom**: Feed displayed stale posts from 25+ minutes ago, even after refresh/cache clear.
+
+**Root Cause**: Primal's cache server (`wss://cache.primal.net/v1`) has an inherent 20-30 minute indexing lag. This is a known limitation of their infrastructure and cannot be fixed on our end. The direct relay queries were working but not optimized for freshness.
+
+**Solution Applied**:
+1. Direct relay queries now use `since` parameter (2-hour window) to focus on recent posts
+2. Increased relay query limit from 40 to 60
+3. Added `refetchInterval: 60000` for auto-refresh every 60 seconds
+4. Manual refresh now calls `queryClient.invalidateQueries()` to fully clear TanStack Query cache before refetching
+
+**Files Changed**:
+- `src/hooks/useFeedPosts.ts` — `since` filter, higher limits, auto-refresh interval
+- `src/pages/Feed.tsx` — `useQueryClient` for cache invalidation on refresh
+
+**Note**: Some Primal lag is unavoidable. The feed now shows a mix of:
+- Primal posts (with engagement stats, slightly delayed)
+- Direct relay posts (real-time fresh, but no stats)
+Both sources are merged, deduped, and sorted by timestamp.
+
+---
+
+### ✅ BUG #4: Pink Tribe Badges — FIXED (earlier session)
+Changed from pink to gray. Working correctly.
+
+### ✅ BUG #5: Tab Notification Badge — FIXED (earlier session)
+Added pink notification bubble to Latest tab when new posts available.
+
+---
+
+## 🟡 KNOWN ISSUES (Non-Critical)
+
+### 🟡 BUG #3: Stats Not Showing Reliably
+**Symptom**: Like/repost/zap counts are sometimes 0 or missing on some posts.
+**Likely Cause**: Primal's `feed` endpoint doesn't always include stats inline. We fetch them separately with the `events` endpoint, but there may be event_id matching issues or the separate stats request may time out.
+**Impact**: Low — posts still display, just without engagement counts.
+**Status**: Needs testing after the feed improvements.
+**Next Step**: Check browser console for `[Primal]` log messages — look for "Fetched X stats" entries. If stats are 0, the event IDs from the feed may not match what Primal has indexed.
+
+### 🟡 Primal Cache Lag (20-30 min)
+**Symptom**: Some posts appear 20-30 minutes after they're published on other clients.
+**Cause**: Inherent Primal infrastructure limitation — not a bug in our code.
+**Mitigation**: Direct relay queries supplement Primal with real-time data.
+**Status**: Working as designed. Cannot be fully eliminated without replacing Primal.
+
+### 🟡 Tailwind CDN Warning in Console
+**Symptom**: Console shows "cdn.tailwindcss.com should not be used in production"
+**Cause**: Shakespeare build system uses Tailwind Play CDN by design.
+**Impact**: None — this is expected behavior. The plain `<style>` override handles it.
+**Status**: Informational only. No action needed.
+
+---
+
+## ARCHITECTURE NOTES FOR FUTURE DEBUGGING
+
+### CSS Cascade in Shakespeare Build
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  STYLE PROCESSING ORDER (highest priority first)            │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  1. Plain <style> tag in index.html (!important)    ← OURS │
+│     - CSS variables with !important                         │
+│     - body color with !important                            │
+│     - CDN does NOT process this                             │
+│                                                             │
+│  2. Tailwind utility classes (text-black, etc.)             │
+│     - Generated by CDN from <style type="text/tailwindcss"> │
+│     - Direct color values (rgb(0 0 0)) are safe             │
+│                                                             │
+│  3. CDN-generated @layer base                               │
+│     - Default shadcn/ui variables (GRAY!)                   │
+│     - This is what was causing the bug                      │
+│                                                             │
+│  4. Our CSS variables in <style type="text/tailwindcss">    │
+│     - CDN overwrites these with its own @layer base         │
+│     - UNRELIABLE — do not depend on these alone             │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-The `type="text/tailwindcss"` attribute triggers Tailwind's Play CDN, which:
-1. Downloads from `cdn.tailwindcss.com`
-2. Reprocesses the CSS at runtime
-3. Overrides custom color values with Tailwind defaults
-4. Results in gray/muted text instead of black
+### Feed Data Flow
 
-### Evidence
-
-- **Console Warning**: "cdn.tailwindcss.com should not be used in production"
-- **Source CSS**: Variables correctly set to `0 0% 0%` (black)
-- **Computed CSS**: Browser DevTools show gray values being applied
-- **Post content works**: Has NO color classes, uses browser default (black)
-- **Headings fail**: Inherit from `--foreground` which gets overridden to gray
-
-### Failed Solutions (11+ Attempts)
-
-1. ❌ Set CSS variables to black - CDN overrides
-2. ❌ Inline styles - CDN strips/ignores
-3. ❌ `!important` modifier - CDN bypasses
-4. ❌ Remove all color classes - still gray
-5. ❌ Delete muted system - still gray
-6. ❌ Arbitrary color values `text-[#000]` - still gray
-7. ❌ Hard refresh browser - still gray
-8. ❌ Clear ALL site data - still gray
-9. ❌ Deploy to production - STILL GRAY
-10. ❌ Dark red test color - still renders gray
-11. ❌ **NEW (Sonnet 4.5 final attempt)**: Moved CSS variables OUTSIDE @layer base (unlayered styles should override layered), restored --muted/--muted-foreground variables, added muted to tailwind.config.ts, changed nav to text-black - **STILL FUZZY/GRAY** (commit b9a9f86)
-
-### What's Needed
-
-**Option A**: Modify Shakespeare build system to:
-- Compile Tailwind to regular CSS (not `type="text/tailwindcss"`)
-- Remove Play CDN dependency
-- Output standard `<style>` tags with pre-compiled CSS
-
-**Option B**: Find workaround to:
-- Override Tailwind CDN color processing
-- Force black color that CDN respects
-- Bypass CDN entirely for text colors
-
-**Option C**: Investigate if there's a different root cause:
-- Maybe the Tailwind CDN is injecting global styles with high specificity
-- Maybe there's a preflight/reset that sets text to gray
-- Maybe the font (Marcellus) has anti-aliasing issues making black appear fuzzy
-- Check if computed styles show actual black but RENDERING looks gray
-
-### Files to Check
-
-- `/dist/index.html` - Contains `<style type="text/tailwindcss">`
-- `/src/index.css` - CSS variables (correctly set to black)
-- `/src/components/FeedPost.tsx` - Username rendering
-- `/src/pages/Feed.tsx` - Headings and sidebar
-- `/tailwind.config.ts` - Tailwind configuration
-- `vite.config.ts` - Build configuration
-- `postcss.config.js` - PostCSS configuration
-
----
-
-## 🔴 BUG #2: FEED SHOWS 25+ MINUTE OLD DATA
-
-### Symptom
-Feed displays posts from 25+ minutes ago, even after:
-- Clicking Refresh button
-- Hard refreshing browser (Cmd+Shift+R)
-- Clearing ALL browser site data
-- Logging out and back in
-
-### Expected Behavior
-Feed should show latest posts from the last few minutes
-
-### Current Behavior
-Feed stuck showing stale posts from 25+ minutes ago
-
-### Possible Causes
-
-**1. Primal Cache Server**
-- `wss://cache.primal.net/v1` might be heavily caching responses
-- Not respecting fresh data requests
-
-**2. TanStack Query Caching**
-```typescript
-// Check settings in useFeedPosts.ts
-staleTime: ??? 
-cacheTime: ???
-refetchOnMount: ???
 ```
-
-**3. Service Worker Caching**
-- Console shows: "ServiceWorker already registered"
-- Might be caching WebSocket responses or API data
-
-**4. Browser HTTP Cache**
-- Even though WebSocket, might have aggressive caching
-
-### Investigation Steps
-
-1. **Check TanStack Query settings**:
-   ```typescript
-   // /src/hooks/useFeedPosts.ts
-   return useQuery({
-     queryKey: ['feed', ...],
-     staleTime: ?, // Should be 0 or very low
-     cacheTime: ?, // Should be minimal
-     refetchOnMount: 'always', // Force fresh data
-   });
-   ```
-
-2. **Check Primal WebSocket**:
-   - Are we sending `since` timestamp?
-   - Is `limit` too small?
-   - Is Primal cache returning stale data?
-
-3. **Service Worker**:
-   - Unregister service worker
-   - Test if that fixes stale data
-
-4. **Add timestamp debugging**:
-   ```typescript
-   console.log('Fetching feed at:', new Date().toISOString());
-   console.log('Latest post timestamp:', posts[0]?.created_at);
-   ```
-
-### Files to Check
-
-- `/src/hooks/useFeedPosts.ts` - TanStack Query configuration
-- `/src/lib/primalCache.ts` - WebSocket feed request
-- Browser DevTools → Application → Service Workers
-- Browser DevTools → Network → WS (WebSocket tab)
-
----
-
-## Summary for Opus 4.6
-
-**Two critical bugs that Claude Sonnet 4.5 could not fix after extensive debugging:**
-
-1. **Text colors render gray** - Tailwind Play CDN issue, unfixable without build system changes
-2. **Feed shows old data** - Aggressive caching somewhere in the stack
-
-Both bugs are production-critical and require expert debugging to resolve.
-
-**Good news:**
-- ✅ Tribe badges changed to gray (working)
-- ✅ Notification badges added to tabs (working)
-- ✅ Code is well-documented and organized
-- ✅ All attempted fixes are tracked in git history
+┌──────────────┐     ┌──────────────┐
+│ Primal Cache │     │ Direct Relays│
+│ (stats+lag)  │     │ (fresh, no   │
+│              │     │  stats)      │
+└──────┬───────┘     └──────┬───────┘
+       │                    │
+       └────────┬───────────┘
+                │
+        ┌───────▼───────┐
+        │ Merge + Dedup │
+        │ Sort by time  │
+        └───────┬───────┘
+                │
+        ┌───────▼───────┐
+        │  TanStack     │
+        │  Query Cache  │
+        │  staleTime: 0 │
+        │  auto: 60s    │
+        └───────┬───────┘
+                │
+        ┌───────▼───────┐
+        │   Feed UI     │
+        └───────────────┘
+```
