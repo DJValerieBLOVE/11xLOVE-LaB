@@ -257,14 +257,23 @@ export async function fetchPrimalNetworkFeed(
   
   const timestamp = until ?? Math.ceil(Date.now() / 1000);
   
-  console.log(`[Primal] Fetching feed for ${userPubkey.slice(0, 8)}...`);
+  console.log(`[Primal] Fetching feed for ${userPubkey.slice(0, 8)} with limit ${limit}, until ${timestamp}...`);
   
-  return primalRequest('feed', {
+  const result = await primalRequest('feed', {
     pubkey: userPubkey,
     user_pubkey: userPubkey,
     limit,
     until: timestamp,
+    include_replies: true,
   });
+  
+  // Debug: Log first few note authors to verify we're getting the right feed
+  if (result.notes.length > 0) {
+    const authors = [...new Set(result.notes.slice(0, 5).map(n => n.pubkey.slice(0, 8)))];
+    console.log(`[Primal] Feed authors (first 5 posts):`, authors.join(', '));
+  }
+  
+  return result;
 }
 
 /**
