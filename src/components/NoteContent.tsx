@@ -544,7 +544,7 @@ function EmbeddedNote({ eventId, relays }: { eventId: string; relays?: string[] 
     return (
       <Link 
         to={`/${noteId}`}
-        className="my-2 block p-3 border rounded-xl bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-colors"
+        className="my-2 block p-3 border rounded-xl bg-gray-50 text-foreground hover:bg-gray-100 transition-colors"
       >
         <span className="text-sm">Referenced note not found</span>
       </Link>
@@ -582,7 +582,7 @@ function EmbeddedNote({ eventId, relays }: { eventId: string; relays?: string[] 
         >
           {displayName}
         </Link>
-        <span className="text-xs text-muted-foreground">• {timeAgo}</span>
+        <span className="text-xs text-gray-500">• {timeAgo}</span>
       </div>
       <p className="text-sm whitespace-pre-wrap break-words">{content}</p>
     </Link>
@@ -627,7 +627,7 @@ function LinkPreviewCard({ url, preview }: { url: string; preview: PrimalLinkMet
           </div>
         )}
         <div className="p-3 space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-xs text-gray-500">
             {preview.icon_url && (
               <img 
                 src={preview.icon_url} 
@@ -643,7 +643,7 @@ function LinkPreviewCard({ url, preview }: { url: string; preview: PrimalLinkMet
           </div>
           <h4 className="font-medium text-sm line-clamp-2">{title}</h4>
           {description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
+            <p className="text-xs text-gray-500 line-clamp-2">{description}</p>
           )}
         </div>
       </Card>

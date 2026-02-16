@@ -187,7 +187,7 @@ const Feed = () => {
             <div className="mb-8">
               <Sparkles className="h-16 w-16 mx-auto text-[#6600ff] mb-4" />
               <h1 className="text-3xl font-bold mb-4">Your Feed</h1>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-gray-600 mb-6">
                 See updates from your Tribes, accountability buddies, and the 11x LOVE community.
               </p>
             </div>
@@ -195,7 +195,7 @@ const Feed = () => {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-center space-x-2">
-                  <Lock className="h-5 w-5 text-muted-foreground" />
+                  <Lock className="h-5 w-5 text-gray-400" />
                   <CardTitle className="text-lg">Login Required</CardTitle>
                 </div>
                 <CardDescription>
@@ -224,7 +224,7 @@ const Feed = () => {
               Refresh
             </Button>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-gray-600">
             Updates from your Tribes, buddies, and the community
           </p>
         </div>
@@ -343,14 +343,8 @@ const Feed = () => {
                     {currentPosts.length === 0 ? (
                       <Card className="border-dashed">
                         <CardContent className="py-12 text-center">
-                          <p className="text-muted-foreground">
-                            {activeTab === 'latest' 
-                              ? 'No posts from people you follow. Follow some creators or check your relay settings.'
-                              : activeTab === 'tribes'
-                              ? 'No Tribe posts yet. Join a Tribe to see private messages here!'
-                              : activeTab === 'buddies'
-                              ? 'No posts from accountability buddies yet. Add some buddies to see their updates!'
-                              : 'No posts to show.'}
+                          <p className="text-gray-600">
+                            Start by adding buddies or joining Tribes to see their updates here.
                           </p>
                         </CardContent>
                       </Card>
@@ -398,7 +392,7 @@ const Feed = () => {
                       </div>
                       <div>
                         <p className="font-medium text-sm text-foreground">{tribe.name}</p>
-                        <p className="text-xs text-muted-foreground">{tribe.members} members</p>
+                        <p className="text-xs text-gray-500">{tribe.members} members</p>
                       </div>
                     </div>
                     {tribe.unread > 0 && (
@@ -428,7 +422,7 @@ const Feed = () => {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm leading-tight text-foreground">{item.title}</p>
-                      <p className="text-xs text-muted-foreground">{item.host}</p>
+                      <p className="text-xs text-gray-500">{item.host}</p>
                       <Badge variant="secondary" className="mt-1 text-xs">
                         {item.type}
                       </Badge>
@@ -447,7 +441,7 @@ const Feed = () => {
                 {upcomingEvents.map((event, i) => (
                   <div key={i}>
                     <p className="font-medium text-sm text-foreground">{event.title}</p>
-                    <p className="text-xs text-muted-foreground">{event.date}</p>
+                    <p className="text-xs text-gray-500">{event.date}</p>
                     {i < upcomingEvents.length - 1 && <Separator className="mt-3" />}
                   </div>
                 ))}

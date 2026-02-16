@@ -268,7 +268,7 @@ export function FeedPost({
   // If this is a repost but we couldn't parse the original event, show minimal info
   if (isRepost && !repostedEvent) {
     return (
-      <div className="p-3 sm:p-4 text-muted-foreground text-sm">
+      <div className="p-3 sm:p-4 text-gray-600 text-sm">
         <div className="flex items-center gap-1 mb-2">
           <Repeat2 className="h-3 w-3" />
           <span>{reposterName} reposted</span>
@@ -283,7 +283,7 @@ export function FeedPost({
       <div className="p-3 sm:p-4">
         {/* Repost Header */}
         {isRepost && reposterPubkey && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2 ml-11">
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2 ml-11">
             <Repeat2 className="h-3 w-3" />
             <Link to={`/${nip19.npubEncode(reposterPubkey)}`} className="hover:underline">
               {reposterName}
@@ -310,7 +310,7 @@ export function FeedPost({
                 <Link to={`/${npub}`} className="font-semibold hover:underline text-sm sm:text-base">
                   {displayName}
                 </Link>
-                <span className="text-muted-foreground text-xs sm:text-sm">• {timeAgo}</span>
+                <span className="text-gray-500 text-xs sm:text-sm">• {timeAgo}</span>
                 
                 {/* Privacy Badge */}
                 {isPrivate && (
@@ -560,7 +560,7 @@ export function TribeBadge({ name, memberCount }: { name: string; memberCount?: 
     <Badge variant="outline" className="gap-1.5 text-xs">
       <Users className="h-3 w-3" />
       {name}
-      {memberCount && <span className="text-muted-foreground">• {memberCount}</span>}
+      {memberCount && <span className="text-gray-500">• {memberCount}</span>}
     </Badge>
   );
 }
