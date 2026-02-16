@@ -140,7 +140,6 @@ export function FeedPost({
   const likeCount = (stats?.likes || 0) + localLikeCount;
   const repostCount = (stats?.reposts || 0) + localRepostCount;
   const replyCount = stats?.replies || 0;
-  const zapCount = stats?.zaps || 0;
   const satsZapped = stats?.satsZapped || 0;
   
   // Fetch top zappers for this post (must be after satsZapped is defined)
