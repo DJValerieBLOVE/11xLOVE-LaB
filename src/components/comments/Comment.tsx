@@ -57,7 +57,7 @@ export function Comment({ root, comment, depth = 0, maxDepth = 3, limit }: Comme
                 <div>
                   <Link 
                     to={`/${nip19.npubEncode(comment.pubkey)}`}
-                    className="font-medium text-sm hover:text-primary transition-colors"
+                    className="font-normal text-sm hover:text-primary transition-colors"
                   >
                     {displayName}
                   </Link>

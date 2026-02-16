@@ -204,7 +204,7 @@ export function JournalPromptModal({
           <Button
             onClick={handleSave}
             disabled={isPending || (!user && newEntry.trim().length > 0)}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            className="bg-[#6600ff] hover:bg-[#5500dd]"
           >
             {isPending ? (
               <>

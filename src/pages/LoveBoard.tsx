@@ -99,7 +99,7 @@ const LoveBoard = () => {
         <div className="container px-4 py-8">
           <div className="max-w-lg mx-auto text-center">
             <div className="mb-8">
-              <Sparkles className="h-16 w-16 mx-auto text-[#eb00a8] mb-4" />
+              <Sparkles className="h-16 w-16 mx-auto text-[#6600ff] mb-4" />
               <h1 className="text-3xl font-normal mb-4">Love Board</h1>
               <p className="text-muted-foreground mb-6">
                 Community bulletin board for jobs, services, and mutual support.
@@ -141,7 +141,7 @@ const LoveBoard = () => {
           {isPaidMember ? (
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
               <DialogTrigger asChild>
-                <Button size="lg" className="bg-[#eb00a8] hover:bg-[#d10098]">
+                <Button size="lg" className="bg-[#6600ff] hover:bg-[#5500dd]">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Listing
                 </Button>
@@ -204,34 +204,34 @@ const LoveBoard = () => {
           <TabsList className="bg-transparent border-b rounded-none w-full justify-start p-0 h-auto mb-6 flex-wrap">
             <TabsTrigger 
               value="all" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#eb00a8] data-[state=active]:text-[#eb00a8]"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff]"
             >
               All Listings
             </TabsTrigger>
             <TabsTrigger 
               value="jobs" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#eb00a8] data-[state=active]:text-[#eb00a8]"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff]"
             >
               <Briefcase className="h-4 w-4 mr-2" />
               Job Offers
             </TabsTrigger>
             <TabsTrigger 
               value="services" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#eb00a8] data-[state=active]:text-[#eb00a8]"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff]"
             >
               <Wrench className="h-4 w-4 mr-2" />
               Services
             </TabsTrigger>
             <TabsTrigger 
               value="for-sale" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#eb00a8] data-[state=active]:text-[#eb00a8]"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff]"
             >
               <ShoppingBag className="h-4 w-4 mr-2" />
               For Sale
             </TabsTrigger>
             <TabsTrigger 
               value="help" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#eb00a8] data-[state=active]:text-[#eb00a8]"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff]"
             >
               <HandHelping className="h-4 w-4 mr-2" />
               Help Wanted
@@ -313,7 +313,7 @@ const LoveBoard = () => {
                           <MessageCircle className="h-4 w-4 mr-1" />
                           Contact
                         </Button>
-                        <Button size="sm" className="flex-1 bg-[#eb00a8] hover:bg-[#d10098]">
+                        <Button size="sm" className="flex-1 bg-[#6600ff] hover:bg-[#5500dd]">
                           <Zap className="h-4 w-4 mr-1" />
                           Zap
                         </Button>

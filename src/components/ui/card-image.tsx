@@ -62,7 +62,7 @@ export function CardImage({
           )}
         >
           {fallbackText && (
-            <span className="text-white font-semibold text-lg md:text-xl px-4 text-center">
+            <span className="text-white font-normal text-lg md:text-xl px-4 text-center">
               {fallbackText}
             </span>
           )}

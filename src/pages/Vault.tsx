@@ -445,7 +445,7 @@ const Vault = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#6600ff] to-[#eb00a8] flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#6600ff] to-[#9900ff] flex items-center justify-center">
                       <Sparkles className="h-6 w-6 text-white" />
                     </div>
                     <div>
@@ -455,7 +455,7 @@ const Vault = () => {
                       </p>
                     </div>
                   </div>
-                  <Button size="lg" className="bg-gradient-to-r from-[#6600ff] to-[#eb00a8] hover:opacity-90">
+                  <Button size="lg" className="bg-gradient-to-r from-[#6600ff] to-[#9900ff] hover:opacity-90">
                     Start Conversation
                   </Button>
                 </div>

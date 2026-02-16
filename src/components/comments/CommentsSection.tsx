@@ -80,7 +80,7 @@ export function CommentsSection({
         ) : comments.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-30" />
-            <p className="text-lg font-medium mb-2">{emptyStateMessage}</p>
+            <p className="text-lg font-normal mb-2">{emptyStateMessage}</p>
             <p className="text-sm">{emptyStateSubtitle}</p>
           </div>
         ) : (

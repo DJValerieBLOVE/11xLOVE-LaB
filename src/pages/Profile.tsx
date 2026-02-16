@@ -86,7 +86,7 @@ const Profile = () => {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#6600ff] via-[#9900ff] to-[#eb00a8]" />
+            <div className="w-full h-full bg-gradient-to-br from-[#6600ff] via-[#9900ff] to-[#8c4dff]" />
           )}
         </div>
 
@@ -96,7 +96,7 @@ const Profile = () => {
           <div className="relative -mt-16 sm:-mt-20 mb-4 flex justify-between items-end">
             {/* Avatar */}
             <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-br from-[#6600ff] to-[#eb00a8] rounded-full blur opacity-50" />
+              <div className="absolute -inset-1 bg-gradient-to-br from-[#6600ff] to-[#9900ff] rounded-full blur opacity-50" />
               <Avatar className="relative h-28 w-28 sm:h-32 sm:w-32 border-4 border-background">
                 <AvatarImage src={picture} alt={displayName} className="object-cover" />
                 <AvatarFallback className="text-3xl bg-gradient-to-br from-[#6600ff] to-[#9900ff] text-white">

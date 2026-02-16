@@ -401,7 +401,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
                   You crushed it! Share your victory with the world.
                 </p>
                 <div className="flex justify-center">
-                  <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                  <Button className="bg-[#6600ff] hover:bg-[#5500dd]">
                     <Share2 className="h-4 w-4 mr-2" />
                     Share to Public Feed
                   </Button>
