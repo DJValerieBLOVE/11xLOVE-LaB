@@ -118,8 +118,10 @@ export function RelayListManager() {
       },
     }));
 
-    // Publish to Nostr if user is logged in
-    if (user) {
+    // Publish to Nostr if user is logged in and has a working signer
+    // Skip if in iframe (browser extensions don't work in iframes)
+    const isInIframe = window.self !== window.top;
+    if (user && !isInIframe) {
       publishNIP65RelayList(newRelays);
     }
   };
@@ -133,7 +135,6 @@ export function RelayListManager() {
       } else if (relay.write) {
         return ['r', relay.url, 'write'];
       }
-      // If neither read nor write, don't include (shouldn't happen)
       return null;
     }).filter((tag): tag is string[] => tag !== null);
 
@@ -146,17 +147,20 @@ export function RelayListManager() {
       {
         onSuccess: () => {
           toast({
-            title: 'Relay list published',
-            description: 'Your relay list has been published to Nostr.',
+            title: 'Relay list saved',
+            description: 'Your relay configuration has been updated.',
           });
         },
         onError: (error) => {
-          console.error('Failed to publish relay list:', error);
-          toast({
-            title: 'Failed to publish relay list',
-            description: 'There was an error publishing your relay list to Nostr.',
-            variant: 'destructive',
-          });
+          // Only show error if it's not a signer issue
+          const errorMsg = error?.message || '';
+          if (!errorMsg.includes('extension') && !errorMsg.includes('signer')) {
+            console.error('Failed to publish relay list:', error);
+            toast({
+              title: 'Relay list saved locally',
+              description: 'Could not publish to Nostr, but your settings are saved.',
+            });
+          }
         },
       }
     );
