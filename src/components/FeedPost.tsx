@@ -26,7 +26,6 @@ import {
   Flag,
   Trash2,
   Lock,
-  Users,
   UserMinus,
   Bookmark,
   ExternalLink,
@@ -54,11 +53,31 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { NoteContent } from '@/components/NoteContent';
 import { ZapDialog } from '@/components/ZapDialog';
-import { TopZappersCompact } from '@/components/TopZappers';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useZappers } from '@/hooks/useZappers';
 import { cn } from '@/lib/utils';
 import type { PostStats } from '@/hooks/useFeedPosts';
+
+/** Mini avatar for inline zapper display - Primal style */
+function ZapperMiniAvatar({ pubkey, index }: { pubkey: string; index: number }) {
+  const author = useAuthor(pubkey);
+  const metadata = author.data?.metadata;
+  
+  return (
+    <Avatar 
+      className={cn(
+        "h-5 w-5 border border-background",
+        index > 0 && "-ml-1.5"
+      )}
+      style={{ zIndex: 10 - index }}
+    >
+      <AvatarImage src={metadata?.picture} />
+      <AvatarFallback className="bg-orange-100 text-orange-600 text-[8px]">
+        ⚡
+      </AvatarFallback>
+    </Avatar>
+  );
+}
 
 interface FeedPostProps {
   event: NostrEvent;
@@ -202,11 +221,11 @@ export function FeedPost({
     <>
       <div className="p-3 sm:p-4">
         <div className="flex gap-3">
-          {/* Avatar */}
+          {/* Avatar - same size as header avatar (h-8 w-8) */}
           <Link to={`/${npub}`}>
-            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 cursor-pointer hover:ring-2 hover:ring-[#6600ff]/30 transition-all">
+            <Avatar className="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-[#6600ff]/30 transition-all">
               <AvatarImage src={metadata?.picture} />
-              <AvatarFallback className="bg-[#6600ff]/10 text-[#6600ff]">
+              <AvatarFallback className="bg-[#6600ff]/10 text-[#6600ff] text-xs">
                 {displayName.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -287,45 +306,19 @@ export function FeedPost({
             </div>
 
             {/* Content */}
-            <div className="mb-2">
-              <NoteContent event={event} className="text-sm sm:text-base" />
+            <div className="mb-1">
+              <NoteContent event={event} className="text-sm" />
             </div>
 
-            {/* Engagement Stats Bar - shows zappers with avatars */}
-            {(likeCount > 0 || repostCount > 0 || replyCount > 0 || satsZapped > 0) && (
-              <div className="flex items-center gap-3 text-xs text-muted-foreground mb-1 pb-1 border-b flex-wrap">
-                {likeCount > 0 && (
-                  <span>{formatCount(likeCount)} {likeCount === 1 ? 'like' : 'likes'}</span>
-                )}
-                {repostCount > 0 && (
-                  <span>{formatCount(repostCount)} {repostCount === 1 ? 'repost' : 'reposts'}</span>
-                )}
-                {replyCount > 0 && (
-                  <span>{formatCount(replyCount)} {replyCount === 1 ? 'reply' : 'replies'}</span>
-                )}
-                {/* Top zappers with avatar stack - Primal style */}
-                {zappersData && zappersData.topZappers.length > 0 ? (
-                  <TopZappersCompact
-                    zappers={zappersData.topZappers}
-                    totalSats={zappersData.totalSats}
-                  />
-                ) : satsZapped > 0 && (
-                  <span className="text-orange-500 font-medium">
-                    ⚡ {formatSats(satsZapped)} sats
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Action Buttons - evenly spaced */}
-            <div className="flex items-center justify-between">
+            {/* Action Buttons - compact like Primal */}
+            <div className="flex items-center justify-between -mx-1 mt-1">
               {/* Reply */}
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 gap-1.5 h-9 px-3"
+                className="text-gray-400 hover:text-[#6600ff] hover:bg-transparent gap-1 h-8 px-2"
               >
-                <MessageCircle className="h-[18px] w-[18px]" />
+                <MessageCircle className="h-4 w-4" />
                 {replyCount > 0 && <span className="text-xs">{formatCount(replyCount)}</span>}
               </Button>
 
@@ -335,44 +328,54 @@ export function FeedPost({
                 size="sm" 
                 onClick={handleLike}
                 className={cn(
-                  "gap-1.5 h-9 px-3",
+                  "gap-1 h-8 px-2 hover:bg-transparent",
                   isLiked 
-                    ? "text-red-500 hover:text-red-600 hover:bg-red-50" 
-                    : "text-gray-400 hover:text-red-500 hover:bg-red-50"
+                    ? "text-red-500 hover:text-red-600" 
+                    : "text-gray-400 hover:text-red-500"
                 )}
               >
-                <Heart className={cn("h-[18px] w-[18px]", isLiked && "fill-current")} />
+                <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
                 {likeCount > 0 && <span className="text-xs">{formatCount(likeCount)}</span>}
               </Button>
 
-              {/* Zap */}
-              {canZap ? (
-                <ZapDialog target={event}>
+              {/* Zap with inline zapper avatars - Primal style */}
+              <div className="flex items-center">
+                {/* Mini zapper avatars */}
+                {zappersData && zappersData.topZappers.length > 0 && (
+                  <div className="flex items-center -mr-1">
+                    {zappersData.topZappers.slice(0, 3).map((zapper, i) => (
+                      <ZapperMiniAvatar key={zapper.pubkey} pubkey={zapper.pubkey} index={i} />
+                    ))}
+                  </div>
+                )}
+                {canZap ? (
+                  <ZapDialog target={event}>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className={cn(
+                        "gap-1 h-8 px-2 hover:bg-transparent",
+                        userZapped || satsZapped > 0
+                          ? "text-orange-500 hover:text-orange-600"
+                          : "text-gray-400 hover:text-orange-500"
+                      )}
+                    >
+                      <Zap className={cn("h-4 w-4", (userZapped || satsZapped > 0) && "fill-current")} />
+                      {satsZapped > 0 && <span className="text-xs">{formatSats(satsZapped)}</span>}
+                    </Button>
+                  </ZapDialog>
+                ) : (
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className={cn(
-                      "gap-1.5 h-9 px-3",
-                      userZapped
-                        ? "text-orange-500 hover:text-orange-600 hover:bg-orange-50"
-                        : "text-gray-400 hover:text-orange-500 hover:bg-orange-50"
-                    )}
+                    disabled 
+                    className="text-gray-300 gap-1 h-8 px-2 cursor-not-allowed"
+                    title={!user ? "Login to zap" : user.pubkey === event.pubkey ? "Can't zap yourself" : "No lightning address"}
                   >
-                    <Zap className={cn("h-[18px] w-[18px]", userZapped && "fill-current")} />
-                    {satsZapped > 0 && <span className="text-xs">{formatSats(satsZapped)}</span>}
+                    <Zap className="h-4 w-4" />
                   </Button>
-                </ZapDialog>
-              ) : (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  disabled 
-                  className="text-gray-300 gap-1.5 h-9 px-3 cursor-not-allowed"
-                  title={!user ? "Login to zap" : user.pubkey === event.pubkey ? "Can't zap yourself" : "No lightning address"}
-                >
-                  <Zap className="h-[18px] w-[18px]" />
-                </Button>
-              )}
+                )}
+              </div>
 
               {/* Repost - Only for public posts */}
               {!isPrivate ? (
@@ -381,18 +384,17 @@ export function FeedPost({
                   size="sm" 
                   onClick={handleRepost}
                   className={cn(
-                    "gap-1.5 h-9 px-3",
+                    "gap-1 h-8 px-2 hover:bg-transparent",
                     isReposted
-                      ? "text-green-500 hover:text-green-600 hover:bg-green-50"
-                      : "text-gray-400 hover:text-green-500 hover:bg-green-50"
+                      ? "text-green-500 hover:text-green-600"
+                      : "text-gray-400 hover:text-green-500"
                   )}
                 >
-                  <Repeat2 className={cn("h-[18px] w-[18px]", isReposted && "stroke-[2.5px]")} />
+                  <Repeat2 className={cn("h-4 w-4", isReposted && "stroke-[2.5px]")} />
                   {repostCount > 0 && <span className="text-xs">{formatCount(repostCount)}</span>}
                 </Button>
               ) : (
-                /* Placeholder for private posts to maintain spacing */
-                <div className="h-9 px-3" />
+                <div className="w-8" />
               )}
 
               {/* Bookmark */}
@@ -401,13 +403,13 @@ export function FeedPost({
                 size="sm" 
                 onClick={handleBookmark}
                 className={cn(
-                  "h-9 px-3",
+                  "h-8 px-2 hover:bg-transparent",
                   isBookmarked 
-                    ? "text-[#6600ff] hover:text-[#5500dd] hover:bg-[#6600ff]/10" 
-                    : "text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10"
+                    ? "text-[#6600ff] hover:text-[#5500dd]" 
+                    : "text-gray-400 hover:text-[#6600ff]"
                 )}
               >
-                <Bookmark className={cn("h-[18px] w-[18px]", isBookmarked && "fill-current")} />
+                <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-current")} />
               </Button>
 
               {/* Share - Only for public posts */}
@@ -416,13 +418,12 @@ export function FeedPost({
                   variant="ghost" 
                   size="sm" 
                   onClick={handleShare}
-                  className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 h-9 px-3"
+                  className="text-gray-400 hover:text-[#6600ff] hover:bg-transparent h-8 px-2"
                 >
-                  <Share2 className="h-[18px] w-[18px]" />
+                  <Share2 className="h-4 w-4" />
                 </Button>
               ) : (
-                /* Placeholder for private posts to maintain spacing */
-                <div className="h-9 px-3" />
+                <div className="w-8" />
               )}
             </div>
           </div>

@@ -176,6 +176,7 @@ function parseBolt11Amount(bolt11: string): number {
 
 /**
  * Get the user's follow list (kind 3 contact list)
+ * Optimized: single relay, cached for 10 minutes
  */
 export function useFollowList() {
   const { nostr } = useNostr();
@@ -187,10 +188,11 @@ export function useFollowList() {
       if (!user) return [];
       
       try {
-        const publicRelayGroup = nostr.group(PUBLIC_RELAYS.slice(0, 3));
+        // Use single fast relay
+        const fastRelay = nostr.relay('wss://relay.primal.net');
         
         // Query kind 3 (contact list) for the current user
-        const contactEvents = await publicRelayGroup.query([
+        const contactEvents = await fastRelay.query([
           {
             kinds: [3],
             authors: [user.pubkey],
@@ -213,12 +215,13 @@ export function useFollowList() {
       }
     },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes - follows don't change often
   });
 }
 
 /**
- * Fetch all feed posts (private + public from follows) with engagement stats
+ * Fetch all feed posts (private + public from follows)
+ * Stats are fetched lazily per-post for faster initial load
  */
 export function useFeedPosts(limit: number = 50) {
   const { nostr } = useNostr();
@@ -229,9 +232,8 @@ export function useFeedPosts(limit: number = 50) {
     queryKey: ['feed-posts', user?.pubkey, follows.length, limit],
     queryFn: async (): Promise<FeedPost[]> => {
       const posts: FeedPost[] = [];
-      const eventIds: string[] = [];
 
-      // 1. Fetch from private LaB relay
+      // 1. Fetch from private LaB relay (fast, single relay)
       try {
         const labRelay = nostr.relay(LAB_RELAY_URL);
         
@@ -252,70 +254,48 @@ export function useFeedPosts(limit: number = 50) {
             source: 'lab',
             stats: { ...emptyStats },
           });
-          eventIds.push(event.id);
         }
       } catch (error) {
         console.warn('[Feed] Failed to fetch from LaB relay:', error);
       }
 
-      // 2. Fetch from public relays - ONLY from followed users
+      // 2. Fetch from single fast relay for follows
       if (follows.length > 0) {
         try {
-          const publicRelayGroup = nostr.group(PUBLIC_RELAYS.slice(0, 3));
+          // Use single relay for speed
+          const fastRelay = nostr.relay('wss://relay.primal.net');
           
-          const followChunks: string[][] = [];
-          for (let i = 0; i < follows.length; i += 50) {
-            followChunks.push(follows.slice(i, i + 50));
-          }
-          
-          for (const chunk of followChunks) {
-            const publicEvents = await publicRelayGroup.query([
-              {
-                kinds: [1],
-                authors: chunk,
-                limit: Math.ceil(limit / followChunks.length),
-              },
-            ]);
+          const publicEvents = await fastRelay.query([
+            {
+              kinds: [1],
+              authors: follows.slice(0, 100), // Limit authors for speed
+              limit: limit,
+            },
+          ]);
 
-            for (const event of publicEvents) {
-              if (posts.some(p => p.event.id === event.id)) continue;
-              
-              posts.push({
-                event,
-                isPrivate: false,
-                source: 'public',
-                stats: { ...emptyStats },
-              });
-              eventIds.push(event.id);
-            }
+          for (const event of publicEvents) {
+            if (posts.some(p => p.event.id === event.id)) continue;
+            
+            posts.push({
+              event,
+              isPrivate: false,
+              source: 'public',
+              stats: { ...emptyStats },
+            });
           }
         } catch (error) {
-          console.warn('[Feed] Failed to fetch from public relays:', error);
+          console.warn('[Feed] Failed to fetch from public relay:', error);
         }
       }
 
-      // 3. Fetch engagement stats for all posts
-      const statsMap = await fetchEngagementStats(nostr, eventIds, user?.pubkey);
-      
-      // Apply stats to posts
-      for (const post of posts) {
-        const statsEntry = statsMap.get(post.event.id);
-        if (statsEntry) {
-          post.stats = statsEntry.stats;
-          post.userLiked = statsEntry.userLiked;
-          post.userReposted = statsEntry.userReposted;
-          post.userZapped = statsEntry.userZapped;
-        }
-      }
-
-      // 4. Sort by timestamp (newest first)
+      // Sort by timestamp (newest first)
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
       
       return posts.slice(0, limit);
     },
     enabled: !!user,
     staleTime: 30000,
-    refetchInterval: 60000,
+    refetchInterval: 120000, // Less frequent refresh
   });
 }
 
@@ -398,7 +378,8 @@ export function useTribePosts(limit: number = 50) {
 }
 
 /**
- * Fetch posts from followed users only with stats
+ * Fetch posts from followed users only
+ * Optimized for fast initial load - stats loaded lazily
  */
 export function useFollowingPosts(limit: number = 50) {
   const { nostr } = useNostr();
@@ -409,53 +390,31 @@ export function useFollowingPosts(limit: number = 50) {
     queryKey: ['following-posts', user?.pubkey, follows.length, limit],
     queryFn: async (): Promise<FeedPost[]> => {
       const posts: FeedPost[] = [];
-      const eventIds: string[] = [];
 
       if (follows.length === 0) return posts;
 
       try {
-        const publicRelayGroup = nostr.group(PUBLIC_RELAYS.slice(0, 3));
+        // Use single fast relay for speed
+        const fastRelay = nostr.relay('wss://relay.primal.net');
         
-        const followChunks: string[][] = [];
-        for (let i = 0; i < follows.length; i += 50) {
-          followChunks.push(follows.slice(i, i + 50));
-        }
-        
-        for (const chunk of followChunks) {
-          const publicEvents = await publicRelayGroup.query([
-            {
-              kinds: [1],
-              authors: chunk,
-              limit: Math.ceil(limit / followChunks.length),
-            },
-          ]);
+        const publicEvents = await fastRelay.query([
+          {
+            kinds: [1],
+            authors: follows.slice(0, 150), // Limit for speed
+            limit: limit,
+          },
+        ]);
 
-          for (const event of publicEvents) {
-            if (posts.some(p => p.event.id === event.id)) continue;
-            
-            posts.push({
-              event,
-              isPrivate: false,
-              source: 'public',
-              stats: { ...emptyStats },
-            });
-            eventIds.push(event.id);
-          }
+        for (const event of publicEvents) {
+          posts.push({
+            event,
+            isPrivate: false,
+            source: 'public',
+            stats: { ...emptyStats },
+          });
         }
       } catch (error) {
         console.warn('[Feed] Failed to fetch following posts:', error);
-      }
-
-      // Fetch engagement stats
-      const statsMap = await fetchEngagementStats(nostr, eventIds, user?.pubkey);
-      for (const post of posts) {
-        const statsEntry = statsMap.get(post.event.id);
-        if (statsEntry) {
-          post.stats = statsEntry.stats;
-          post.userLiked = statsEntry.userLiked;
-          post.userReposted = statsEntry.userReposted;
-          post.userZapped = statsEntry.userZapped;
-        }
       }
 
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
