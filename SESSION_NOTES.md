@@ -1,59 +1,86 @@
 # Session Notes - February 16, 2026
 
-> **STATUS: FEED SYSTEM IMPROVEMENTS MADE - TESTING NEEDED**
+> **STATUS: CRITICAL BUG - TEXT COLORS NOT RENDERING - NEEDS OPUS 4.6**
 
 ---
 
 ## CURRENT SESSION SUMMARY
 
-### What Was Done This Session
-1. ✅ **Researched ALL Primal custom kinds** from their GitHub repo (40+ kinds)
-2. ✅ **Added PrimalKind enum** with complete documentation
-3. ✅ **Added link preview support** (kind 10000128 → LinkPreviewCard)
-4. ✅ **Added media info support** (kind 10000119)
-5. ✅ **Silenced known Primal kinds** that don't need console warnings
-6. ✅ **Created LinkPreviewCard component** - renders URL cards like Primal
-7. ✅ **Updated data flow** - linkPreviews now passed through entire pipeline
-8. ✅ **Fixed stale data bug** - removed "frozen posts" state that caused old data to persist
-9. ✅ **Fixed username styling** - now uses dark text instead of muted foreground
-10. ✅ **Simplified Feed.tsx** - removed complex pending posts logic
+### What Was Attempted This Session
+1. ✅ **Added link preview support** (kind 10000128 → LinkPreviewCard)
+2. ✅ **Changed tribe badges from pink to gray**
+3. ✅ **Added notification badge to Latest tab**
+4. ❌ **FAILED: Fix gray/muted text colors** - tried 10+ different approaches, NONE worked
 
-### Git Commits
+### Critical Issue: Tailwind Play CDN Overriding All Color Changes
+
+**THE PROBLEM:**
+Shakespeare's build system uses `<style type="text/tailwindcss">` which loads Tailwind Play CDN at runtime. This CDN reprocesses ALL CSS and overrides custom color values with Tailwind's defaults, making ALL text render as gray/muted instead of black.
+
+**ATTEMPTS MADE (ALL FAILED):**
+1. ❌ Changed CSS variables to black `0 0% 0%` - CDN overrides
+2. ❌ Added inline styles `style={{ color: '#000' }}` - CDN strips them
+3. ❌ Used `!important` modifier `!text-[#1a1a1a]` - CDN ignores
+4. ❌ Removed all color classes entirely - still renders gray
+5. ❌ Changed to dark red to test `0 84% 10%` - still gray
+6. ❌ Used arbitrary values `text-[#000000]` - still gray
+7. ❌ Removed muted system from Tailwind config - still gray
+8. ❌ Deleted CSS variables completely - still gray
+9. ❌ Hard refresh, clear cache, delete site data - still gray
+10. ❌ Deployed to production - STILL GRAY
+
+**ROOT CAUSE:**
+The `<style type="text/tailwindcss">` tag in dist/index.html triggers Tailwind's Play CDN, which reprocesses the CSS at runtime and applies default Tailwind colors, ignoring ALL customizations.
+
+**EVIDENCE:**
+- Console warning: "cdn.tailwindcss.com should not be used in production"
+- Post content text IS black (has no color classes, uses browser default)
+- Usernames, headings ARE gray (inherit from Tailwind-processed CSS variables)
+- CSS variables compile correctly to black `0 0% 0%` in source
+- Browser DevTools show gray color being applied from CDN-generated CSS
+
+### Git Commits (Color Fix Attempts)
 ```
-2514512 - Add Primal custom kinds support and link previews
-cfadd2a - Update PLAN.md and SESSION_NOTES.md
-a5d6a76 - Fix stale feed data and username styling
-846b2a7 - Simplify all colors to black/white - no muted colors
+4cb68a1 - REMOVE all color overrides - use pure black (#000000) CSS variables only
+73d0dfd - Replace inline styles with !important utility classes + fix tribe badges
+b8b8955 - Add inline styles with hardcoded dark color (#1a1a1a)
+806e624 - FIX: Dark mode CSS overriding light mode
+47bce2f - DELETE muted color system completely
+32f4a65 - Fix muted-foreground CSS to use DARK readable gray
+d1fc265 - Remove ALL text-muted-foreground - replace with explicit colors
+237a720 - Fix text color to dark/black across Feed sidebar
 ```
 
 ---
 
 ## REMAINING BUGS TO FIX
 
-### BUG 1: Feed Shows Different Posts Than Primal ⚠️
-**Symptom**: Posts shown are NOT the same as Primal app
-**Status**: NEEDS INVESTIGATION
-**Next Step**: Compare WebSocket requests between primal.net and our app
+### 🔴 BUG 1: ALL TEXT RENDERS GRAY/MUTED (CRITICAL - UNRESOLVED)
+**Symptom**: Usernames, headings, sidebar text all appear gray/muted instead of black
+**Root Cause**: Tailwind Play CDN overriding CSS variables at runtime
+**Status**: ❌ UNFIXABLE with current Shakespeare build system
+**Next Step**: **ESCALATE TO OPUS 4.6** - requires Shakespeare build system fix or PostCSS compilation
 
-### BUG 2: Stats Not Showing Reliably ⚠️
+### 🔴 BUG 2: Feed Shows 25+ Minute Old Data (CRITICAL - UNRESOLVED)
+**Symptom**: Feed displays stale posts from 25+ minutes ago, even after hard refresh and cache clear
+**Possible Causes**:
+- Primal cache server caching
+- TanStack Query aggressive caching
+- Service worker caching
+- Browser HTTP cache
+**Status**: NEEDS INVESTIGATION
+**Next Step**: Check TanStack Query staleTime/cacheTime settings
+
+### 🟡 BUG 3: Stats Not Showing Reliably
 **Symptom**: Like/repost/zap counts are 0 or missing
 **Status**: NEEDS TESTING
 **Next Step**: Verify event_id matching between notes and stats
 
-### ~~BUG 3: Unknown Primal Kinds~~ ✅ FIXED
-All 40+ Primal custom kinds now documented and handled.
+### ✅ BUG 4: Pink Tribe Badges - FIXED
+Changed from pink to gray - working correctly
 
-### ~~BUG 4: Link Previews Missing~~ ✅ FIXED
-LinkPreviewCard component now renders URL cards for kind 10000128.
-
-### ~~BUG 5: Stale/Old Feed Data~~ ✅ FIXED
-Removed "frozen posts" state that was preventing new data from showing.
-
-### ~~BUG 6: Grayed/Blurry Text~~ ✅ FIXED
-Simplified ALL colors to pure black/white:
-- Light mode: ALL text is #000000 (pure black)
-- Dark mode: ALL text is #FFFFFF (pure white)
-- No more "muted" grays - simple, predictable colors
+### ✅ BUG 5: Tab Notification Badge - FIXED
+Added pink notification bubble to Latest tab when new posts available
 
 ---
 
