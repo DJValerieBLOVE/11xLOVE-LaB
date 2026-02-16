@@ -1,27 +1,27 @@
 import { type NostrEvent, type NostrMetadata, NSchema as n } from '@nostrify/nostrify';
 import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
-
-// Fast, reliable public relays for profile lookups
-const PROFILE_RELAYS = [
-  'wss://relay.primal.net',
-  'wss://relay.damus.io',
-  'wss://nos.lol',
-];
+import { useAppContext } from './useAppContext';
 
 export function useAuthor(pubkey: string | undefined) {
   const { nostr } = useNostr();
+  const { config } = useAppContext();
+
+  // Get user's configured public relays (excluding Railway)
+  const publicRelays = config.relayMetadata.relays
+    .filter(r => r.read && !r.url.includes('railway.app'))
+    .map(r => r.url);
 
   return useQuery<{ event?: NostrEvent; metadata?: NostrMetadata }>({
-    queryKey: ['author', pubkey ?? ''],
-    enabled: !!pubkey,
+    queryKey: ['author', pubkey ?? '', publicRelays.length],
+    enabled: !!pubkey && publicRelays.length > 0,
     queryFn: async ({ signal }) => {
-      if (!pubkey) {
+      if (!pubkey || publicRelays.length === 0) {
         return {};
       }
 
-      // Use a small group of fast, reliable relays for profiles
-      const relayGroup = nostr.group(PROFILE_RELAYS);
+      // Use user's configured relays for profile lookups
+      const relayGroup = nostr.group(publicRelays);
       
       const events = await relayGroup.query(
         [{ kinds: [0], authors: [pubkey], limit: 1 }],

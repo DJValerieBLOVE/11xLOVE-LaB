@@ -5,6 +5,7 @@ import { nip19 } from 'nostr-tools';
 import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthor } from '@/hooks/useAuthor';
+import { useAppContext } from '@/hooks/useAppContext';
 import { genUserName } from '@/lib/genUserName';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -392,16 +393,21 @@ function NostrMention({ pubkey }: { pubkey: string }) {
 // Embedded note component for quote posts (like Primal)
 function EmbeddedNote({ eventId, relays }: { eventId: string; relays?: string[] }) {
   const { nostr } = useNostr();
+  const { config } = useAppContext();
+  
+  // Get user's configured public relays
+  const configuredRelays = config.relayMetadata.relays
+    .filter(r => r.read && !r.url.includes('railway.app'))
+    .map(r => r.url);
   
   // Fetch the referenced event
   const { data: event, isLoading } = useQuery({
-    queryKey: ['embedded-note', eventId],
+    queryKey: ['embedded-note', eventId, configuredRelays.length],
     queryFn: async () => {
-      // Use provided relays or default public relays
-      const relayUrls = relays?.length ? relays.slice(0, 3) : [
-        'wss://relay.primal.net',
-        'wss://relay.damus.io',
-      ];
+      // Use provided relays, or user's configured relays
+      const relayUrls = relays?.length ? relays.slice(0, 3) : configuredRelays;
+      if (relayUrls.length === 0) return null;
+      
       const relayGroup = nostr.group(relayUrls);
       
       const events = await relayGroup.query(
@@ -411,6 +417,7 @@ function EmbeddedNote({ eventId, relays }: { eventId: string; relays?: string[] 
       
       return events[0] || null;
     },
+    enabled: configuredRelays.length > 0 || (relays?.length ?? 0) > 0,
     staleTime: 10 * 60 * 1000, // 10 minutes
     retry: 1,
   });

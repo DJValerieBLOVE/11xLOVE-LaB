@@ -12,7 +12,8 @@
 import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from './useCurrentUser';
-import { LAB_RELAY_URL, PUBLIC_RELAYS, NEVER_SHAREABLE_KINDS } from '@/lib/relays';
+import { useAppContext } from './useAppContext';
+import { LAB_RELAY_URL, NEVER_SHAREABLE_KINDS } from '@/lib/relays';
 import type { NostrEvent } from '@nostrify/nostrify';
 
 /** Engagement stats for a post */
@@ -54,11 +55,12 @@ const emptyStats: PostStats = {
 async function fetchEngagementStats(
   nostr: ReturnType<typeof useNostr>['nostr'],
   eventIds: string[],
+  relayUrls: string[],
   userPubkey?: string
 ): Promise<Map<string, { stats: PostStats; userLiked: boolean; userReposted: boolean; userZapped: boolean }>> {
   const statsMap = new Map<string, { stats: PostStats; userLiked: boolean; userReposted: boolean; userZapped: boolean }>();
   
-  if (eventIds.length === 0) return statsMap;
+  if (eventIds.length === 0 || relayUrls.length === 0) return statsMap;
   
   // Initialize all events with empty stats
   for (const id of eventIds) {
@@ -71,7 +73,7 @@ async function fetchEngagementStats(
   }
   
   try {
-    const relayGroup = nostr.group(PUBLIC_RELAYS.slice(0, 3));
+    const relayGroup = nostr.group(relayUrls);
     
     // Batch event IDs into chunks to avoid filter limits
     const chunks: string[][] = [];
@@ -175,24 +177,32 @@ function parseBolt11Amount(bolt11: string): number {
 }
 
 /**
+ * Get the user's configured public relay URLs (excluding Railway)
+ */
+function usePublicRelayUrls(): string[] {
+  const { config } = useAppContext();
+  return config.relayMetadata.relays
+    .filter(r => r.read && !r.url.includes('railway.app'))
+    .map(r => r.url);
+}
+
+/**
  * Get the user's follow list (kind 3 contact list)
  */
 export function useFollowList() {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
+  const publicRelays = usePublicRelayUrls();
 
   return useQuery({
-    queryKey: ['follow-list', user?.pubkey],
+    queryKey: ['follow-list', user?.pubkey, publicRelays.length],
     queryFn: async (): Promise<string[]> => {
       if (!user) return [];
+      if (publicRelays.length === 0) return [];
       
       try {
-        // Use multiple relays for better reliability
-        const relays = nostr.group([
-          'wss://relay.primal.net',
-          'wss://relay.damus.io',
-          'wss://nos.lol',
-        ]);
+        // Use user's configured relays
+        const relays = nostr.group(publicRelays);
         
         // Query kind 3 (contact list) for the current user
         const contactEvents = await relays.query([
@@ -204,7 +214,6 @@ export function useFollowList() {
         ]);
 
         if (contactEvents.length === 0) {
-          console.log('[Feed] No contact list found for user');
           return [];
         }
         
@@ -214,14 +223,13 @@ export function useFollowList() {
           .map(([, pubkey]) => pubkey)
           .filter(Boolean);
         
-        console.log(`[Feed] Found ${follows.length} follows`);
         return follows;
       } catch (error) {
         console.warn('[Feed] Failed to fetch follow list:', error);
         return [];
       }
     },
-    enabled: !!user,
+    enabled: !!user && publicRelays.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
@@ -234,9 +242,10 @@ export function useFeedPosts(limit: number = 50) {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const { data: follows = [] } = useFollowList();
+  const publicRelays = usePublicRelayUrls();
 
   return useQuery({
-    queryKey: ['feed-posts', user?.pubkey, follows.length, limit],
+    queryKey: ['feed-posts', user?.pubkey, follows.length, publicRelays.length, limit],
     queryFn: async (): Promise<FeedPost[]> => {
       const posts: FeedPost[] = [];
 
@@ -266,17 +275,17 @@ export function useFeedPosts(limit: number = 50) {
         console.warn('[Feed] Failed to fetch from LaB relay:', error);
       }
 
-      // 2. Fetch from single fast relay for follows
-      if (follows.length > 0) {
+      // 2. Fetch from user's configured relays
+      if (follows.length > 0 && publicRelays.length > 0) {
         try {
-          // Use single relay for speed
-          const fastRelay = nostr.relay('wss://relay.primal.net');
+          // Use ALL user's configured public relays
+          const relayGroup = nostr.group(publicRelays);
           
-          const publicEvents = await fastRelay.query([
+          const publicEvents = await relayGroup.query([
             {
               kinds: [1],
-              authors: follows.slice(0, 100), // Limit authors for speed
-              limit: limit,
+              authors: follows.slice(0, 500),
+              limit: limit * 2,
             },
           ]);
 
@@ -291,7 +300,7 @@ export function useFeedPosts(limit: number = 50) {
             });
           }
         } catch (error) {
-          console.warn('[Feed] Failed to fetch from public relay:', error);
+          console.warn('[Feed] Failed to fetch from public relays:', error);
         }
       }
 
@@ -302,7 +311,7 @@ export function useFeedPosts(limit: number = 50) {
     },
     enabled: !!user,
     staleTime: 30000,
-    refetchInterval: 120000, // Less frequent refresh
+    refetchInterval: 120000,
   });
 }
 
@@ -392,31 +401,28 @@ export function useFollowingPosts(limit: number = 50) {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const { data: follows = [], isLoading: followsLoading } = useFollowList();
+  const publicRelays = usePublicRelayUrls();
 
   return useQuery({
-    queryKey: ['following-posts', user?.pubkey, follows.length, limit],
+    queryKey: ['following-posts', user?.pubkey, follows.length, publicRelays.length, limit],
     queryFn: async (): Promise<FeedPost[]> => {
       const posts: FeedPost[] = [];
       const seenIds = new Set<string>();
 
-      if (follows.length === 0) {
+      if (follows.length === 0 || publicRelays.length === 0) {
         return posts;
       }
 
       try {
-        // Use multiple relays for better coverage (like Primal does)
-        const relayGroup = nostr.group([
-          'wss://relay.primal.net',
-          'wss://relay.damus.io',
-          'wss://nos.lol',
-        ]);
+        // Use ALL user's configured public relays
+        const relayGroup = nostr.group(publicRelays);
         
         // Query latest posts from followed users
         const publicEvents = await relayGroup.query([
           {
             kinds: [1],
-            authors: follows.slice(0, 500), // More authors for better coverage
-            limit: limit * 3, // Get more to account for deduplication
+            authors: follows.slice(0, 500),
+            limit: limit * 3,
           },
         ]);
 
@@ -438,7 +444,7 @@ export function useFollowingPosts(limit: number = 50) {
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
       return posts.slice(0, limit);
     },
-    enabled: !!user && !followsLoading && follows.length > 0,
+    enabled: !!user && !followsLoading && follows.length > 0 && publicRelays.length > 0,
     staleTime: 30000,
   });
 }
@@ -449,18 +455,21 @@ export function useFollowingPosts(limit: number = 50) {
 export function useTrendingPosts(limit: number = 50) {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
+  const publicRelays = usePublicRelayUrls();
 
   return useQuery({
-    queryKey: ['trending-posts', limit],
+    queryKey: ['trending-posts', publicRelays.length, limit],
     queryFn: async (): Promise<FeedPost[]> => {
       const posts: FeedPost[] = [];
       const eventIds: string[] = [];
 
+      if (publicRelays.length === 0) return posts;
+
       try {
-        // Use Primal relay for trending content
-        const primalRelay = nostr.relay('wss://relay.primal.net');
+        // Use user's configured relays
+        const relayGroup = nostr.group(publicRelays);
         
-        const trendingEvents = await primalRelay.query([
+        const trendingEvents = await relayGroup.query([
           { kinds: [1], limit: limit },
         ]);
 
@@ -478,7 +487,7 @@ export function useTrendingPosts(limit: number = 50) {
       }
 
       // Fetch engagement stats
-      const statsMap = await fetchEngagementStats(nostr, eventIds, user?.pubkey);
+      const statsMap = await fetchEngagementStats(nostr, eventIds, publicRelays, user?.pubkey);
       for (const post of posts) {
         const statsEntry = statsMap.get(post.event.id);
         if (statsEntry) {
@@ -498,7 +507,7 @@ export function useTrendingPosts(limit: number = 50) {
       
       return posts.slice(0, limit);
     },
-    enabled: !!user,
+    enabled: !!user && publicRelays.length > 0,
     staleTime: 60000,
   });
 }
