@@ -23,8 +23,7 @@
 2514512 - Add Primal custom kinds support and link previews
 cfadd2a - Update PLAN.md and SESSION_NOTES.md
 a5d6a76 - Fix stale feed data and username styling
-be3a4c6 - Fix all text colors to use explicit dark gray
-5413805 - Fix global text colors in CSS variables (proper fix)
+846b2a7 - Simplify all colors to black/white - no muted colors
 ```
 
 ---
@@ -51,10 +50,10 @@ LinkPreviewCard component now renders URL cards for kind 10000128.
 Removed "frozen posts" state that was preventing new data from showing.
 
 ### ~~BUG 6: Grayed/Blurry Text~~ ✅ FIXED
-Updated global CSS variables to use proper dark colors:
-- `--foreground`: Now `0 0% 9%` (#171717 near-black)
-- `--muted-foreground`: Now `0 0% 40%` (#666666 darker gray)
-- All card, popover, sidebar text colors updated globally
+Simplified ALL colors to pure black/white:
+- Light mode: ALL text is #000000 (pure black)
+- Dark mode: ALL text is #FFFFFF (pure white)
+- No more "muted" grays - simple, predictable colors
 
 ---
 
