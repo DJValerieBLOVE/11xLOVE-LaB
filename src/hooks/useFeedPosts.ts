@@ -1,16 +1,16 @@
 /**
  * useFeedPosts Hooks
  * 
- * Uses Primal's caching API for fast feed loading with stats included.
- * Falls back to direct relay queries when needed.
- * 
- * - Latest: Uses Primal API for user's following feed (fast, with stats)
- * - Tribes: Uses Railway relay for private posts
+ * Fetches posts from ALL user's configured relays + Primal API for stats.
+ * - Latest: Posts from all user's relays (people they follow)
+ * - Tribes: Private posts from Railway relay
+ * - New post notifications for tab badges
  */
 
 import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from './useCurrentUser';
+import { useAppContext } from './useAppContext';
 import { LAB_RELAY_URL, NEVER_SHAREABLE_KINDS } from '@/lib/relays';
 import type { NostrEvent, NostrMetadata } from '@nostrify/nostrify';
 
@@ -23,7 +23,7 @@ export interface PostStats {
   satsZapped: number;
 }
 
-/** Author info from Primal */
+/** Author info */
 export interface PostAuthor {
   pubkey: string;
   metadata?: NostrMetadata;
@@ -52,188 +52,412 @@ const emptyStats: PostStats = {
 };
 
 /**
- * Primal API response types
+ * Get the user's configured relay URLs for reading
  */
-interface PrimalNoteStats {
-  event_id: string;
-  likes: number;
-  replies: number;
-  reposts: number;
-  zaps: number;
-  satszapped: number;
-  score: number;
-  score24h: number;
-}
-
-interface PrimalNoteActions {
-  event_id: string;
-  liked: boolean;
-  replied: boolean;
-  reposted: boolean;
-  zapped: boolean;
+function useReadRelays(): string[] {
+  const { config } = useAppContext();
+  return config.relayMetadata.relays
+    .filter(r => r.read)
+    .map(r => r.url);
 }
 
 /**
- * Fetch feed from Primal's caching API
- * This is MUCH faster than querying relays directly and includes all stats
+ * Get public relays (excluding Railway)
  */
-async function fetchPrimalFeed(
-  pubkey: string,
-  limit: number = 30,
-  until?: number,
+function usePublicRelays(): string[] {
+  const { config } = useAppContext();
+  return config.relayMetadata.relays
+    .filter(r => r.read && !r.url.includes('railway.app'))
+    .map(r => r.url);
+}
+
+/**
+ * Fetch stats for events from Primal's caching API
+ */
+async function fetchPrimalStats(
+  eventIds: string[],
+  userPubkey?: string,
   signal?: AbortSignal
-): Promise<FeedPost[]> {
-  const posts: FeedPost[] = [];
+): Promise<Map<string, { stats: PostStats; userLiked: boolean; userReposted: boolean; userZapped: boolean }>> {
+  const statsMap = new Map<string, { stats: PostStats; userLiked: boolean; userReposted: boolean; userZapped: boolean }>();
+  
+  if (eventIds.length === 0) return statsMap;
+  
+  // Initialize all with empty stats
+  for (const id of eventIds) {
+    statsMap.set(id, { stats: { ...emptyStats }, userLiked: false, userReposted: false, userZapped: false });
+  }
   
   try {
-    // Build the request - use user's network feed
-    const request = [
-      'feed',
-      {
-        pubkey,
-        kind: 'network',  // Posts from people the user follows
-        limit,
-        ...(until ? { until } : {}),
-      },
-    ];
+    // Batch into chunks of 50
+    const chunks: string[][] = [];
+    for (let i = 0; i < eventIds.length; i += 50) {
+      chunks.push(eventIds.slice(i, i + 50));
+    }
+    
+    for (const chunk of chunks) {
+      const request = [
+        'event_actions',
+        {
+          event_ids: chunk,
+          ...(userPubkey ? { user_pubkey: userPubkey } : {}),
+        },
+      ];
+
+      const response = await fetch('https://primal.net/api', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+        signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(8000)]) : AbortSignal.timeout(8000),
+      });
+
+      if (!response.ok) continue;
+
+      const data = await response.json();
+      
+      for (const item of data) {
+        // Kind 10000100: Note stats
+        if (item.kind === 10000100) {
+          try {
+            const noteStats = JSON.parse(item.content);
+            const entry = statsMap.get(noteStats.event_id);
+            if (entry) {
+              entry.stats = {
+                likes: noteStats.likes || 0,
+                reposts: noteStats.reposts || 0,
+                replies: noteStats.replies || 0,
+                zaps: noteStats.zaps || 0,
+                satsZapped: noteStats.satszapped || 0,
+              };
+            }
+          } catch {
+            // Ignore
+          }
+        }
+        // Kind 10000115: User actions
+        else if (item.kind === 10000115) {
+          try {
+            const actions = JSON.parse(item.content);
+            const entry = statsMap.get(actions.event_id);
+            if (entry) {
+              entry.userLiked = actions.liked || false;
+              entry.userReposted = actions.reposted || false;
+              entry.userZapped = actions.zapped || false;
+            }
+          } catch {
+            // Ignore
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('[Feed] Primal stats fetch failed:', error);
+  }
+  
+  return statsMap;
+}
+
+/**
+ * Fetch user profiles from Primal (batch)
+ */
+async function fetchPrimalProfiles(
+  pubkeys: string[],
+  signal?: AbortSignal
+): Promise<Map<string, NostrMetadata>> {
+  const profiles = new Map<string, NostrMetadata>();
+  
+  if (pubkeys.length === 0) return profiles;
+  
+  try {
+    // Dedupe and limit
+    const uniquePubkeys = [...new Set(pubkeys)].slice(0, 100);
+    
+    const request = ['user_infos', { pubkeys: uniquePubkeys }];
 
     const response = await fetch('https://primal.net/api', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
-      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15000)]) : AbortSignal.timeout(15000),
+      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(8000)]) : AbortSignal.timeout(8000),
     });
 
-    if (!response.ok) {
-      throw new Error(`Primal API error: ${response.status}`);
-    }
+    if (!response.ok) return profiles;
 
     const data = await response.json();
     
-    // Parse the response - it's an array of Nostr events plus metadata
-    const events: NostrEvent[] = [];
-    const users: Record<string, NostrMetadata> = {};
-    const stats: Record<string, PrimalNoteStats> = {};
-    const actions: Record<string, PrimalNoteActions> = {};
-    
     for (const item of data) {
-      if (!item.kind) continue;
-      
-      // Kind 0: User metadata
       if (item.kind === 0) {
         try {
-          users[item.pubkey] = JSON.parse(item.content);
-        } catch {
-          // Ignore parse errors
-        }
-      }
-      // Kind 1: Notes
-      else if (item.kind === 1) {
-        events.push(item as NostrEvent);
-      }
-      // Kind 6: Reposts
-      else if (item.kind === 6) {
-        events.push(item as NostrEvent);
-      }
-      // Kind 10000100: Note stats (Primal custom)
-      else if (item.kind === 10000100) {
-        try {
-          const noteStats = JSON.parse(item.content) as PrimalNoteStats;
-          stats[noteStats.event_id] = noteStats;
-        } catch {
-          // Ignore
-        }
-      }
-      // Kind 10000115: Note actions (user's interactions)
-      else if (item.kind === 10000115) {
-        try {
-          const noteActions = JSON.parse(item.content) as PrimalNoteActions;
-          actions[noteActions.event_id] = noteActions;
+          profiles.set(item.pubkey, JSON.parse(item.content));
         } catch {
           // Ignore
         }
       }
     }
-    
-    // Convert to FeedPost objects
-    for (const event of events) {
-      const eventStats = stats[event.id] || {};
-      const eventActions = actions[event.id] || {};
-      const authorMetadata = users[event.pubkey];
-      
-      posts.push({
-        event,
-        author: authorMetadata ? {
-          pubkey: event.pubkey,
-          metadata: authorMetadata,
-        } : undefined,
-        isPrivate: false,
-        source: 'primal',
-        stats: {
-          likes: eventStats.likes || 0,
-          reposts: eventStats.reposts || 0,
-          replies: eventStats.replies || 0,
-          zaps: eventStats.zaps || 0,
-          satsZapped: eventStats.satszapped || 0,
-        },
-        userLiked: eventActions.liked || false,
-        userReposted: eventActions.reposted || false,
-        userZapped: eventActions.zapped || false,
-      });
-    }
-    
-    // Sort by created_at (newest first)
-    posts.sort((a, b) => b.event.created_at - a.event.created_at);
-    
   } catch (error) {
-    console.warn('[Feed] Primal API failed:', error);
+    console.warn('[Feed] Primal profiles fetch failed:', error);
   }
   
-  return posts;
+  return profiles;
 }
 
 /**
- * Fetch posts from followed users using Primal's fast caching API
- * This gives us instant feed loading with all stats included
+ * Get the user's follow list (kind 3 contact list)
  */
-export function useFollowingPosts(limit: number = 30) {
+export function useFollowList() {
+  const { nostr } = useNostr();
   const { user } = useCurrentUser();
+  const publicRelays = usePublicRelays();
 
   return useQuery({
-    queryKey: ['following-posts-primal', user?.pubkey, limit],
-    queryFn: async ({ signal }): Promise<FeedPost[]> => {
+    queryKey: ['follow-list', user?.pubkey],
+    queryFn: async ({ signal }): Promise<string[]> => {
       if (!user) return [];
       
-      // Use Primal's caching API for fast feed with stats
-      const posts = await fetchPrimalFeed(user.pubkey, limit, undefined, signal);
+      try {
+        // Try Primal API first for faster response
+        const response = await fetch('https://primal.net/api', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(['contact_list', { pubkey: user.pubkey }]),
+          signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]),
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const follows: string[] = [];
+          
+          for (const item of data) {
+            if (item.kind === 3 && item.pubkey === user.pubkey) {
+              for (const tag of item.tags || []) {
+                if (tag[0] === 'p' && tag[1]) {
+                  follows.push(tag[1]);
+                }
+              }
+              break;
+            }
+          }
+          
+          if (follows.length > 0) {
+            return follows;
+          }
+        }
+      } catch {
+        // Fallback to relay query
+      }
       
-      return posts;
+      // Fallback: Query ALL user's relays
+      if (publicRelays.length === 0) return [];
+      
+      try {
+        const relayGroup = nostr.group(publicRelays);
+        const contactEvents = await relayGroup.query([
+          { kinds: [3], authors: [user.pubkey], limit: 1 },
+        ], { signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]) });
+
+        if (contactEvents.length > 0) {
+          return contactEvents[0].tags
+            .filter(([name]) => name === 'p')
+            .map(([, pubkey]) => pubkey)
+            .filter(Boolean);
+        }
+      } catch (error) {
+        console.warn('[Feed] Follow list query failed:', error);
+      }
+      
+      return [];
     },
     enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Fetch posts from followed users using ALL user's configured relays
+ * Then enriches with stats from Primal API
+ */
+export function useFollowingPosts(limit: number = 40) {
+  const { nostr } = useNostr();
+  const { user } = useCurrentUser();
+  const { data: follows = [], isLoading: followsLoading } = useFollowList();
+  const publicRelays = usePublicRelays();
+
+  return useQuery({
+    queryKey: ['following-posts', user?.pubkey, follows.length, publicRelays.join(','), limit],
+    queryFn: async ({ signal }): Promise<FeedPost[]> => {
+      if (!user || follows.length === 0 || publicRelays.length === 0) {
+        return [];
+      }
+      
+      const posts: FeedPost[] = [];
+      const seenIds = new Set<string>();
+      
+      try {
+        // Query ALL user's configured relays
+        const relayGroup = nostr.group(publicRelays);
+        
+        // Query posts from followed users
+        const events = await relayGroup.query([
+          {
+            kinds: [1],
+            authors: follows.slice(0, 500),
+            limit: limit * 2,
+          },
+        ], { signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]) });
+
+        for (const event of events) {
+          if (seenIds.has(event.id)) continue;
+          seenIds.add(event.id);
+          
+          posts.push({
+            event,
+            isPrivate: false,
+            source: 'public',
+            stats: { ...emptyStats },
+          });
+        }
+      } catch (error) {
+        console.warn('[Feed] Relay query failed:', error);
+      }
+
+      // Sort by timestamp (newest first)
+      posts.sort((a, b) => b.event.created_at - a.event.created_at);
+      const displayPosts = posts.slice(0, limit);
+      
+      // Enrich with stats from Primal API
+      const eventIds = displayPosts.map(p => p.event.id);
+      const pubkeys = [...new Set(displayPosts.map(p => p.event.pubkey))];
+      
+      // Fetch stats and profiles in parallel
+      const [statsMap, profilesMap] = await Promise.all([
+        fetchPrimalStats(eventIds, user.pubkey, signal),
+        fetchPrimalProfiles(pubkeys, signal),
+      ]);
+      
+      // Apply stats and profiles
+      for (const post of displayPosts) {
+        const statsEntry = statsMap.get(post.event.id);
+        if (statsEntry) {
+          post.stats = statsEntry.stats;
+          post.userLiked = statsEntry.userLiked;
+          post.userReposted = statsEntry.userReposted;
+          post.userZapped = statsEntry.userZapped;
+        }
+        
+        const profile = profilesMap.get(post.event.pubkey);
+        if (profile) {
+          post.author = { pubkey: post.event.pubkey, metadata: profile };
+        }
+      }
+
+      return displayPosts;
+    },
+    enabled: !!user && !followsLoading && follows.length > 0 && publicRelays.length > 0,
     staleTime: 30000,
     refetchInterval: 60000,
   });
 }
 
 /**
- * Fetch all feed posts - combines Primal feed with LaB posts
+ * Check for new posts since the last fetch (for notification badges)
  */
-export function useFeedPosts(limit: number = 30) {
+export function useNewPostsCount(lastSeenTimestamp: number, tab: 'latest' | 'tribes') {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
+  const { data: follows = [] } = useFollowList();
+  const publicRelays = usePublicRelays();
 
   return useQuery({
-    queryKey: ['feed-posts-combined', user?.pubkey, limit],
+    queryKey: ['new-posts-count', tab, user?.pubkey, lastSeenTimestamp],
+    queryFn: async ({ signal }): Promise<number> => {
+      if (!user || lastSeenTimestamp === 0) return 0;
+      
+      try {
+        if (tab === 'latest') {
+          if (follows.length === 0 || publicRelays.length === 0) return 0;
+          
+          const relayGroup = nostr.group(publicRelays);
+          const newEvents = await relayGroup.query([
+            {
+              kinds: [1],
+              authors: follows.slice(0, 200),
+              since: lastSeenTimestamp,
+              limit: 100,
+            },
+          ], { signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]) });
+          
+          return newEvents.length;
+        } else if (tab === 'tribes') {
+          const labRelay = nostr.relay(LAB_RELAY_URL);
+          const newEvents = await labRelay.query([
+            {
+              kinds: [11, 12],
+              since: lastSeenTimestamp,
+              limit: 100,
+            },
+          ], { signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]) });
+          
+          return newEvents.length;
+        }
+      } catch {
+        return 0;
+      }
+      
+      return 0;
+    },
+    enabled: !!user && lastSeenTimestamp > 0,
+    refetchInterval: 30000, // Check every 30 seconds
+    staleTime: 15000,
+  });
+}
+
+/**
+ * Fetch all feed posts - combines relays with LaB posts
+ */
+export function useFeedPosts(limit: number = 40) {
+  const { nostr } = useNostr();
+  const { user } = useCurrentUser();
+  const { data: follows = [], isLoading: followsLoading } = useFollowList();
+  const publicRelays = usePublicRelays();
+
+  return useQuery({
+    queryKey: ['feed-posts-combined', user?.pubkey, follows.length, publicRelays.join(','), limit],
     queryFn: async ({ signal }): Promise<FeedPost[]> => {
       if (!user) return [];
       
       const posts: FeedPost[] = [];
+      const seenIds = new Set<string>();
 
-      // 1. Fetch from Primal API (fast, with stats)
-      const primalPosts = await fetchPrimalFeed(user.pubkey, limit, undefined, signal);
-      posts.push(...primalPosts);
+      // 1. Fetch from user's configured relays
+      if (follows.length > 0 && publicRelays.length > 0) {
+        try {
+          const relayGroup = nostr.group(publicRelays);
+          
+          const events = await relayGroup.query([
+            {
+              kinds: [1],
+              authors: follows.slice(0, 500),
+              limit: limit * 2,
+            },
+          ], { signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]) });
 
-      // 2. Also fetch from LaB relay for private posts
+          for (const event of events) {
+            if (seenIds.has(event.id)) continue;
+            seenIds.add(event.id);
+            
+            posts.push({
+              event,
+              isPrivate: false,
+              source: 'public',
+              stats: { ...emptyStats },
+            });
+          }
+        } catch (error) {
+          console.warn('[Feed] Public relays failed:', error);
+        }
+      }
+
+      // 2. Also fetch from LaB relay
       try {
         const labRelay = nostr.relay(LAB_RELAY_URL);
         
@@ -242,8 +466,8 @@ export function useFeedPosts(limit: number = 30) {
         ], { signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]) });
 
         for (const event of labEvents) {
-          // Skip duplicates
-          if (posts.some(p => p.event.id === event.id)) continue;
+          if (seenIds.has(event.id)) continue;
+          seenIds.add(event.id);
           
           const isPrivate = NEVER_SHAREABLE_KINDS.includes(event.kind) || 
                            event.tags.some(([name]) => name === 'h');
@@ -261,12 +485,39 @@ export function useFeedPosts(limit: number = 30) {
         console.warn('[Feed] LaB relay failed:', error);
       }
 
-      // Sort by timestamp (newest first)
+      // Sort by timestamp
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
+      const displayPosts = posts.slice(0, limit);
       
-      return posts.slice(0, limit);
+      // Enrich public posts with stats
+      const publicPostIds = displayPosts.filter(p => !p.isPrivate).map(p => p.event.id);
+      const pubkeys = [...new Set(displayPosts.map(p => p.event.pubkey))];
+      
+      const [statsMap, profilesMap] = await Promise.all([
+        fetchPrimalStats(publicPostIds, user.pubkey, signal),
+        fetchPrimalProfiles(pubkeys, signal),
+      ]);
+      
+      for (const post of displayPosts) {
+        if (!post.isPrivate) {
+          const statsEntry = statsMap.get(post.event.id);
+          if (statsEntry) {
+            post.stats = statsEntry.stats;
+            post.userLiked = statsEntry.userLiked;
+            post.userReposted = statsEntry.userReposted;
+            post.userZapped = statsEntry.userZapped;
+          }
+        }
+        
+        const profile = profilesMap.get(post.event.pubkey);
+        if (profile) {
+          post.author = { pubkey: post.event.pubkey, metadata: profile };
+        }
+      }
+      
+      return displayPosts;
     },
-    enabled: !!user,
+    enabled: !!user && !followsLoading,
     staleTime: 30000,
     refetchInterval: 60000,
   });
@@ -316,82 +567,6 @@ export function useTribePosts(limit: number = 30) {
   });
 }
 
-/**
- * Get the user's follow list (kind 3 contact list)
- */
-export function useFollowList() {
-  const { nostr } = useNostr();
-  const { user } = useCurrentUser();
-
-  return useQuery({
-    queryKey: ['follow-list', user?.pubkey],
-    queryFn: async ({ signal }): Promise<string[]> => {
-      if (!user) return [];
-      
-      try {
-        // Try Primal API first for faster response
-        const response = await fetch('https://primal.net/api', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(['contact_list', { pubkey: user.pubkey }]),
-          signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]),
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          const follows: string[] = [];
-          
-          for (const item of data) {
-            if (item.kind === 3 && item.pubkey === user.pubkey) {
-              for (const tag of item.tags || []) {
-                if (tag[0] === 'p' && tag[1]) {
-                  follows.push(tag[1]);
-                }
-              }
-              break;
-            }
-          }
-          
-          if (follows.length > 0) {
-            return follows;
-          }
-        }
-      } catch {
-        // Fallback to relay query
-      }
-      
-      // Fallback: Query relays directly
-      try {
-        const contactEvents = await nostr.query([
-          { kinds: [3], authors: [user.pubkey], limit: 1 },
-        ], { signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]) });
-
-        if (contactEvents.length > 0) {
-          return contactEvents[0].tags
-            .filter(([name]) => name === 'p')
-            .map(([, pubkey]) => pubkey)
-            .filter(Boolean);
-        }
-      } catch (error) {
-        console.warn('[Feed] Follow list query failed:', error);
-      }
-      
-      return [];
-    },
-    enabled: !!user,
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-/** Helper to chunk an array */
-function chunkArray<T>(arr: T[], size: number): T[][] {
-  const chunks: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) {
-    chunks.push(arr.slice(i, i + size));
-  }
-  return chunks;
-}
-
 /** Format tribe name from slug */
 function formatTribeName(slug: string): string {
   return slug
@@ -401,4 +576,4 @@ function formatTribeName(slug: string): string {
 }
 
 // Re-export for backwards compatibility
-export { chunkArray, formatTribeName };
+export { formatTribeName };

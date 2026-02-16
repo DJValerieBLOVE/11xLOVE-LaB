@@ -13,11 +13,11 @@
  * - All posts have zap, react, reply, mute, report
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useFeedPosts, useTribePosts, useFollowingPosts } from '@/hooks/useFeedPosts';
+import { useFeedPosts, useTribePosts, useFollowingPosts, useNewPostsCount } from '@/hooks/useFeedPosts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   Lock, 
@@ -47,11 +47,45 @@ const Feed = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('latest');
   const [postContent, setPostContent] = useState('');
+  
+  // Track last seen timestamps for new post notifications
+  const [lastSeenLatest, setLastSeenLatest] = useState(() => Math.floor(Date.now() / 1000));
+  const [lastSeenTribes, setLastSeenTribes] = useState(() => Math.floor(Date.now() / 1000));
 
   // Real Nostr queries - all use user's configured relays
   const { data: allPosts, isLoading: allLoading, refetch: refetchAll } = useFeedPosts(50);
   const { data: tribePosts, isLoading: tribeLoading, refetch: refetchTribe } = useTribePosts(50);
   const { data: followingPosts, isLoading: followingLoading, refetch: refetchFollowing } = useFollowingPosts(50);
+  
+  // Check for new posts (for notification badges)
+  const { data: newLatestCount = 0 } = useNewPostsCount(lastSeenLatest, 'latest');
+  const { data: newTribesCount = 0 } = useNewPostsCount(lastSeenTribes, 'tribes');
+  
+  // Update last seen timestamp when switching to a tab
+  const handleTabChange = useCallback((tab: string) => {
+    setActiveTab(tab);
+    const now = Math.floor(Date.now() / 1000);
+    if (tab === 'latest') {
+      setLastSeenLatest(now);
+    } else if (tab === 'tribes') {
+      setLastSeenTribes(now);
+    }
+  }, []);
+  
+  // Update last seen when posts are loaded
+  useEffect(() => {
+    if (followingPosts && followingPosts.length > 0 && activeTab === 'latest') {
+      const newestTimestamp = Math.max(...followingPosts.map(p => p.event.created_at));
+      setLastSeenLatest(newestTimestamp);
+    }
+  }, [followingPosts, activeTab]);
+  
+  useEffect(() => {
+    if (tribePosts && tribePosts.length > 0 && activeTab === 'tribes') {
+      const newestTimestamp = Math.max(...tribePosts.map(p => p.event.created_at));
+      setLastSeenTribes(newestTimestamp);
+    }
+  }, [tribePosts, activeTab]);
 
   // Publishing hook
   const { mutate: publishPost, isPending: isPosting } = useLabPublish();
@@ -269,21 +303,31 @@ const Feed = () => {
               </CardContent>
             </Card>
 
-            {/* Feed Tabs: Latest, Tribes, Buddies */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            {/* Feed Tabs: Latest, Tribes, Buddies - with notification badges */}
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto">
                 <TabsTrigger 
                   value="latest" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] px-4 py-2"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] px-4 py-2 relative"
                 >
                   Latest
+                  {newLatestCount > 0 && activeTab !== 'latest' && (
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white bg-[#eb00a8] rounded-full px-1">
+                      {newLatestCount > 99 ? '99+' : newLatestCount}
+                    </span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="tribes" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-4 py-2"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-4 py-2 relative"
                 >
                   <Lock className="h-3 w-3" />
                   Tribes
+                  {newTribesCount > 0 && activeTab !== 'tribes' && (
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white bg-[#eb00a8] rounded-full px-1">
+                      {newTribesCount > 99 ? '99+' : newTribesCount}
+                    </span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="buddies" 
