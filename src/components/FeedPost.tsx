@@ -135,13 +135,6 @@ export function FeedPost({
   const npub = nip19.npubEncode(event.pubkey);
   const noteId = nip19.noteEncode(event.id);
   const timeAgo = formatDistanceToNow(new Date(event.created_at * 1000), { addSuffix: true });
-  
-  // Fetch top zappers for this post
-  const { data: zappersData } = useZappers(event.id, satsZapped > 0);
-  
-  // Check if author has lightning address for zapping
-  const hasLightningAddress = !!(metadata?.lud16 || metadata?.lud06);
-  const canZap = !!user && user.pubkey !== event.pubkey && hasLightningAddress;
 
   // Calculate display counts (stats + local optimistic updates)
   const likeCount = (stats?.likes || 0) + localLikeCount;
@@ -149,6 +142,13 @@ export function FeedPost({
   const replyCount = stats?.replies || 0;
   const zapCount = stats?.zaps || 0;
   const satsZapped = stats?.satsZapped || 0;
+  
+  // Fetch top zappers for this post (must be after satsZapped is defined)
+  const { data: zappersData } = useZappers(event.id, satsZapped > 0);
+  
+  // Check if author has lightning address for zapping
+  const hasLightningAddress = !!(metadata?.lud16 || metadata?.lud06);
+  const canZap = !!user && user.pubkey !== event.pubkey && hasLightningAddress;
 
   const handleReport = () => {
     if (onReport && reportReason.trim()) {
