@@ -35,17 +35,12 @@ const defaultConfig: AppConfig = {
   theme: "light",
   relayMetadata: {
     relays: [
-      // Private Railway relay - 11x LOVE LaB data ONLY (always write here)
+      // Private Railway relay - 11x LOVE LaB data ONLY
       { url: 'wss://nostr-rs-relay-production-1569.up.railway.app', read: true, write: true },
-      
-      // Default popular public relays - Social Nostr data (profiles, follows, public feed)
-      // These are always available and FREE
+      // Fast public relays for social data
       { url: 'wss://relay.primal.net', read: true, write: false },
       { url: 'wss://relay.damus.io', read: true, write: false },
       { url: 'wss://nos.lol', read: true, write: false },
-      { url: 'wss://relay.snort.social', read: true, write: false },
-      { url: 'wss://relay.ditto.pub', read: true, write: false },
-      { url: 'wss://bitcoiner.social', read: true, write: false },
     ],
     updatedAt: 0,
   },

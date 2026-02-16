@@ -18,9 +18,6 @@ export const PUBLIC_RELAYS = [
   'wss://relay.primal.net',
   'wss://relay.damus.io',
   'wss://nos.lol',
-  'wss://relay.snort.social',
-  'wss://relay.ditto.pub',
-  'wss://bitcoiner.social',
 ];
 
 /**
