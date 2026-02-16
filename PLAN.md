@@ -4,9 +4,9 @@
 
 ---
 
-## STATUS: FEED SYSTEM ENHANCED — DEBUGGING IN PROGRESS 🔧
+## STATUS: FEED SYSTEM ENHANCED — TESTING IN PROGRESS 🔧
 
-**Last Updated:** February 16, 2026
+**Last Updated:** February 16, 2026 (8:45 AM)
 
 **Infrastructure:**
 - ✅ Private Nostr relay deployed on Railway
@@ -28,6 +28,8 @@
 - ✅ 5-tier membership system
 - ✅ **Primal custom kinds documented (40+ kinds)**
 - ✅ **Link preview cards (kind 10000128)**
+- ✅ **Fixed stale feed data bug** (was showing old posts)
+- ✅ **Fixed username styling** (was grayed out, now black)
 - 🔧 **Feed content mismatch with Primal — investigating**
 - 🔧 **Stats display — needs testing**
 - ❌ **NOT connected to Magic Mentor AI yet**
