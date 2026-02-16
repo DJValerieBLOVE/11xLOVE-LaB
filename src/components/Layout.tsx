@@ -82,7 +82,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 className={`flex items-center gap-3 px-4 py-3 text-base font-medium transition-colors rounded-lg ${
                   isActive(item.href)
                     ? 'text-[#6600ff] bg-purple-50'
-                    : 'text-gray-600 hover:text-[#6600ff] hover:bg-purple-50/50'
+                    : 'text-black hover:text-[#6600ff] hover:bg-purple-50/50'
                 }`}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
@@ -201,7 +201,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 key={item.name}
                 to={item.href}
                 className={`flex flex-col items-center justify-center py-2 px-1 transition-colors ${
-                  isActive(item.href) ? 'text-[#6600ff]' : 'text-gray-400'
+                  isActive(item.href) ? 'text-[#6600ff]' : 'text-black'
                 }`}
               >
                 <Icon className="h-5 w-5" />

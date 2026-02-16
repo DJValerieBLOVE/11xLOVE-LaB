@@ -2,99 +2,108 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root,
-  :root.light {
-    /* LIGHT MODE - Simple, solid colors */
-    --background: 0 0% 100%;           /* #FFFFFF - White */
-    --foreground: 0 0% 0%;             /* #000000 - BLACK */
+/*
+ * CRITICAL: CSS variable overrides OUTSIDE of @layer
+ * 
+ * Shakespeare's build system uses <style type="text/tailwindcss"> which triggers
+ * the Tailwind Play CDN. The CDN generates its own @layer base styles with default
+ * color variables. By placing our overrides OUTSIDE of any @layer, they automatically
+ * have higher specificity than anything inside @layer (per CSS Cascade Layers spec).
+ * This ensures our custom colors always win over CDN defaults.
+ */
+:root,
+:root.light {
+  --background: 0 0% 100%;           /* #FFFFFF - White */
+  --foreground: 0 0% 0%;             /* #000000 - BLACK */
 
-    --card: 0 0% 100%;                 /* #FFFFFF - White */
-    --card-foreground: 0 0% 0%;        /* #000000 - BLACK */
+  --card: 0 0% 100%;                 /* #FFFFFF - White */
+  --card-foreground: 0 0% 0%;        /* #000000 - BLACK */
 
-    --popover: 0 0% 100%;              /* #FFFFFF - White */
-    --popover-foreground: 0 0% 0%;     /* #000000 - BLACK */
+  --popover: 0 0% 100%;              /* #FFFFFF - White */
+  --popover-foreground: 0 0% 0%;     /* #000000 - BLACK */
 
-    /* Purple primary color #6600ff */
-    --primary: 252 100% 50%;           /* #6600ff - Purple */
-    --primary-foreground: 0 0% 100%;   /* #FFFFFF - White */
+  --primary: 252 100% 50%;           /* #6600ff - Purple */
+  --primary-foreground: 0 0% 100%;   /* #FFFFFF - White */
 
-    --secondary: 0 0% 96%;             /* #F5F5F5 - Light gray bg */
-    --secondary-foreground: 0 0% 0%;   /* #000000 - BLACK */
+  --secondary: 0 0% 96%;             /* #F5F5F5 - Light gray bg */
+  --secondary-foreground: 0 0% 0%;   /* #000000 - BLACK */
 
-    --accent: 0 0% 96%;                /* #F5F5F5 - Light gray bg */
-    --accent-foreground: 0 0% 0%;      /* #000000 - BLACK */
+  --muted: 0 0% 96%;                 /* #F5F5F5 - Light gray bg */
+  --muted-foreground: 0 0% 40%;      /* #666666 - Readable dark gray for metadata */
 
-    --destructive: 0 84% 60%;          /* Red */
-    --destructive-foreground: 0 0% 100%; /* White */
+  --accent: 0 0% 96%;                /* #F5F5F5 - Light gray bg */
+  --accent-foreground: 0 0% 0%;      /* #000000 - BLACK */
 
-    --border: 0 0% 90%;                /* #E5E5E5 - Light gray */
-    --input: 0 0% 90%;                 /* #E5E5E5 - Light gray */
-    --ring: 252 100% 50%;              /* #6600ff - Purple */
+  --destructive: 0 84% 60%;          /* Red */
+  --destructive-foreground: 0 0% 100%; /* White */
 
-    --radius: 0.75rem;
+  --border: 0 0% 90%;                /* #E5E5E5 - Light gray */
+  --input: 0 0% 90%;                 /* #E5E5E5 - Light gray */
+  --ring: 252 100% 50%;              /* #6600ff - Purple */
 
-    --sidebar-background: 0 0% 98%;    /* #FAFAFA */
-    --sidebar-foreground: 0 0% 0%;     /* #000000 - BLACK */
-    --sidebar-primary: 0 0% 0%;        /* #000000 - BLACK */
-    --sidebar-primary-foreground: 0 0% 100%; /* White */
-    --sidebar-accent: 0 0% 96%;        /* #F5F5F5 */
-    --sidebar-accent-foreground: 0 0% 0%; /* #000000 - BLACK */
-    --sidebar-border: 0 0% 90%;        /* #E5E5E5 */
-    --sidebar-ring: 252 100% 50%;      /* #6600ff - Purple */
+  --radius: 0.75rem;
 
-    /* 11x LOVE LaB — The 11 Dimensions Color Palette */
-    --dimension-god: #eb00a8;        /* 1. GOD/LOVE - Hot Pink */
-    --dimension-soul: #cc00ff;       /* 2. Soul - Magenta */
-    --dimension-mind: #9900ff;       /* 3. Mind - Purple */
-    --dimension-body: #6600ff;       /* 4. Body - Purple (PRIMARY) */
-    --dimension-romance: #e60023;    /* 5. Romance - Red */
-    --dimension-family: #ff6600;     /* 6. Family - Orange */
-    --dimension-community: #ffdf00;  /* 7. Community - Yellow */
-    --dimension-mission: #a2f005;    /* 8. Mission - Lime Green */
-    --dimension-money: #00d81c;      /* 9. Money - Matrix Green */
-    --dimension-time: #00ccff;       /* 10. Time - Cyan */
-    --dimension-environment: #0033ff;/* 11. Environment - Blue */
-  }
+  --sidebar-background: 0 0% 98%;    /* #FAFAFA */
+  --sidebar-foreground: 0 0% 0%;     /* #000000 - BLACK */
+  --sidebar-primary: 0 0% 0%;        /* #000000 - BLACK */
+  --sidebar-primary-foreground: 0 0% 100%; /* White */
+  --sidebar-accent: 0 0% 96%;        /* #F5F5F5 */
+  --sidebar-accent-foreground: 0 0% 0%; /* #000000 - BLACK */
+  --sidebar-border: 0 0% 90%;        /* #E5E5E5 */
+  --sidebar-ring: 252 100% 50%;      /* #6600ff - Purple */
 
-  :root.dark,
-  .dark {
-    /* DARK MODE - Simple, solid colors */
-    --background: 0 0% 0%;             /* #000000 - Black */
-    --foreground: 0 0% 100%;           /* #FFFFFF - White */
+  /* 11x LOVE LaB — The 11 Dimensions Color Palette */
+  --dimension-god: #eb00a8;        /* 1. GOD/LOVE - Hot Pink */
+  --dimension-soul: #cc00ff;       /* 2. Soul - Magenta */
+  --dimension-mind: #9900ff;       /* 3. Mind - Purple */
+  --dimension-body: #6600ff;       /* 4. Body - Purple (PRIMARY) */
+  --dimension-romance: #e60023;    /* 5. Romance - Red */
+  --dimension-family: #ff6600;     /* 6. Family - Orange */
+  --dimension-community: #ffdf00;  /* 7. Community - Yellow */
+  --dimension-mission: #a2f005;    /* 8. Mission - Lime Green */
+  --dimension-money: #00d81c;      /* 9. Money - Matrix Green */
+  --dimension-time: #00ccff;       /* 10. Time - Cyan */
+  --dimension-environment: #0033ff;/* 11. Environment - Blue */
+}
 
-    --card: 0 0% 5%;                   /* #0D0D0D - Near black */
-    --card-foreground: 0 0% 100%;      /* #FFFFFF - White */
+:root.dark,
+.dark {
+  --background: 0 0% 0%;             /* #000000 - Black */
+  --foreground: 0 0% 100%;           /* #FFFFFF - White */
 
-    --popover: 0 0% 5%;                /* #0D0D0D - Near black */
-    --popover-foreground: 0 0% 100%;   /* #FFFFFF - White */
+  --card: 0 0% 5%;                   /* #0D0D0D - Near black */
+  --card-foreground: 0 0% 100%;      /* #FFFFFF - White */
 
-    --primary: 252 100% 50%;           /* #6600ff - Purple */
-    --primary-foreground: 0 0% 100%;   /* #FFFFFF - White */
+  --popover: 0 0% 5%;                /* #0D0D0D - Near black */
+  --popover-foreground: 0 0% 100%;   /* #FFFFFF - White */
 
-    --secondary: 0 0% 15%;             /* Dark gray bg */
-    --secondary-foreground: 0 0% 100%; /* #FFFFFF - White */
+  --primary: 252 100% 50%;           /* #6600ff - Purple */
+  --primary-foreground: 0 0% 100%;   /* #FFFFFF - White */
 
+  --secondary: 0 0% 15%;             /* Dark gray bg */
+  --secondary-foreground: 0 0% 100%; /* #FFFFFF - White */
 
-    --accent: 0 0% 15%;                /* Dark gray bg */
-    --accent-foreground: 0 0% 100%;    /* #FFFFFF - White */
+  --muted: 0 0% 15%;                 /* Dark gray bg */
+  --muted-foreground: 0 0% 64%;      /* Light gray text for dark mode */
 
-    --destructive: 0 62% 30%;          /* Dark red */
-    --destructive-foreground: 0 0% 100%; /* White */
+  --accent: 0 0% 15%;                /* Dark gray bg */
+  --accent-foreground: 0 0% 100%;    /* #FFFFFF - White */
 
-    --border: 0 0% 20%;                /* Dark gray */
-    --input: 0 0% 20%;                 /* Dark gray */
-    --ring: 252 100% 50%;              /* #6600ff - Purple */
+  --destructive: 0 62% 30%;          /* Dark red */
+  --destructive-foreground: 0 0% 100%; /* White */
 
-    --sidebar-background: 0 0% 5%;     /* Near black */
-    --sidebar-foreground: 0 0% 100%;   /* #FFFFFF - White */
-    --sidebar-primary: 252 100% 50%;   /* #6600ff - Purple */
-    --sidebar-primary-foreground: 0 0% 100%; /* White */
-    --sidebar-accent: 0 0% 15%;        /* Dark gray */
-    --sidebar-accent-foreground: 0 0% 100%; /* #FFFFFF - White */
-    --sidebar-border: 0 0% 20%;        /* Dark gray */
-    --sidebar-ring: 252 100% 50%;      /* #6600ff - Purple */
-  }
+  --border: 0 0% 20%;                /* Dark gray */
+  --input: 0 0% 20%;                 /* Dark gray */
+  --ring: 252 100% 50%;              /* #6600ff - Purple */
+
+  --sidebar-background: 0 0% 5%;     /* Near black */
+  --sidebar-foreground: 0 0% 100%;   /* #FFFFFF - White */
+  --sidebar-primary: 252 100% 50%;   /* #6600ff - Purple */
+  --sidebar-primary-foreground: 0 0% 100%; /* White */
+  --sidebar-accent: 0 0% 15%;        /* Dark gray */
+  --sidebar-accent-foreground: 0 0% 100%; /* #FFFFFF - White */
+  --sidebar-border: 0 0% 20%;        /* Dark gray */
+  --sidebar-ring: 252 100% 50%;      /* #6600ff - Purple */
 }
 
 @layer base {
