@@ -216,11 +216,6 @@ export function FeedPost({
   const replyCount = stats?.replies ?? 0;
   const satsZapped = stats?.satsZapped ?? 0;
   
-  // Debug: Log stats if present
-  if (stats && (stats.likes > 0 || stats.reposts > 0 || stats.zaps > 0)) {
-    console.log('[FeedPost] Stats for', displayEvent.id.slice(0, 8), ':', stats);
-  }
-  
   // Check if author has lightning address for zapping
   const hasLightningAddress = !!(metadata?.lud16 || metadata?.lud06);
   const canZap = !!user && user.pubkey !== event.pubkey && hasLightningAddress;

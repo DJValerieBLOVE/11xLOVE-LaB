@@ -205,7 +205,8 @@ export function NoteContent({
     const text = textContent;
     
     // Regex to find URLs, Nostr references, and hashtags
-    const regex = /(https?:\/\/[^\s]+)|nostr:(npub1|note1|nprofile1|nevent1)([023456789acdefghjklmnpqrstuvwxyz]+)|(#\w+)/g;
+    // Includes naddr1 for addressable events (articles, streams, etc.)
+    const regex = /(https?:\/\/[^\s]+)|nostr:(npub1|note1|nprofile1|nevent1|naddr1)([023456789acdefghjklmnpqrstuvwxyz]+)|(#\w+)/g;
     
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
@@ -271,6 +272,22 @@ export function NoteContent({
                 eventId={data.id}
                 relays={data.relays}
               />
+            );
+          } else if (decoded.type === 'naddr') {
+            // Addressable event (article, stream, etc.) - show as compact link
+            const data = decoded.data as { kind: number; pubkey: string; identifier: string; relays?: string[] };
+            const kindLabel = data.kind === 30023 ? 'Article' : 
+                            data.kind === 30311 ? 'Stream' :
+                            data.kind === 30402 ? 'Listing' :
+                            `Event`;
+            parts.push(
+              <Link 
+                key={`naddr-${keyCounter++}`}
+                to={`/${nostrId}`}
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#6600ff]/10 text-[#6600ff] rounded text-sm hover:bg-[#6600ff]/20 transition-colors"
+              >
+                📄 {kindLabel}{data.identifier ? `: ${data.identifier.slice(0, 30)}${data.identifier.length > 30 ? '...' : ''}` : ''}
+              </Link>
             );
           } else {
             // For other types, show as compact link (not raw string)
@@ -557,16 +574,10 @@ function EmbeddedNote({ eventId, relays }: { eventId: string; relays?: string[] 
   const npub = nip19.npubEncode(event.pubkey);
   const timeAgo = formatDistanceToNow(new Date(event.created_at * 1000), { addSuffix: true });
   
-  // Truncate content if too long
-  const maxLength = 280;
-  const content = event.content.length > maxLength 
-    ? event.content.slice(0, maxLength) + '...' 
-    : event.content;
-  
   return (
-    <Link 
-      to={`/${noteId}`}
-      className="my-2 block p-3 border rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+    <div 
+      className="my-2 block p-3 border rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
+      onClick={() => window.location.href = `/${noteId}`}
     >
       <div className="flex items-center gap-2 mb-2">
         <Avatar className="h-5 w-5">
@@ -584,8 +595,85 @@ function EmbeddedNote({ eventId, relays }: { eventId: string; relays?: string[] 
         </Link>
         <span className="text-xs text-gray-500">• {timeAgo}</span>
       </div>
-      <p className="text-sm whitespace-pre-wrap break-words">{content}</p>
-    </Link>
+      {/* Render rich content with media - same as regular posts */}
+      <EmbeddedNoteContent event={event} />
+    </div>
+  );
+}
+
+/** Compact content renderer for embedded/quoted notes - shows text + images inline */
+function EmbeddedNoteContent({ event }: { event: NostrEvent }) {
+  const content = event.content || '';
+  
+  // Extract media URLs from content
+  const urlRegex = /https?:\/\/[^\s<>"]+/g;
+  const rawUrls = content.match(urlRegex) || [];
+  const urls = rawUrls.map(url => url.replace(/[.,;:!?)\]]+$/, ''));
+  
+  const imageUrls: string[] = [];
+  
+  urls.forEach(url => {
+    if (isImageUrl(url) || isVideoUrl(url)) {
+      imageUrls.push(url);
+    }
+  });
+  
+  // Clean media URLs from text
+  let textContent = content;
+  imageUrls.forEach(url => {
+    textContent = textContent.replace(url, '').trim();
+  });
+  
+  // Also clean nostr: references and show them as compact links
+  const nostrRegex = /nostr:(npub1|note1|nprofile1|nevent1|naddr1)([023456789acdefghjklmnpqrstuvwxyz]+)/g;
+  const textWithChips = textContent.replace(nostrRegex, (_match, prefix: string) => {
+    const label = prefix === 'npub1' ? '@user' : 
+                  prefix === 'note1' ? '📝 note' :
+                  prefix === 'naddr1' ? '📄 link' :
+                  '🔗 ref';
+    return `[${label}]`;
+  });
+  
+  // Truncate if too long
+  const maxLength = 280;
+  const displayText = textWithChips.length > maxLength 
+    ? textWithChips.slice(0, maxLength) + '...' 
+    : textWithChips;
+  
+  return (
+    <div className="space-y-2">
+      {displayText.trim() && (
+        <p className="text-sm whitespace-pre-wrap break-words">{displayText}</p>
+      )}
+      {/* Show first image from the embedded note */}
+      {imageUrls.slice(0, 1).map((url, i) => (
+        <a 
+          key={`embed-img-${i}`}
+          href={url} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="block overflow-hidden rounded-lg"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <img
+            src={url}
+            alt="Embedded media"
+            className="max-w-full h-auto rounded-lg bg-gray-100"
+            loading="lazy"
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              img.style.display = 'none';
+              const parent = img.parentElement;
+              if (parent) parent.style.display = 'none';
+            }}
+            style={{ maxHeight: '300px', objectFit: 'contain' }}
+          />
+        </a>
+      ))}
+      {imageUrls.length > 1 && (
+        <p className="text-xs text-gray-500">+{imageUrls.length - 1} more image{imageUrls.length > 2 ? 's' : ''}</p>
+      )}
+    </div>
   );
 }
 

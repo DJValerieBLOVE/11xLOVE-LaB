@@ -152,9 +152,20 @@ export function useFollowingPosts(limit: number = 40) {
           if (seenIds.has(note.id)) continue;
           seenIds.add(note.id);
 
-          const stats = primalResult.stats.get(note.id);
-          const actions = primalResult.actions.get(note.id);
-          const profile = primalResult.profiles.get(note.pubkey);
+          // For kind 6 reposts, look up stats for the INNER event, not the repost wrapper
+          let statsId = note.id;
+          let innerPubkey = note.pubkey;
+          if (note.kind === 6 && note.content) {
+            try {
+              const inner = JSON.parse(note.content);
+              if (inner.id) statsId = inner.id;
+              if (inner.pubkey) innerPubkey = inner.pubkey;
+            } catch { /* use note.id as fallback */ }
+          }
+
+          const stats = primalResult.stats.get(statsId) || primalResult.stats.get(note.id);
+          const actions = primalResult.actions.get(statsId) || primalResult.actions.get(note.id);
+          const profile = primalResult.profiles.get(note.pubkey) || primalResult.profiles.get(innerPubkey);
 
           posts.push({
             event: note,
@@ -176,15 +187,17 @@ export function useFollowingPosts(limit: number = 40) {
         }
       }
 
-      // Process relay results (fresher but no stats)
+      // Process relay results (fresher but need stats from Primal)
       if (relayEvents.length > 0) {
         console.log('[Feed] Relays:', relayEvents.length, 'notes');
         const newEventIds: string[] = [];
+        const relayPostIndices: number[] = [];
 
         for (const event of relayEvents) {
           if (seenIds.has(event.id)) continue;
           seenIds.add(event.id);
           newEventIds.push(event.id);
+          relayPostIndices.push(posts.length);
 
           posts.push({
             event,
@@ -194,9 +207,38 @@ export function useFollowingPosts(limit: number = 40) {
           });
         }
 
-        // Fetch stats for relay-only posts from Primal (background, non-blocking)
+        // Fetch stats for relay-only posts from Primal
         if (newEventIds.length > 0) {
-          fetchPrimalEventStats(newEventIds, user.pubkey).catch(() => {});
+          try {
+            const statsResult = await fetchPrimalEventStats(newEventIds, user.pubkey, 
+              AbortSignal.any([signal, AbortSignal.timeout(8000)]));
+            
+            // Merge stats into the relay posts
+            for (let i = 0; i < newEventIds.length; i++) {
+              const eventId = newEventIds[i];
+              const postIndex = relayPostIndices[i];
+              const stats = statsResult.stats.get(eventId);
+              const actions = statsResult.actions.get(eventId);
+              
+              if (stats && posts[postIndex]) {
+                posts[postIndex].stats = {
+                  likes: stats.likes || 0,
+                  reposts: stats.reposts || 0,
+                  replies: stats.replies || 0,
+                  zaps: stats.zaps || 0,
+                  satsZapped: stats.satszapped || 0,
+                };
+              }
+              if (actions && posts[postIndex]) {
+                posts[postIndex].userLiked = actions.liked || false;
+                posts[postIndex].userReposted = actions.reposted || false;
+                posts[postIndex].userZapped = actions.zapped || false;
+              }
+            }
+            console.log('[Feed] Relay posts with stats:', statsResult.stats.size);
+          } catch {
+            console.warn('[Feed] Failed to fetch stats for relay posts');
+          }
         }
       }
 
@@ -284,9 +326,20 @@ export function useFeedPosts(limit: number = 40) {
         if (seenIds.has(note.id)) continue;
         seenIds.add(note.id);
         
-        const stats = primalResult.stats.get(note.id);
-        const actions = primalResult.actions.get(note.id);
-        const profile = primalResult.profiles.get(note.pubkey);
+        // For kind 6 reposts, look up stats for the INNER event
+        let statsId = note.id;
+        let innerPubkey = note.pubkey;
+        if (note.kind === 6 && note.content) {
+          try {
+            const inner = JSON.parse(note.content);
+            if (inner.id) statsId = inner.id;
+            if (inner.pubkey) innerPubkey = inner.pubkey;
+          } catch { /* use note.id */ }
+        }
+        
+        const stats = primalResult.stats.get(statsId) || primalResult.stats.get(note.id);
+        const actions = primalResult.actions.get(statsId) || primalResult.actions.get(note.id);
+        const profile = primalResult.profiles.get(note.pubkey) || primalResult.profiles.get(innerPubkey);
         
         posts.push({
           event: note,

@@ -182,8 +182,6 @@ async function primalRequest(
       ws.binaryType = 'arraybuffer';
       
       ws.onopen = () => {
-        console.log(`[Primal] Connected, sending ${method} request...`);
-        
         // First enable compression
         const protocolId = `protocol_${Date.now()}`;
         ws?.send(JSON.stringify([
@@ -213,48 +211,43 @@ async function primalRequest(
         
         if (!jsonStr) return;
         
-        try {
-          const data = JSON.parse(jsonStr);
-          const [type, msgSubId, content] = data;
-          
-          // Check for protocol EOSE
-          if (type === 'EOSE' && msgSubId?.startsWith('protocol_')) {
-            compressionEnabled = true;
-            console.log('[Primal] Compression enabled, sending actual request...');
+        // Compressed responses may contain multiple JSON messages separated by newlines
+        const messages = jsonStr.split('\n').filter(s => s.trim());
+        
+        for (const msg of messages) {
+          try {
+            const data = JSON.parse(msg);
+            const [type, msgSubId, content] = data;
             
-            // Now send the actual request
-            ws?.send(JSON.stringify([
-              'REQ', subId,
-              { cache: [method, payload] }
-            ]));
-            return;
-          }
-          
-          // Only process our request
-          if (msgSubId !== subId) return;
-          
-          if (type === 'EVENT' && content) {
-            // Debug: Log event kinds
-            const kind = content?.kind;
-            if (kind >= 10000000) {
-              console.log('[Primal] Got EVENT kind', kind);
+            // Check for protocol EOSE
+            if (type === 'EOSE' && msgSubId?.startsWith('protocol_')) {
+              compressionEnabled = true;
+              
+              // Now send the actual request
+              ws?.send(JSON.stringify([
+                'REQ', subId,
+                { cache: [method, payload] }
+              ]));
+              continue;
             }
-            processEvent(content, result);
-          } else if (type === 'EVENTS' && Array.isArray(content)) {
-            // Debug: Log batch info
-            const kinds = content.map((e: { kind?: number }) => e?.kind).filter(Boolean);
-            const uniqueKinds = [...new Set(kinds)];
-            console.log('[Primal] Got EVENTS batch with', content.length, 'items, kinds:', uniqueKinds.join(','));
             
-            for (const item of content) {
-              processEvent(item, result);
+            // Only process our request
+            if (msgSubId !== subId) continue;
+            
+            if (type === 'EVENT' && content) {
+              processEvent(content, result);
+            } else if (type === 'EVENTS' && Array.isArray(content)) {
+              for (const item of content) {
+                processEvent(item, result);
+              }
+            } else if (type === 'EOSE') {
+              clearTimeout(timeout);
+              finish();
+              return; // Stop processing further messages after EOSE
             }
-          } else if (type === 'EOSE') {
-            clearTimeout(timeout);
-            finish();
+          } catch (e) {
+            console.warn('[Primal] Parse error:', e);
           }
-        } catch (e) {
-          console.warn('[Primal] Parse error:', e);
         }
       };
       
@@ -350,25 +343,10 @@ function processEvent(eventData: unknown, result: PrimalFeedResult) {
       }
     } catch { /* ignore */ }
   }
-  // Known Primal kinds we can safely ignore (not needed for feed display)
-  else if (
-    kind === PrimalKind.FeedRange ||           // 10000113 - pagination
-    kind === PrimalKind.Mentions ||            // 10000107 - mentions
-    kind === PrimalKind.UserScore ||           // 10000108 - user score
-    kind === PrimalKind.UserStats ||           // 10000105 - follower counts
-    kind === PrimalKind.EventZapInfo ||        // 10000129 - zap info
-    kind === PrimalKind.RelayHint ||           // 10000141 - relay hints
-    kind === PrimalKind.VerifiedUsersDict ||   // 10000158 - verified users
-    kind === PrimalKind.LegendCustomization || // 10000168 - legend customization
-    kind === PrimalKind.MembershipCohortInfo   // 10000169 - membership info
-  ) {
-    // These are known kinds we don't need to display warnings for
-    // They provide supplementary data that we're not using yet
-  }
-  // Unknown Primal kinds - log for debugging
-  else if (kind > 10000000) {
-    // Only log truly unknown kinds
-    console.log('[Primal] Unhandled kind', kind);
+  // All other Primal-specific kinds (pagination, mentions, scores, etc.)
+  // are silently ignored - they provide supplementary data we don't need
+  else {
+    // No-op: silently ignore known and unknown supplementary kinds
   }
 }
 
@@ -397,25 +375,43 @@ export async function fetchPrimalNetworkFeed(
     include_replies: true,
   });
   
-  // Debug: Log first few note authors to verify we're getting the right feed
+  // Always fetch stats separately for reliable results
+  // Primal's feed endpoint sometimes includes stats, sometimes doesn't
   if (result.notes.length > 0) {
-    const authors = [...new Set(result.notes.slice(0, 5).map(n => n.pubkey.slice(0, 8)))];
-    console.log(`[Primal] Feed authors (first 5 posts):`, authors.join(', '));
+    console.log(`[Primal] Feed: ${result.notes.length} notes, ${result.stats.size} inline stats`);
     
-    // Primal doesn't return stats with feed - fetch them separately
-    if (result.stats.size === 0) {
-      console.log(`[Primal] No stats in feed response, fetching separately...`);
-      const eventIds = result.notes.map(n => n.id);
-      const statsResult = await fetchPrimalEventStats(eventIds, userPubkey, signal);
-      
-      // Merge stats into result
-      for (const [id, stats] of statsResult.stats) {
-        result.stats.set(id, stats);
+    // Get event IDs that are missing stats
+    const noteIds = result.notes.map(n => n.id);
+    // For kind 6 reposts, also get the inner event's ID
+    const repostInnerIds: string[] = [];
+    for (const note of result.notes) {
+      if (note.kind === 6 && note.content) {
+        try {
+          const inner = JSON.parse(note.content);
+          if (inner.id) repostInnerIds.push(inner.id);
+        } catch { /* ignore */ }
       }
-      for (const [id, actions] of statsResult.actions) {
-        result.actions.set(id, actions);
+    }
+    
+    const allIds = [...new Set([...noteIds, ...repostInnerIds])];
+    const missingIds = allIds.filter(id => !result.stats.has(id));
+    
+    if (missingIds.length > 0) {
+      console.log(`[Primal] Fetching stats for ${missingIds.length} posts...`);
+      try {
+        const statsResult = await fetchPrimalEventStats(missingIds, userPubkey, signal);
+        
+        // Merge stats into result
+        for (const [id, stats] of statsResult.stats) {
+          result.stats.set(id, stats);
+        }
+        for (const [id, actions] of statsResult.actions) {
+          result.actions.set(id, actions);
+        }
+        console.log(`[Primal] Total stats: ${result.stats.size}, actions: ${result.actions.size}`);
+      } catch (err) {
+        console.warn('[Primal] Stats fetch failed:', err);
       }
-      console.log(`[Primal] Fetched ${result.stats.size} stats, ${result.actions.size} actions`);
     }
   }
   
@@ -456,11 +452,13 @@ export async function fetchPrimalEventStats(
   
   const payload: Record<string, unknown> = {
     event_ids: eventIds.slice(0, 100),
+    extended_response: true,
   };
   if (userPubkey) {
     payload.user_pubkey = userPubkey;
   }
   
+  // Use events method with extended_response to get stats + actions
   const result = await primalRequest('events', payload, 10000);
   return { stats: result.stats, actions: result.actions };
 }
