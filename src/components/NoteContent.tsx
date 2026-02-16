@@ -13,9 +13,9 @@ import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { ChevronDown, ChevronUp, ImageIcon } from 'lucide-react';
 
-// Content limits like Primal
+// Content limits like Primal - show 2 images max, click for more
 const MAX_CONTENT_LENGTH = 500;
-const MAX_IMAGES_PREVIEW = 4;
+const MAX_IMAGES_PREVIEW = 2;
 
 interface NoteContentProps {
   event: NostrEvent;

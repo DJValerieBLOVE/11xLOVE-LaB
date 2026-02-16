@@ -131,40 +131,43 @@ export function useFollowingPosts(limit: number = 40) {
         });
       }
       
-      // 2. Also query user's custom relays in parallel (for posts Primal might not have)
+      // 2. Query user's custom relays in BACKGROUND (don't block initial render)
+      // This runs after Primal results are already returned
       if (publicRelays.length > 0 && !signal?.aborted) {
-        try {
-          console.time('[Feed] Relay fetch');
-          
-          // Get follow list first (quick query)
-          const contactEvents = await nostr.query([
-            { kinds: [3], authors: [user.pubkey], limit: 1 },
-          ], { signal: AbortSignal.any([signal, AbortSignal.timeout(3000)]) });
-          
-          const follows = contactEvents[0]?.tags
-            .filter(([name]) => name === 'p')
-            .map(([, pubkey]) => pubkey)
-            .filter(Boolean) || [];
-          
-          if (follows.length > 0) {
-            // Query relays for recent posts from follows
-            const relayGroup = nostr.group(publicRelays.slice(0, 3)); // Use top 3 relays
+        // Fire and forget - don't await, let it update in background
+        (async () => {
+          try {
+            console.time('[Feed] Relay fetch (background)');
             
-            const relayEvents = await relayGroup.query([
-              {
-                kinds: [1],
-                authors: follows.slice(0, 200), // Top 200 follows
-                limit: limit,
-              },
-            ], { signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]) });
+            // Get follow list first (quick query)
+            const contactEvents = await nostr.query([
+              { kinds: [3], authors: [user.pubkey], limit: 1 },
+            ], { signal: AbortSignal.any([signal, AbortSignal.timeout(3000)]) });
             
-            console.timeEnd('[Feed] Relay fetch');
-            console.log('[Feed] Got', relayEvents.length, 'notes from relays');
+            const follows = contactEvents[0]?.tags
+              .filter(([name]) => name === 'p')
+              .map(([, pubkey]) => pubkey)
+              .filter(Boolean) || [];
+            
+            if (follows.length > 0) {
+              // Query relays for recent posts from follows
+              const relayGroup = nostr.group(publicRelays.slice(0, 2)); // Use top 2 relays only
+              
+              const relayEvents = await relayGroup.query([
+                {
+                  kinds: [1],
+                  authors: follows.slice(0, 100), // Top 100 follows only
+                  limit: 20, // Fewer posts
+                },
+              ], { signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]) }); // Shorter timeout
+            
+            console.timeEnd('[Feed] Relay fetch (background)');
+            console.log('[Feed] Got', relayEvents.length, 'notes from relays (background)');
             
             // Collect new posts not from Primal
+            const newPosts: FeedPost[] = [];
             const newEventIds: string[] = [];
             const newPubkeys = new Set<string>();
-            const newPosts: { event: NostrEvent; index: number }[] = [];
             
             for (const event of relayEvents) {
               if (seenIds.has(event.id)) continue;
@@ -172,64 +175,49 @@ export function useFollowingPosts(limit: number = 40) {
               newEventIds.push(event.id);
               newPubkeys.add(event.pubkey);
               
-              const postIndex = posts.length;
-              posts.push({
+              newPosts.push({
                 event,
                 isPrivate: false,
                 source: 'public',
                 stats: { ...emptyStats },
               });
-              newPosts.push({ event, index: postIndex });
             }
             
-            // Fetch stats for new posts from Primal (background)
-            if (newEventIds.length > 0) {
-              // Don't block on this - fetch in background
-              Promise.all([
-                fetchPrimalEventStats(newEventIds, user.pubkey, signal),
-                fetchPrimalProfiles([...newPubkeys], signal),
-              ]).then(([statsResult, profilesResult]) => {
-                // Update posts with stats
-                for (const { event, index } of newPosts) {
-                  const stats = statsResult.stats.get(event.id);
-                  const actions = statsResult.actions.get(event.id);
-                  const profile = profilesResult.get(event.pubkey);
-                  
-                  if (posts[index]) {
-                    if (stats) {
-                      posts[index].stats = {
-                        likes: stats.likes || 0,
-                        reposts: stats.reposts || 0,
-                        replies: stats.replies || 0,
-                        zaps: stats.zaps || 0,
-                        satsZapped: stats.satszapped || 0,
-                      };
-                    }
-                    if (actions) {
-                      posts[index].userLiked = actions.liked;
-                      posts[index].userReposted = actions.reposted;
-                      posts[index].userZapped = actions.zapped;
-                    }
-                    if (profile) {
-                      posts[index].author = { pubkey: event.pubkey, metadata: profile };
-                    }
-                  }
+            if (newPosts.length > 0) {
+              // Get current posts from cache
+              const currentPosts = queryClient.getQueryData<FeedPost[]>(['following-posts-v4', user.pubkey, limit]) || [];
+              
+              // Merge new posts, dedupe, sort
+              const mergedPosts = [...currentPosts];
+              const existingIds = new Set(currentPosts.map(p => p.event.id));
+              
+              for (const post of newPosts) {
+                if (!existingIds.has(post.event.id)) {
+                  mergedPosts.push(post);
                 }
-                // Invalidate to trigger re-render with updated stats
-                queryClient.setQueryData(['following-posts-v4', user.pubkey, limit], [...posts]);
-              }).catch(() => {
-                // Ignore - stats are optional
-              });
+              }
+              
+              mergedPosts.sort((a, b) => b.event.created_at - a.event.created_at);
+              
+              // Update cache with merged posts
+              queryClient.setQueryData(['following-posts-v4', user.pubkey, limit], mergedPosts.slice(0, limit));
+              
+              // Fetch stats for new posts (optional, don't await)
+              if (newEventIds.length > 0) {
+                fetchPrimalEventStats(newEventIds, user.pubkey).catch(() => {});
+              }
             }
           }
         } catch (error) {
-          console.warn('[Feed] Relay query failed:', error);
+          console.warn('[Feed] Background relay query failed:', error);
         }
+        })(); // End of background async function
       }
 
-      // Sort by timestamp (newest first)
+      // Sort by timestamp (newest first) and return IMMEDIATELY
+      // Don't wait for relay query - it runs in background
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
-      console.log('[Feed] Returning', posts.length, 'total posts');
+      console.log('[Feed] Returning', posts.length, 'posts from Primal (relays loading in background)');
       return posts.slice(0, limit);
     },
     enabled: !!user,
