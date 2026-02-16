@@ -85,14 +85,19 @@ export function useFollowingPosts(limit: number = 40) {
   const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: ['following-posts-primal', user?.pubkey, limit],
+    queryKey: ['following-posts-primal-v3', user?.pubkey, limit],
     queryFn: async ({ signal }): Promise<FeedPost[]> => {
-      if (!user) return [];
+      console.log('[Feed] Starting feed fetch, user:', user?.pubkey?.slice(0, 8));
+      if (!user) {
+        console.log('[Feed] No user, returning empty');
+        return [];
+      }
       
       const posts: FeedPost[] = [];
       const seenIds = new Set<string>();
       
       // 1. Fetch from Primal's cache (fast, includes stats)
+      console.log('[Feed] Calling Primal...');
       console.time('[Feed] Primal fetch');
       const primalResult = await fetchPrimalNetworkFeed(user.pubkey, limit, undefined, signal);
       console.timeEnd('[Feed] Primal fetch');
@@ -209,7 +214,7 @@ export function useFollowingPosts(limit: number = 40) {
                   }
                 }
                 // Invalidate to trigger re-render with updated stats
-                queryClient.setQueryData(['following-posts-primal', user.pubkey, limit], [...posts]);
+                queryClient.setQueryData(['following-posts-primal-v3', user.pubkey, limit], [...posts]);
               }).catch(() => {
                 // Ignore - stats are optional
               });
@@ -222,11 +227,14 @@ export function useFollowingPosts(limit: number = 40) {
 
       // Sort by timestamp (newest first)
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
+      console.log('[Feed] Returning', posts.length, 'total posts');
       return posts.slice(0, limit);
     },
     enabled: !!user,
-    staleTime: 30000,
-    refetchInterval: 60000,
+    staleTime: 10000, // 10 seconds
+    gcTime: 30000, // 30 seconds garbage collection
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 }
 

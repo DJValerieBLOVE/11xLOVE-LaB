@@ -4,20 +4,17 @@
  * Connects to Primal's caching WebSocket server for fast feed loading.
  * Based on Primal's implementation: https://github.com/PrimalHQ/primal-web-app
  * 
- * Key endpoints:
- * - "feed": User's following feed (pass pubkey)
- * - "mega_feed_directive": Custom feeds (pass spec JSON)
- * - "events": Get specific events with stats
- * - "user_infos": Get user profiles
+ * CRITICAL: Primal uses zlib compression! Must decompress responses with pako.
  * 
- * The cache server returns all data in one response:
- * - Kind 0: User profiles
- * - Kind 1: Notes
- * - Kind 10000100: Note stats (likes, reposts, replies, zaps)
- * - Kind 10000113: Feed range/pagination
- * - Kind 10000115: User actions (did I like/repost/zap this?)
+ * Protocol:
+ * 1. Connect to wss://cache.primal.net/v1
+ * 2. Set binary type to 'arraybuffer'
+ * 3. First message: Enable compression {"cache": ["set_primal_protocol", {"compression": "zlib"}]}
+ * 4. All subsequent responses are compressed with zlib
+ * 5. Decompress with pako.inflate(data, {to: 'string'})
  */
 
+import pako from 'pako';
 import type { NostrEvent, NostrMetadata } from '@nostrify/nostrify';
 
 // Primal cache server
@@ -53,138 +50,51 @@ export interface PrimalFeedResult {
   paging: { since: number; until: number };
 }
 
-// Reuse WebSocket connections
-let sharedWs: WebSocket | null = null;
-let wsReady = false;
-const pendingRequests = new Map<string, {
+// Connection state
+let ws: WebSocket | null = null;
+let isConnected = false;
+let isProtocolSet = false;
+let connectPromise: Promise<WebSocket> | null = null;
+
+// Request tracking
+interface PendingRequest {
   resolve: (result: PrimalFeedResult) => void;
   result: PrimalFeedResult;
   timeout: ReturnType<typeof setTimeout>;
-}>();
+}
+const pendingRequests = new Map<string, PendingRequest>();
 
 /**
- * Get or create a shared WebSocket connection
+ * Decompress zlib data from Primal
  */
-function getWebSocket(): Promise<WebSocket> {
-  return new Promise((resolve, reject) => {
-    if (sharedWs && wsReady && sharedWs.readyState === WebSocket.OPEN) {
-      resolve(sharedWs);
-      return;
-    }
-    
-    // Close old connection if exists
-    if (sharedWs) {
-      try { sharedWs.close(); } catch { /* ignore */ }
-    }
-    
-    const ws = new WebSocket(PRIMAL_CACHE_URL);
-    sharedWs = ws;
-    wsReady = false;
-    
-    const connectTimeout = setTimeout(() => {
-      reject(new Error('WebSocket connection timeout'));
-      ws.close();
-    }, 5000);
-    
-    ws.onopen = () => {
-      clearTimeout(connectTimeout);
-      wsReady = true;
-      resolve(ws);
-    };
-    
-    ws.onerror = () => {
-      clearTimeout(connectTimeout);
-      wsReady = false;
-      reject(new Error('WebSocket connection error'));
-    };
-    
-    ws.onclose = () => {
-      wsReady = false;
-      sharedWs = null;
-    };
-    
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const [type, subId, content] = data;
-        
-        const request = pendingRequests.get(subId);
-        if (!request) return;
-        
-        if (type === 'EVENT' && content) {
-          processEvent(content, request.result);
-        } else if (type === 'EVENTS' && Array.isArray(content)) {
-          for (const item of content) {
-            processEvent(item, request.result);
-          }
-        } else if (type === 'EOSE') {
-          clearTimeout(request.timeout);
-          pendingRequests.delete(subId);
-          request.resolve(request.result);
-        }
-      } catch {
-        // Ignore parse errors
-      }
-    };
-  });
+function decompressData(data: ArrayBuffer): string {
+  try {
+    return pako.inflate(new Uint8Array(data), { to: 'string' });
+  } catch (e) {
+    console.error('[Primal] Decompression failed:', e);
+    return '{}';
+  }
 }
 
 /**
- * Send a request to Primal cache and wait for response
+ * Parse message data (handles both compressed binary and plain text)
  */
-async function sendRequest(
-  subId: string,
-  cacheMethod: string,
-  payload: Record<string, unknown>,
-  timeoutMs: number = 10000,
-  signal?: AbortSignal
-): Promise<PrimalFeedResult> {
-  const result: PrimalFeedResult = {
-    notes: [],
-    profiles: new Map(),
-    stats: new Map(),
-    actions: new Map(),
-    paging: { since: 0, until: 0 },
-  };
+async function parseMessage(data: ArrayBuffer | string): Promise<unknown[]> {
+  let jsonStr: string;
   
-  return new Promise(async (resolve) => {
-    // Handle abort
-    if (signal?.aborted) {
-      resolve(result);
-      return;
-    }
-    
-    signal?.addEventListener('abort', () => {
-      const request = pendingRequests.get(subId);
-      if (request) {
-        clearTimeout(request.timeout);
-        pendingRequests.delete(subId);
-        resolve(result);
-      }
-    });
-    
-    try {
-      const ws = await getWebSocket();
-      
-      const timeout = setTimeout(() => {
-        pendingRequests.delete(subId);
-        resolve(result);
-      }, timeoutMs);
-      
-      pendingRequests.set(subId, { resolve, result, timeout });
-      
-      const message = JSON.stringify([
-        'REQ',
-        subId,
-        { cache: [cacheMethod, payload] },
-      ]);
-      
-      ws.send(message);
-    } catch (error) {
-      console.warn('[PrimalCache] Connection error:', error);
-      resolve(result);
-    }
-  });
+  if (typeof data === 'string') {
+    jsonStr = data;
+  } else {
+    // Binary data - needs decompression
+    jsonStr = decompressData(data);
+  }
+  
+  try {
+    return JSON.parse(jsonStr);
+  } catch {
+    console.error('[Primal] JSON parse failed:', jsonStr.slice(0, 100));
+    return [];
+  }
 }
 
 /**
@@ -233,8 +143,170 @@ function processEvent(event: Record<string, unknown>, result: PrimalFeedResult) 
 }
 
 /**
+ * Handle incoming WebSocket message
+ */
+async function handleMessage(event: MessageEvent) {
+  const data = await parseMessage(event.data);
+  if (data.length < 2) return;
+  
+  const [type, subId, content] = data;
+  
+  // Check if this is for a pending request
+  const request = pendingRequests.get(subId as string);
+  if (!request) return;
+  
+  if (type === 'EVENT' && content) {
+    processEvent(content as Record<string, unknown>, request.result);
+  } else if (type === 'EVENTS' && Array.isArray(content)) {
+    // EVENTS contains array of events
+    for (const item of content) {
+      processEvent(item as Record<string, unknown>, request.result);
+    }
+  } else if (type === 'EOSE') {
+    // End of stream - resolve the request
+    clearTimeout(request.timeout);
+    pendingRequests.delete(subId as string);
+    console.log(`[Primal] ${subId}: Got ${request.result.notes.length} notes, ${request.result.profiles.size} profiles, ${request.result.stats.size} stats`);
+    request.resolve(request.result);
+  }
+}
+
+/**
+ * Connect to Primal cache server with compression enabled
+ */
+function connect(): Promise<WebSocket> {
+  if (connectPromise) return connectPromise;
+  
+  connectPromise = new Promise((resolve, reject) => {
+    console.log('[Primal] Connecting to', PRIMAL_CACHE_URL);
+    
+    const socket = new WebSocket(PRIMAL_CACHE_URL);
+    socket.binaryType = 'arraybuffer'; // Required for zlib compression
+    
+    const connectTimeout = setTimeout(() => {
+      reject(new Error('Connection timeout'));
+      socket.close();
+    }, 10000);
+    
+    socket.onopen = () => {
+      console.log('[Primal] Connected, enabling compression...');
+      clearTimeout(connectTimeout);
+      ws = socket;
+      
+      // Set up message handler
+      socket.onmessage = handleMessage;
+      
+      // Enable zlib compression (like Primal does)
+      const protocolSubId = `protocol_${Date.now()}`;
+      
+      // Listen for EOSE on protocol setup
+      const protocolListener = async (event: MessageEvent) => {
+        const data = await parseMessage(event.data);
+        if (data[0] === 'EOSE' && data[1] === protocolSubId) {
+          console.log('[Primal] Compression enabled');
+          isProtocolSet = true;
+          isConnected = true;
+          resolve(socket);
+        }
+      };
+      socket.addEventListener('message', protocolListener);
+      
+      // Send protocol setup request
+      socket.send(JSON.stringify([
+        'REQ',
+        protocolSubId,
+        { cache: ['set_primal_protocol', { compression: 'zlib' }] }
+      ]));
+    };
+    
+    socket.onerror = (err) => {
+      console.error('[Primal] Connection error:', err);
+      clearTimeout(connectTimeout);
+      connectPromise = null;
+      reject(new Error('Connection failed'));
+    };
+    
+    socket.onclose = () => {
+      console.log('[Primal] Connection closed');
+      isConnected = false;
+      isProtocolSet = false;
+      ws = null;
+      connectPromise = null;
+    };
+  });
+  
+  return connectPromise;
+}
+
+/**
+ * Send a request and wait for response
+ */
+async function sendRequest(
+  cacheMethod: string,
+  payload: Record<string, unknown>,
+  timeoutMs: number = 15000,
+  signal?: AbortSignal
+): Promise<PrimalFeedResult> {
+  const result: PrimalFeedResult = {
+    notes: [],
+    profiles: new Map(),
+    stats: new Map(),
+    actions: new Map(),
+    paging: { since: 0, until: 0 },
+  };
+  
+  if (signal?.aborted) return result;
+  
+  const subId = `${cacheMethod}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  
+  return new Promise(async (resolve) => {
+    // Handle abort
+    const abortHandler = () => {
+      const req = pendingRequests.get(subId);
+      if (req) {
+        clearTimeout(req.timeout);
+        pendingRequests.delete(subId);
+        resolve(result);
+      }
+    };
+    signal?.addEventListener('abort', abortHandler);
+    
+    try {
+      const socket = await connect();
+      
+      // Set up timeout
+      const timeout = setTimeout(() => {
+        console.warn(`[Primal] Request ${subId} timed out`);
+        pendingRequests.delete(subId);
+        signal?.removeEventListener('abort', abortHandler);
+        resolve(result);
+      }, timeoutMs);
+      
+      // Register request
+      pendingRequests.set(subId, { resolve: (r) => {
+        signal?.removeEventListener('abort', abortHandler);
+        resolve(r);
+      }, result, timeout });
+      
+      // Send request
+      const message = JSON.stringify([
+        'REQ',
+        subId,
+        { cache: [cacheMethod, payload] }
+      ]);
+      console.log(`[Primal] Sending ${cacheMethod} request:`, subId);
+      socket.send(message);
+      
+    } catch (error) {
+      console.error('[Primal] Request failed:', error);
+      signal?.removeEventListener('abort', abortHandler);
+      resolve(result);
+    }
+  });
+}
+
+/**
  * Fetch user's following feed from Primal's cache server
- * This is the most common feed type - posts from people the user follows
  */
 export async function fetchPrimalNetworkFeed(
   userPubkey: string,
@@ -242,19 +314,16 @@ export async function fetchPrimalNetworkFeed(
   until?: number,
   signal?: AbortSignal
 ): Promise<PrimalFeedResult> {
-  const subId = `feed_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  
-  // Use current timestamp if not specified
   const timestamp = until || Math.ceil(Date.now() / 1000);
   
-  const payload: Record<string, unknown> = {
+  console.log(`[Primal] Fetching feed for ${userPubkey.slice(0, 8)}... limit=${limit} until=${timestamp}`);
+  
+  return sendRequest('feed', {
     pubkey: userPubkey,
     user_pubkey: userPubkey,
     limit,
     until: timestamp,
-  };
-  
-  return sendRequest(subId, 'feed', payload, 10000, signal);
+  }, 15000, signal);
 }
 
 /**
@@ -265,16 +334,12 @@ export async function fetchPrimalFutureFeed(
   since: number,
   signal?: AbortSignal
 ): Promise<PrimalFeedResult> {
-  const subId = `future_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  
-  const payload: Record<string, unknown> = {
+  return sendRequest('feed', {
     pubkey: userPubkey,
     user_pubkey: userPubkey,
     since,
     limit: 100,
-  };
-  
-  return sendRequest(subId, 'feed', payload, 5000, signal);
+  }, 8000, signal);
 }
 
 /**
@@ -289,17 +354,14 @@ export async function fetchPrimalEventStats(
     return { stats: new Map(), actions: new Map() };
   }
   
-  const subId = `stats_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  
   const payload: Record<string, unknown> = {
-    event_ids: eventIds.slice(0, 100), // Limit to 100
+    event_ids: eventIds.slice(0, 100),
   };
-  
   if (userPubkey) {
     payload.user_pubkey = userPubkey;
   }
   
-  const result = await sendRequest(subId, 'events', payload, 8000, signal);
+  const result = await sendRequest('events', payload, 10000, signal);
   return { stats: result.stats, actions: result.actions };
 }
 
@@ -314,23 +376,23 @@ export async function fetchPrimalProfiles(
     return new Map();
   }
   
-  const subId = `profiles_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const result = await sendRequest('user_infos', {
+    pubkeys: [...new Set(pubkeys)].slice(0, 100),
+  }, 8000, signal);
   
-  const payload = {
-    pubkeys: [...new Set(pubkeys)].slice(0, 100), // Dedupe and limit
-  };
-  
-  const result = await sendRequest(subId, 'user_infos', payload, 6000, signal);
   return result.profiles;
 }
 
 /**
- * Close shared WebSocket (call on unmount if needed)
+ * Close connection (call on app unmount if needed)
  */
 export function closePrimalConnection() {
-  if (sharedWs) {
-    try { sharedWs.close(); } catch { /* ignore */ }
-    sharedWs = null;
-    wsReady = false;
+  if (ws) {
+    ws.close();
+    ws = null;
   }
+  isConnected = false;
+  isProtocolSet = false;
+  connectPromise = null;
+  pendingRequests.clear();
 }
