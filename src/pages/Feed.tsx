@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useFeedPosts, useTribePosts, useFollowingPosts, useLatestPosts } from '@/hooks/useFeedPosts';
+import { useFeedPosts, useTribePosts, useFollowingPosts } from '@/hooks/useFeedPosts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   Lock, 
@@ -26,11 +26,8 @@ import {
   Plus, 
   Radio, 
   Users,
-  UserCheck,
   Loader2,
   RefreshCw,
-  UserPlus,
-  ChevronDown,
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,13 +35,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FeedPost } from '@/components/FeedPost';
@@ -62,7 +52,6 @@ const Feed = () => {
   const { data: allPosts, isLoading: allLoading, refetch: refetchAll } = useFeedPosts(50);
   const { data: tribePosts, isLoading: tribeLoading, refetch: refetchTribe } = useTribePosts(50);
   const { data: followingPosts, isLoading: followingLoading, refetch: refetchFollowing } = useFollowingPosts(50);
-  const { data: latestPosts, isLoading: latestLoading, refetch: refetchLatest } = useLatestPosts(50);
 
   // Publishing hook
   const { mutate: publishPost, isPending: isPosting } = useLabPublish();
@@ -76,21 +65,20 @@ const Feed = () => {
   const getCurrentPosts = () => {
     switch (activeTab) {
       case 'latest':
-        return { posts: latestPosts || [], loading: latestLoading };
-      case 'tribes':
-        return { posts: tribePosts || [], loading: tribeLoading };
-      case 'following':
+        // Latest = posts from people you follow on your configured relays
         return { posts: followingPosts || [], loading: followingLoading };
-      case 'buddies':
-        return { posts: [], loading: false }; // TODO: Implement buddy filtering
+      case 'tribes':
+        // Tribes = PRIVATE posts from Railway relay only
+        return { posts: tribePosts || [], loading: tribeLoading };
       case 'media':
         // Filter to posts with media URLs
-        const mediaPosts = (latestPosts || []).filter(post => 
+        const mediaPosts = (followingPosts || []).filter(post => 
           post.event.content.match(/https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|mp4|webm)/i)
         );
-        return { posts: mediaPosts, loading: latestLoading };
+        return { posts: mediaPosts, loading: followingLoading };
       case 'all':
       default:
+        // All = LaB posts + Following posts
         return { posts: allPosts || [], loading: allLoading };
     }
   };
@@ -101,13 +89,10 @@ const Feed = () => {
   const handleRefresh = () => {
     switch (activeTab) {
       case 'latest':
-        refetchLatest();
+        refetchFollowing();
         break;
       case 'tribes':
         refetchTribe();
-        break;
-      case 'following':
-        refetchFollowing();
         break;
       default:
         refetchAll();
@@ -288,58 +273,28 @@ const Feed = () => {
               </CardContent>
             </Card>
 
-            {/* Feed Tabs - Primal style: Latest, Following, Tribes */}
+            {/* Feed Tabs - Like Primal: Latest (from follows), Tribes (private), Media */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto">
                 <TabsTrigger 
                   value="latest" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-3"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] px-4 py-2"
                 >
                   Latest
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="following" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-3"
-                >
-                  Following
-                </TabsTrigger>
-                <TabsTrigger 
                   value="tribes" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-3"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-4 py-2"
                 >
                   <Lock className="h-3 w-3" />
                   Tribes
                 </TabsTrigger>
                 <TabsTrigger 
                   value="media" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-3"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] px-4 py-2"
                 >
                   Media
                 </TabsTrigger>
-                {/* More dropdown for additional feeds */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="gap-1 px-3 h-auto py-2 text-muted-foreground">
-                      More
-                      <ChevronDown className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
-                    <DropdownMenuItem onClick={() => setActiveTab('all')}>
-                      <span className="flex-1">All Posts</span>
-                      <span className="text-xs text-muted-foreground">LaB + Following</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveTab('buddies')}>
-                      <span className="flex-1">Buddies</span>
-                      <span className="text-xs text-muted-foreground">Coming Soon</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem disabled className="text-muted-foreground">
-                      <span className="flex-1">Custom Feeds</span>
-                      <span className="text-xs">Coming Soon</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </TabsList>
 
               {/* Tab Content */}
@@ -382,15 +337,11 @@ const Feed = () => {
                         <CardContent className="py-12 text-center">
                           <p className="text-muted-foreground">
                             {activeTab === 'latest' 
-                              ? 'No posts found. Check your relay settings or try again later.'
-                              : activeTab === 'buddies' 
-                              ? 'No posts from accountability buddies yet. Add some buddies to see their updates!'
+                              ? 'No posts from people you follow. Follow some creators or check your relay settings.'
                               : activeTab === 'tribes'
-                              ? 'No Tribe posts yet. Join a Tribe or create one to see private messages here!'
-                              : activeTab === 'following'
-                              ? 'No posts from people you follow. Follow some creators to see their updates!'
+                              ? 'No Tribe posts yet. Join a Tribe to see private messages here!'
                               : activeTab === 'media'
-                              ? 'No media posts found.'
+                              ? 'No media posts found from people you follow.'
                               : 'No posts to show.'}
                           </p>
                         </CardContent>

@@ -513,60 +513,6 @@ export function useTrendingPosts(limit: number = 50) {
 }
 
 /**
- * Fetch latest posts from all relays (global feed, not filtered by follows)
- * Like Primal's "Latest" feed
- */
-export function useLatestPosts(limit: number = 50) {
-  const { nostr } = useNostr();
-  const { user } = useCurrentUser();
-  const publicRelays = usePublicRelayUrls();
-
-  return useQuery({
-    queryKey: ['latest-posts', publicRelays.length, limit],
-    queryFn: async (): Promise<FeedPost[]> => {
-      const posts: FeedPost[] = [];
-      const seenIds = new Set<string>();
-
-      if (publicRelays.length === 0) {
-        return posts;
-      }
-
-      try {
-        // Use all user's configured public relays
-        const relayGroup = nostr.group(publicRelays);
-        
-        // Query latest posts globally (no author filter)
-        const latestEvents = await relayGroup.query([
-          {
-            kinds: [1],
-            limit: limit * 2,
-          },
-        ]);
-
-        for (const event of latestEvents) {
-          if (seenIds.has(event.id)) continue;
-          seenIds.add(event.id);
-          
-          posts.push({
-            event,
-            isPrivate: false,
-            source: 'public',
-            stats: { ...emptyStats },
-          });
-        }
-      } catch (error) {
-        console.warn('[Feed] Failed to fetch latest posts:', error);
-      }
-
-      posts.sort((a, b) => b.event.created_at - a.event.created_at);
-      return posts.slice(0, limit);
-    },
-    enabled: !!user && publicRelays.length > 0,
-    staleTime: 30000,
-  });
-}
-
-/**
  * @deprecated Use useFollowingPosts instead
  */
 export function usePublicPosts(limit: number = 50) {
