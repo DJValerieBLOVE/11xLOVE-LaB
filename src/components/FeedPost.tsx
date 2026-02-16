@@ -54,7 +54,9 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { NoteContent } from '@/components/NoteContent';
 import { ZapDialog } from '@/components/ZapDialog';
+import { TopZappersCompact } from '@/components/TopZappers';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useZappers } from '@/hooks/useZappers';
 import { cn } from '@/lib/utils';
 import type { PostStats } from '@/hooks/useFeedPosts';
 
@@ -133,6 +135,9 @@ export function FeedPost({
   const npub = nip19.npubEncode(event.pubkey);
   const noteId = nip19.noteEncode(event.id);
   const timeAgo = formatDistanceToNow(new Date(event.created_at * 1000), { addSuffix: true });
+  
+  // Fetch top zappers for this post
+  const { data: zappersData } = useZappers(event.id, satsZapped > 0);
   
   // Check if author has lightning address for zapping
   const hasLightningAddress = !!(metadata?.lud16 || metadata?.lud06);
@@ -286,7 +291,7 @@ export function FeedPost({
 
             {/* Engagement Stats Bar */}
             {(likeCount > 0 || repostCount > 0 || replyCount > 0 || satsZapped > 0) && (
-              <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2 pb-2 border-b">
+              <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2 pb-2 border-b flex-wrap">
                 {likeCount > 0 && (
                   <span>{formatCount(likeCount)} {likeCount === 1 ? 'like' : 'likes'}</span>
                 )}
@@ -296,7 +301,13 @@ export function FeedPost({
                 {replyCount > 0 && (
                   <span>{formatCount(replyCount)} {replyCount === 1 ? 'reply' : 'replies'}</span>
                 )}
-                {satsZapped > 0 && (
+                {/* Top zappers with avatar stack - Primal style */}
+                {zappersData && zappersData.topZappers.length > 0 ? (
+                  <TopZappersCompact
+                    zappers={zappersData.topZappers}
+                    totalSats={zappersData.totalSats}
+                  />
+                ) : satsZapped > 0 && (
                   <span className="text-orange-500 font-medium">
                     ⚡ {formatSats(satsZapped)} sats
                   </span>

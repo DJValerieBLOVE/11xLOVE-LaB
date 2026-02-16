@@ -41,12 +41,13 @@ interface ZapDialogProps {
   className?: string;
 }
 
+// Primal-inspired default amounts
 const presetAmounts = [
-  { amount: 1, icon: Sparkle },
-  { amount: 50, icon: Sparkles },
-  { amount: 100, icon: Zap },
-  { amount: 250, icon: Star },
-  { amount: 1000, icon: Rocket },
+  { amount: 21, icon: Sparkle, label: '21' },
+  { amount: 100, icon: Sparkles, label: '100' },
+  { amount: 500, icon: Zap, label: '500' },
+  { amount: 1000, icon: Star, label: '1k' },
+  { amount: 5000, icon: Rocket, label: '5k' },
 ];
 
 interface ZapContentProps {
