@@ -29,7 +29,7 @@ export function CardImage({
   src, 
   alt, 
   fallbackText,
-  fallbackGradient = "from-pink-500 to-purple-600",
+  fallbackGradient = "from-[#6600ff] to-[#9900ff]",
   className,
   onClick
 }: CardImageProps) {
@@ -85,8 +85,8 @@ export function DimensionCardImage({
 }: CardImageProps & { dimensionId?: number }) {
   // Dimension color gradients (1-11)
   const dimensionGradients: Record<number, string> = {
-    1: "from-pink-500 to-pink-600",      // GOD/LOVE - Hot Pink
-    2: "from-pink-400 to-purple-500",    // Soul - Magenta
+    1: "from-[#eb00a8] to-[#d4009a]",    // GOD/LOVE - Hot Pink (dimension color)
+    2: "from-[#cc00ff] to-[#9900ff]",    // Soul - Magenta (dimension color)
     3: "from-purple-500 to-purple-600",  // Mind - Purple
     4: "from-purple-600 to-indigo-600",  // Body - Deep Purple
     5: "from-red-500 to-red-600",        // Romance - Red
@@ -100,7 +100,7 @@ export function DimensionCardImage({
 
   const gradient = dimensionId && dimensionGradients[dimensionId] 
     ? dimensionGradients[dimensionId] 
-    : "from-pink-500 to-purple-600";
+    : "from-[#6600ff] to-[#9900ff]";
 
   return (
     <CardImage

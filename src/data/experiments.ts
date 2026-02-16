@@ -67,7 +67,7 @@ export const experiments: Experiment[] = [
     enrolled: 856,
     rating: 4.9,
     instructor: 'Nostr Dev',
-    color: 'from-purple-500 to-pink-500',
+    color: 'from-[#6600ff] to-[#9900ff]',
     createdBy: '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767',
     valueForValue: true,
     modules: [
@@ -158,7 +158,7 @@ export const experiments: Experiment[] = [
     enrolled: 2156,
     rating: 5.0,
     instructor: 'DJ Valerie B LOVE',
-    color: 'from-pink-500 to-purple-500',
+    color: 'from-[#6600ff] to-[#9900ff]',
     createdBy: '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767',
     valueForValue: true,
     modules: [

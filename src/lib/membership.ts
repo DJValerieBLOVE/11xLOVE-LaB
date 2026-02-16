@@ -121,7 +121,7 @@ export function getTierInfo(tier: MembershipTier): { name: string; color: string
     case 'byok':
       return { name: 'BYOK Creator', color: 'blue', icon: '🔑' };
     case 'creator':
-      return { name: 'Creator', color: 'pink', icon: '✨' };
+      return { name: 'Creator', color: 'purple', icon: '✨' };
     case 'admin':
       return { name: 'Admin', color: 'gold', icon: '👑' };
     default:

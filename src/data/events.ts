@@ -52,7 +52,7 @@ export const events: Event[] = [
     host: 'DJ Valerie B LOVE',
     attendees: 128,
     type: 'Community Call',
-    color: 'from-pink-500 to-purple-500',
+    color: 'from-[#6600ff] to-[#9900ff]',
     status: 'upcoming',
   },
   {

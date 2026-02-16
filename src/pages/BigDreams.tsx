@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 
 // Data defined outside component
 const dimensions = [
-    { id: 'god-love', title: 'GOD/LOVE', color: 'border-pink-500', realized: 85 },
+    { id: 'god-love', title: 'GOD/LOVE', color: 'border-[#eb00a8]', realized: 85 },
     { id: 'romance', title: 'Romance', color: 'border-red-500', realized: 60 },
     { id: 'family', title: 'Family', color: 'border-orange-500', realized: 75 },
     { id: 'community', title: 'Community', color: 'border-yellow-500', realized: 90 },
@@ -42,7 +42,7 @@ const BigDreams = () => {
   ];
 
   const courseProgress = [
-    { title: 'The 11x LOVE Code', progress: 45, color: 'bg-pink-500' },
+    { title: 'The 11x LOVE Code', progress: 45, color: 'bg-[#6600ff]' },
     { title: 'Bitcoin Basics', progress: 78, color: 'bg-orange-500' },
   ];
 

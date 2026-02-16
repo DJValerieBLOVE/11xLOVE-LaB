@@ -441,7 +441,7 @@ const Vault = () => {
             </Card>
 
             {/* Chat with Mentor Card */}
-            <Card className="border-[#6600ff]/20 bg-gradient-to-br from-purple-50 to-pink-50">
+            <Card className="border-[#6600ff]/20 bg-gradient-to-br from-purple-50 to-violet-50">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">

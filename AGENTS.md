@@ -1223,6 +1223,8 @@ This section contains project-specific guidelines for the 11x LOVE LaB applicati
 3. **No `any` types** - Use proper TypeScript interfaces instead of `any`. If you need a flexible type, create an interface.
 4. **Remove or convert FIXME/TODO comments** - ESLint flags these. Convert to regular comments or resolve the issue.
 5. **Check for unused variables** - Variables that are defined but never used will cause ESLint errors.
+6. **ZERO font-bold/font-semibold/font-medium** - Marcellus font only has weight 400. Any bold class = blurry gray text. Run: `grep -r "font-bold\|font-semibold\|font-medium" src/ --include="*.tsx" --include="*.ts"` — must return zero results.
+7. **ZERO pink as brand accent** - Buttons, links, tabs, gradients on cards = purple (#6600ff). Pink (#eb00a8) is ONLY for the GOD/LOVE dimension color. Run: `grep -r "from-pink\|to-pink\|bg-pink\|text-pink\|border-pink" src/ --include="*.tsx" --include="*.ts"` — must return zero results.
 
 ### Common ESLint Errors and Fixes
 
@@ -1293,12 +1295,47 @@ Always use the correct terminology:
 
 ### Design System
 
-- **Primary accent**: `#eb00a8` (pink)
-- **Secondary accent**: `#6600ff` (purple)
-- **Light mode default** - pink accent theme
-- **11 Dimensions color system** - see `/src/lib/dimensions.ts`
+- **Primary accent**: `#6600ff` (purple) — ALL buttons, links, tabs, active states, and brand UI
+- **Secondary accent**: `#9900ff` (lighter purple) — gradients pair `from-[#6600ff] to-[#9900ff]`
+- **Light mode default** - purple accent theme
+- **11 Dimensions color system** - see `/src/lib/dimensions.ts` — each dimension has its OWN unique color (these are NOT brand accent colors, they are dimension-specific data colors used for borders, progress bars, charts, and dimension cards ONLY)
 - **Pill-shaped buttons** - use `rounded-full` for action buttons
 - **Card-based layouts** - 12px rounded corners
+
+### CRITICAL: Marcellus Font — NO BOLD/SEMIBOLD/MEDIUM (Zero Tolerance)
+
+The Marcellus font used in this project **only ships weight 400**. Any `font-bold`, `font-semibold`, or `font-medium` causes the browser to synthesize "faux bold" which renders **blurry gray text** on every heading, button, card title, label, and UI element.
+
+**This is an absolute, non-negotiable rule for ALL code written in this project:**
+
+| Class | Status |
+|-------|--------|
+| `font-bold` | **BANNED** — never use anywhere in src/ |
+| `font-semibold` | **BANNED** — never use anywhere in src/ |
+| `font-medium` | **BANNED** — never use anywhere in src/ |
+| `font-weight: 500/600/700/800/900` | **BANNED** — never use in any CSS |
+| `font-normal` | **REQUIRED** — use this when a weight class is needed |
+| `font-weight: 400` | **REQUIRED** — the only acceptable font-weight value |
+
+**Where this applies:**
+- Every shadcn/ui component in `src/components/ui/` (already fixed)
+- Every page component in `src/pages/`
+- Every component in `src/components/`
+- The base CSS layer in `src/index.css` (already has `strong, b { font-weight: 400; }`)
+- ALL future code — no exceptions
+
+**How to verify before committing:**
+```
+grep -r "font-bold\|font-semibold\|font-medium" src/ --include="*.tsx" --include="*.ts"
+```
+This must return **zero results** (excluding comments explaining the rule).
+
+### CRITICAL: Purple Buttons/Links — NOT Pink
+
+- **Buttons, links, tabs, active indicators, progress bars, notification badges** = purple (`#6600ff`, `bg-primary`, `text-primary`)
+- **The 11 dimension colors** (GOD/LOVE = `#eb00a8`, Soul = `#cc00ff`, Mind = `#9900ff`, etc.) = used ONLY for dimension-specific UI like borders on dimension cards, chart segments, EQ visualizer bars
+- **Never use `pink-500`, `from-pink-500`, `bg-pink-500`** etc. as brand accent for buttons, links, gradients on cards, or UI chrome
+- **Gradient defaults**: Use `from-[#6600ff] to-[#9900ff]` not `from-pink-500 to-purple-500`
 
 ### Testing Login in Preview
 
@@ -1444,7 +1481,7 @@ Images use `object-fit: contain` to preserve aspect ratio without stretching:
 ### Feed UI Features
 
 - Three tabs: Latest, Tribes, Buddies
-- Pink notification badges when new posts arrive
+- Purple notification badges when new posts arrive
 - Post composer at top
 - Stats display (likes, reposts, zaps with real numbers)
 - User actions highlighted (filled heart if liked)

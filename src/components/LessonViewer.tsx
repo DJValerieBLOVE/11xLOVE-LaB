@@ -393,7 +393,7 @@ export function LessonViewer({ experiment, initialLessonId }: LessonViewerProps)
 
           {/* Share to Feed (ONLY after completing FULL experiment) */}
           {isExperimentComplete && (
-            <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+            <Card className="bg-gradient-to-r from-purple-50 to-violet-50 border-2 border-purple-200">
               <CardContent className="p-6 text-center space-y-3">
                 <PartyPopper className="h-12 w-12 mx-auto text-purple-600" />
                 <h3 className="text-xl font-normal">Experiment Complete!</h3>
