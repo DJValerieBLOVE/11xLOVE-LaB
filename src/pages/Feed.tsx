@@ -13,11 +13,11 @@
  * - All posts have zap, react, reply, mute, report
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useFeedPosts, useTribePosts, useFollowingPosts, useNewPostsCount } from '@/hooks/useFeedPosts';
+import { useFeedPosts, useTribePosts, useFollowingPosts } from '@/hooks/useFeedPosts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   Lock, 
@@ -48,80 +48,15 @@ const Feed = () => {
   const [activeTab, setActiveTab] = useState('latest');
   const [postContent, setPostContent] = useState('');
   
-  // Track displayed posts (frozen) vs new posts available
-  const [displayedLatestPosts, setDisplayedLatestPosts] = useState<import('@/hooks/useFeedPosts').FeedPost[]>([]);
-  const [displayedTribePosts, setDisplayedTribePosts] = useState<import('@/hooks/useFeedPosts').FeedPost[]>([]);
-  const [pendingLatestCount, setPendingLatestCount] = useState(0);
-  const [pendingTribesCount, setPendingTribesCount] = useState(0);
-
   // Real Nostr queries - all use user's configured relays
   const { data: allPosts, isLoading: allLoading, refetch: refetchAll } = useFeedPosts(50);
   const { data: tribePosts, isLoading: tribeLoading, refetch: refetchTribe } = useTribePosts(50);
   const { data: followingPosts, isLoading: followingLoading, refetch: refetchFollowing } = useFollowingPosts(50);
   
-  // Check for new posts (for notification badges) - only when we have displayed posts
-  const lastSeenLatest = displayedLatestPosts.length > 0 
-    ? Math.max(...displayedLatestPosts.map(p => p.event.created_at))
-    : Math.floor(Date.now() / 1000);
-  const lastSeenTribes = displayedTribePosts.length > 0 
-    ? Math.max(...displayedTribePosts.map(p => p.event.created_at))
-    : Math.floor(Date.now() / 1000);
-    
-  const { data: newLatestCount = 0 } = useNewPostsCount(lastSeenLatest, 'latest');
-  const { data: newTribesCount = 0 } = useNewPostsCount(lastSeenTribes, 'tribes');
-  
-  // Update pending counts when new posts are detected
-  useEffect(() => {
-    if (newLatestCount > 0 && displayedLatestPosts.length > 0) {
-      setPendingLatestCount(newLatestCount);
-    }
-  }, [newLatestCount, displayedLatestPosts.length]);
-  
-  useEffect(() => {
-    if (newTribesCount > 0 && displayedTribePosts.length > 0) {
-      setPendingTribesCount(newTribesCount);
-    }
-  }, [newTribesCount, displayedTribePosts.length]);
-  
-  // Initialize displayed posts on first load
-  useEffect(() => {
-    if (followingPosts && followingPosts.length > 0 && displayedLatestPosts.length === 0) {
-      setDisplayedLatestPosts(followingPosts);
-    }
-  }, [followingPosts, displayedLatestPosts.length]);
-  
-  useEffect(() => {
-    if (tribePosts && tribePosts.length > 0 && displayedTribePosts.length === 0) {
-      setDisplayedTribePosts(tribePosts);
-    }
-  }, [tribePosts, displayedTribePosts.length]);
-  
-  // Handle showing new posts (user clicks the button)
-  const handleShowNewPosts = useCallback((tab: 'latest' | 'tribes') => {
-    if (tab === 'latest' && followingPosts) {
-      setDisplayedLatestPosts(followingPosts);
-      setPendingLatestCount(0);
-      // Scroll to top
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (tab === 'tribes' && tribePosts) {
-      setDisplayedTribePosts(tribePosts);
-      setPendingTribesCount(0);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [followingPosts, tribePosts]);
-  
-  // Update last seen timestamp when switching to a tab
+  // Simple tab change handler
   const handleTabChange = useCallback((tab: string) => {
     setActiveTab(tab);
-    // When switching tabs, show any pending new posts
-    if (tab === 'latest' && followingPosts) {
-      setDisplayedLatestPosts(followingPosts);
-      setPendingLatestCount(0);
-    } else if (tab === 'tribes' && tribePosts) {
-      setDisplayedTribePosts(tribePosts);
-      setPendingTribesCount(0);
-    }
-  }, [followingPosts, tribePosts]);
+  }, []);
 
   // Publishing hook
   const { mutate: publishPost, isPending: isPosting } = useLabPublish();
@@ -131,36 +66,32 @@ const Feed = () => {
     description: 'Your personalized feed with updates from Tribes, accountability buddies, and the community',
   });
 
-  // Get posts for current tab - use displayed (frozen) posts, not live data
+  // Get posts for current tab - always use LIVE data, no freezing
   const getCurrentPosts = () => {
     switch (activeTab) {
       case 'latest':
-        // Use frozen displayed posts, fall back to live data if not yet initialized
         return { 
-          posts: displayedLatestPosts.length > 0 ? displayedLatestPosts : (followingPosts || []), 
-          loading: followingLoading && displayedLatestPosts.length === 0,
-          pendingCount: pendingLatestCount,
+          posts: followingPosts || [], 
+          loading: followingLoading,
         };
       case 'tribes':
         return { 
-          posts: displayedTribePosts.length > 0 ? displayedTribePosts : (tribePosts || []), 
-          loading: tribeLoading && displayedTribePosts.length === 0,
-          pendingCount: pendingTribesCount,
+          posts: tribePosts || [], 
+          loading: tribeLoading,
         };
       case 'buddies':
-        return { posts: [], loading: false, pendingCount: 0 };
+        return { posts: [], loading: false };
       default:
         return { 
-          posts: displayedLatestPosts.length > 0 ? displayedLatestPosts : (followingPosts || []), 
-          loading: followingLoading && displayedLatestPosts.length === 0,
-          pendingCount: pendingLatestCount,
+          posts: followingPosts || [], 
+          loading: followingLoading,
         };
     }
   };
 
-  const { posts: currentPosts, loading: currentLoading, pendingCount } = getCurrentPosts();
+  const { posts: currentPosts, loading: currentLoading } = getCurrentPosts();
 
-  // Handle refresh - this fetches new data AND shows it immediately
+  // Handle refresh
   const handleRefresh = async () => {
     toast({
       title: 'Refreshing...',
@@ -170,18 +101,9 @@ const Feed = () => {
     switch (activeTab) {
       case 'latest':
         await refetchFollowing();
-        // After refetch, update displayed posts
-        if (followingPosts) {
-          setDisplayedLatestPosts(followingPosts);
-          setPendingLatestCount(0);
-        }
         break;
       case 'tribes':
         await refetchTribe();
-        if (tribePosts) {
-          setDisplayedTribePosts(tribePosts);
-          setPendingTribesCount(0);
-        }
         break;
       default:
         await refetchAll();
@@ -359,31 +281,21 @@ const Feed = () => {
               </CardContent>
             </Card>
 
-            {/* Feed Tabs: Latest, Tribes, Buddies - with notification badges */}
+            {/* Feed Tabs: Latest, Tribes, Buddies */}
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto">
                 <TabsTrigger 
                   value="latest" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] px-4 py-2 relative"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] px-4 py-2"
                 >
                   Latest
-                  {newLatestCount > 0 && activeTab !== 'latest' && (
-                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white bg-[#eb00a8] rounded-full px-1">
-                      {newLatestCount > 99 ? '99+' : newLatestCount}
-                    </span>
-                  )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="tribes" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-4 py-2 relative"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-4 py-2"
                 >
                   <Lock className="h-3 w-3" />
                   Tribes
-                  {newTribesCount > 0 && activeTab !== 'tribes' && (
-                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white bg-[#eb00a8] rounded-full px-1">
-                      {newTribesCount > 99 ? '99+' : newTribesCount}
-                    </span>
-                  )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="buddies" 
@@ -395,19 +307,6 @@ const Feed = () => {
 
               {/* Tab Content */}
               <TabsContent value={activeTab} className="mt-0">
-                {/* New Posts Button - Primal style */}
-                {pendingCount > 0 && (
-                  <div className="sticky top-16 z-10 mt-4 mb-2">
-                    <Button
-                      onClick={() => handleShowNewPosts(activeTab as 'latest' | 'tribes')}
-                      className="w-full bg-[#6600ff] hover:bg-[#5500dd] text-white shadow-lg"
-                    >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      {pendingCount} new post{pendingCount > 1 ? 's' : ''}
-                    </Button>
-                  </div>
-                )}
-                
                 {/* Privacy Notice for Tribes tab */}
                 {activeTab === 'tribes' && (
                   <div className="flex items-center gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg mt-4 mb-2">

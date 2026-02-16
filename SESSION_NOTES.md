@@ -14,10 +14,15 @@
 5. ✅ **Silenced known Primal kinds** that don't need console warnings
 6. ✅ **Created LinkPreviewCard component** - renders URL cards like Primal
 7. ✅ **Updated data flow** - linkPreviews now passed through entire pipeline
+8. ✅ **Fixed stale data bug** - removed "frozen posts" state that caused old data to persist
+9. ✅ **Fixed username styling** - now uses dark text instead of muted foreground
+10. ✅ **Simplified Feed.tsx** - removed complex pending posts logic
 
-### Git Commit
+### Git Commits
 ```
-Add Primal custom kinds support and link previews (2514512)
+2514512 - Add Primal custom kinds support and link previews
+cfadd2a - Update PLAN.md and SESSION_NOTES.md
+[pending] - Fix stale feed data and username styling
 ```
 
 ---
@@ -39,6 +44,12 @@ All 40+ Primal custom kinds now documented and handled.
 
 ### ~~BUG 4: Link Previews Missing~~ ✅ FIXED
 LinkPreviewCard component now renders URL cards for kind 10000128.
+
+### ~~BUG 5: Stale/Old Feed Data~~ ✅ FIXED
+Removed "frozen posts" state that was preventing new data from showing.
+
+### ~~BUG 6: Grayed Username~~ ✅ FIXED
+Changed username styling from `text-foreground` to explicit `text-gray-900`.
 
 ---
 
@@ -70,9 +81,9 @@ MembershipCohortInfo: 10_000_169
 |------|---------|
 | `/src/lib/primalCache.ts` | Added PrimalKind enum, link preview parsing |
 | `/src/hooks/useFeedPosts.ts` | Added linkPreviews to FeedPost interface |
-| `/src/components/FeedPost.tsx` | Pass linkPreviews to NoteContent |
+| `/src/components/FeedPost.tsx` | Pass linkPreviews to NoteContent, fixed username styling |
 | `/src/components/NoteContent.tsx` | Added LinkPreviewCard component |
-| `/src/pages/Feed.tsx` | Pass linkPreviews to FeedPost |
+| `/src/pages/Feed.tsx` | Removed frozen posts state, simplified to always show fresh data |
 
 ---
 
