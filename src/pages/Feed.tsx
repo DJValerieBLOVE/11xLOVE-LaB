@@ -70,16 +70,11 @@ const Feed = () => {
       case 'tribes':
         // Tribes = PRIVATE posts from Railway relay only
         return { posts: tribePosts || [], loading: tribeLoading };
-      case 'media':
-        // Filter to posts with media URLs
-        const mediaPosts = (followingPosts || []).filter(post => 
-          post.event.content.match(/https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|mp4|webm)/i)
-        );
-        return { posts: mediaPosts, loading: followingLoading };
-      case 'all':
+      case 'buddies':
+        // Buddies = TODO: filter to accountability buddies
+        return { posts: [], loading: false };
       default:
-        // All = LaB posts + Following posts
-        return { posts: allPosts || [], loading: allLoading };
+        return { posts: followingPosts || [], loading: followingLoading };
     }
   };
 
@@ -220,8 +215,8 @@ const Feed = () => {
         </p>
 
         {/* Grid layout - feed centered with sidebar */}
-        <div className="max-w-[1200px] mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
           
           {/* Main Feed Column - centered */}
           <div className="space-y-3">
@@ -273,7 +268,7 @@ const Feed = () => {
               </CardContent>
             </Card>
 
-            {/* Feed Tabs - Like Primal: Latest (from follows), Tribes (private), Media */}
+            {/* Feed Tabs: Latest, Tribes, Buddies */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto">
                 <TabsTrigger 
@@ -290,10 +285,10 @@ const Feed = () => {
                   Tribes
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="media" 
+                  value="buddies" 
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] px-4 py-2"
                 >
-                  Media
+                  Buddies
                 </TabsTrigger>
               </TabsList>
 
@@ -340,8 +335,8 @@ const Feed = () => {
                               ? 'No posts from people you follow. Follow some creators or check your relay settings.'
                               : activeTab === 'tribes'
                               ? 'No Tribe posts yet. Join a Tribe to see private messages here!'
-                              : activeTab === 'media'
-                              ? 'No media posts found from people you follow.'
+                              : activeTab === 'buddies'
+                              ? 'No posts from accountability buddies yet. Add some buddies to see their updates!'
                               : 'No posts to show.'}
                           </p>
                         </CardContent>
