@@ -390,6 +390,10 @@ const Feed = () => {
                             event={post.event}
                             isPrivate={post.isPrivate}
                             tribeName={post.tribeName}
+                            stats={post.stats}
+                            userLiked={post.userLiked}
+                            userReposted={post.userReposted}
+                            userZapped={post.userZapped}
                             onMute={handleMute}
                             onReport={handleReport}
                           />

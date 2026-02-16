@@ -1,11 +1,11 @@
 /**
  * Feed Post Component
  * 
- * Displays a single post in the feed with appropriate actions based on privacy:
- * - Private posts (Tribe): No share/repost button, all other actions available
- * - Public posts: All actions available including share and repost
- * 
- * All posts have: Zap, Like, Reply, Bookmark, Mute, Report
+ * Displays a single post in the feed with engagement stats and actions.
+ * - Shows real like, repost, reply, and zap counts
+ * - Highlights if current user has engaged
+ * - Private posts (Tribe): No share/repost button
+ * - All posts have: Zap, Like, Reply, Bookmark, Mute, Report
  */
 
 import { useState } from 'react';
@@ -56,6 +56,7 @@ import { NoteContent } from '@/components/NoteContent';
 import { ZapDialog } from '@/components/ZapDialog';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { cn } from '@/lib/utils';
+import type { PostStats } from '@/hooks/useFeedPosts';
 
 interface FeedPostProps {
   event: NostrEvent;
@@ -63,6 +64,14 @@ interface FeedPostProps {
   isPrivate?: boolean;
   /** The tribe/group name if this is a private post */
   tribeName?: string;
+  /** Engagement stats */
+  stats?: PostStats;
+  /** Whether current user has liked this post */
+  userLiked?: boolean;
+  /** Whether current user has reposted this post */
+  userReposted?: boolean;
+  /** Whether current user has zapped this post */
+  userZapped?: boolean;
   /** Whether current user is admin of the tribe */
   isGroupAdmin?: boolean;
   /** Whether current user is site admin */
@@ -77,10 +86,28 @@ interface FeedPostProps {
   onDelete?: (eventId: string) => void;
 }
 
+/** Format large numbers nicely */
+function formatCount(num: number): string {
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+  return num.toString();
+}
+
+/** Format sats with k/M suffix */
+function formatSats(sats: number): string {
+  if (sats >= 1000000) return `${(sats / 1000000).toFixed(1)}M`;
+  if (sats >= 1000) return `${(sats / 1000).toFixed(1)}k`;
+  return sats.toString();
+}
+
 export function FeedPost({
   event,
   isPrivate = false,
   tribeName,
+  stats,
+  userLiked: initialUserLiked = false,
+  userReposted: initialUserReposted = false,
+  userZapped = false,
   isGroupAdmin = false,
   isSiteAdmin = false,
   onMute,
@@ -94,9 +121,13 @@ export function FeedPost({
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  
+  // Local state for optimistic updates
+  const [isLiked, setIsLiked] = useState(initialUserLiked);
+  const [isReposted, setIsReposted] = useState(initialUserReposted);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
+  const [localLikeCount, setLocalLikeCount] = useState(0);
+  const [localRepostCount, setLocalRepostCount] = useState(0);
 
   const displayName = metadata?.display_name || metadata?.name || genUserName(event.pubkey);
   const npub = nip19.npubEncode(event.pubkey);
@@ -106,6 +137,13 @@ export function FeedPost({
   // Check if author has lightning address for zapping
   const hasLightningAddress = !!(metadata?.lud16 || metadata?.lud06);
   const canZap = !!user && user.pubkey !== event.pubkey && hasLightningAddress;
+
+  // Calculate display counts (stats + local optimistic updates)
+  const likeCount = (stats?.likes || 0) + localLikeCount;
+  const repostCount = (stats?.reposts || 0) + localRepostCount;
+  const replyCount = stats?.replies || 0;
+  const zapCount = stats?.zaps || 0;
+  const satsZapped = stats?.satsZapped || 0;
 
   const handleReport = () => {
     if (onReport && reportReason.trim()) {
@@ -123,9 +161,23 @@ export function FeedPost({
   };
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
-    // TODO: Publish kind 7 reaction event
+    if (!isLiked) {
+      setIsLiked(true);
+      setLocalLikeCount(prev => prev + 1);
+      // TODO: Publish kind 7 reaction event
+    } else {
+      setIsLiked(false);
+      setLocalLikeCount(prev => prev - 1);
+      // TODO: Delete reaction event
+    }
+  };
+
+  const handleRepost = () => {
+    if (!isReposted) {
+      setIsReposted(true);
+      setLocalRepostCount(prev => prev + 1);
+      // TODO: Publish kind 6 repost event
+    }
   };
 
   const handleBookmark = () => {
@@ -134,24 +186,18 @@ export function FeedPost({
   };
 
   const handleShare = () => {
-    // Copy link to clipboard
     const url = `${window.location.origin}/${noteId}`;
     navigator.clipboard.writeText(url);
     // TODO: Show toast
   };
 
-  const handleRepost = () => {
-    // TODO: Publish kind 6 repost event
-    console.log('Repost:', event.id);
-  };
-
   return (
     <>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="flex gap-3">
           {/* Avatar */}
           <Link to={`/${npub}`}>
-            <Avatar className="h-12 w-12 cursor-pointer hover:ring-2 hover:ring-[#6600ff]/30 transition-all">
+            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 cursor-pointer hover:ring-2 hover:ring-[#6600ff]/30 transition-all">
               <AvatarImage src={metadata?.picture} />
               <AvatarFallback className="bg-[#6600ff]/10 text-[#6600ff]">
                 {displayName.slice(0, 2).toUpperCase()}
@@ -161,12 +207,12 @@ export function FeedPost({
 
           <div className="flex-1 min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <Link to={`/${npub}`} className="font-semibold hover:underline">
+                <Link to={`/${npub}`} className="font-semibold hover:underline text-sm sm:text-base">
                   {displayName}
                 </Link>
-                <span className="text-muted-foreground text-sm">• {timeAgo}</span>
+                <span className="text-muted-foreground text-xs sm:text-sm">• {timeAgo}</span>
                 
                 {/* Privacy Badge */}
                 {isPrivate && (
@@ -185,7 +231,6 @@ export function FeedPost({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  {/* Open in new tab */}
                   <DropdownMenuItem asChild>
                     <Link to={`/${noteId}`} target="_blank">
                       <ExternalLink className="h-4 w-4 mr-2" />
@@ -195,19 +240,16 @@ export function FeedPost({
                   
                   <DropdownMenuSeparator />
                   
-                  {/* Mute Author */}
                   <DropdownMenuItem onClick={() => onMute?.(event.pubkey)}>
                     <VolumeX className="h-4 w-4 mr-2" />
                     Mute @{displayName.slice(0, 12)}
                   </DropdownMenuItem>
                   
-                  {/* Report Post */}
                   <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
                     <Flag className="h-4 w-4 mr-2" />
                     Report Post
                   </DropdownMenuItem>
 
-                  {/* Admin Options */}
                   {(isGroupAdmin || isSiteAdmin) && (
                     <>
                       <DropdownMenuSeparator />
@@ -238,40 +280,73 @@ export function FeedPost({
             </div>
 
             {/* Content */}
-            <div className="mb-4">
-              <NoteContent event={event} className="text-base" />
+            <div className="mb-3">
+              <NoteContent event={event} className="text-sm sm:text-base" />
             </div>
 
-            {/* Engagement Buttons */}
-            <div className="flex items-center gap-1 flex-wrap -ml-2">
+            {/* Engagement Stats Bar */}
+            {(likeCount > 0 || repostCount > 0 || replyCount > 0 || satsZapped > 0) && (
+              <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2 pb-2 border-b">
+                {likeCount > 0 && (
+                  <span>{formatCount(likeCount)} {likeCount === 1 ? 'like' : 'likes'}</span>
+                )}
+                {repostCount > 0 && (
+                  <span>{formatCount(repostCount)} {repostCount === 1 ? 'repost' : 'reposts'}</span>
+                )}
+                {replyCount > 0 && (
+                  <span>{formatCount(replyCount)} {replyCount === 1 ? 'reply' : 'replies'}</span>
+                )}
+                {satsZapped > 0 && (
+                  <span className="text-orange-500 font-medium">
+                    ⚡ {formatSats(satsZapped)} sats
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-0.5 sm:gap-1 flex-wrap -ml-2">
               {/* Reply */}
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 gap-1.5 h-9 px-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 gap-1 h-8 px-2 sm:px-3"
+              >
                 <MessageCircle className="h-4 w-4" />
-                <span className="text-sm">Reply</span>
+                {replyCount > 0 && <span className="text-xs">{formatCount(replyCount)}</span>}
               </Button>
 
-              {/* Like/React */}
+              {/* Like */}
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleLike}
                 className={cn(
-                  "gap-1.5 h-9 px-3",
+                  "gap-1 h-8 px-2 sm:px-3",
                   isLiked 
                     ? "text-red-500 hover:text-red-600 hover:bg-red-50" 
                     : "text-gray-400 hover:text-red-500 hover:bg-red-50"
                 )}
               >
                 <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
-                <span className="text-sm">{likeCount > 0 ? likeCount : 'Like'}</span>
+                {likeCount > 0 && <span className="text-xs">{formatCount(likeCount)}</span>}
               </Button>
 
-              {/* Zap - Always available if author has lightning address */}
+              {/* Zap */}
               {canZap ? (
                 <ZapDialog target={event}>
-                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-orange-500 hover:bg-orange-50 gap-1.5 h-9 px-3">
-                    <Zap className="h-4 w-4" />
-                    <span className="text-sm">Zap</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={cn(
+                      "gap-1 h-8 px-2 sm:px-3",
+                      userZapped
+                        ? "text-orange-500 hover:text-orange-600 hover:bg-orange-50"
+                        : "text-gray-400 hover:text-orange-500 hover:bg-orange-50"
+                    )}
+                  >
+                    <Zap className={cn("h-4 w-4", userZapped && "fill-current")} />
+                    {satsZapped > 0 && <span className="text-xs">{formatSats(satsZapped)}</span>}
                   </Button>
                 </ZapDialog>
               ) : (
@@ -279,11 +354,10 @@ export function FeedPost({
                   variant="ghost" 
                   size="sm" 
                   disabled 
-                  className="text-gray-300 gap-1.5 h-9 px-3 cursor-not-allowed"
+                  className="text-gray-300 gap-1 h-8 px-2 sm:px-3 cursor-not-allowed"
                   title={!user ? "Login to zap" : user.pubkey === event.pubkey ? "Can't zap yourself" : "No lightning address"}
                 >
                   <Zap className="h-4 w-4" />
-                  <span className="text-sm">Zap</span>
                 </Button>
               )}
 
@@ -293,7 +367,7 @@ export function FeedPost({
                 size="sm" 
                 onClick={handleBookmark}
                 className={cn(
-                  "gap-1.5 h-9 px-3",
+                  "h-8 px-2 sm:px-3",
                   isBookmarked 
                     ? "text-[#6600ff] hover:text-[#5500dd] hover:bg-[#6600ff]/10" 
                     : "text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10"
@@ -308,9 +382,15 @@ export function FeedPost({
                   variant="ghost" 
                   size="sm" 
                   onClick={handleRepost}
-                  className="text-gray-400 hover:text-green-500 hover:bg-green-50 gap-1.5 h-9 px-3"
+                  className={cn(
+                    "gap-1 h-8 px-2 sm:px-3",
+                    isReposted
+                      ? "text-green-500 hover:text-green-600 hover:bg-green-50"
+                      : "text-gray-400 hover:text-green-500 hover:bg-green-50"
+                  )}
                 >
-                  <Repeat2 className="h-4 w-4" />
+                  <Repeat2 className={cn("h-4 w-4", isReposted && "stroke-[2.5px]")} />
+                  {repostCount > 0 && <span className="text-xs">{formatCount(repostCount)}</span>}
                 </Button>
               )}
 
@@ -320,7 +400,7 @@ export function FeedPost({
                   variant="ghost" 
                   size="sm" 
                   onClick={handleShare}
-                  className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 gap-1.5 h-9 px-3"
+                  className="text-gray-400 hover:text-[#6600ff] hover:bg-[#6600ff]/10 h-8 px-2 sm:px-3"
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
