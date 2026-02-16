@@ -80,6 +80,11 @@ function ZapperMiniAvatar({ pubkey, index }: { pubkey: string; index: number }) 
 
 interface FeedPostProps {
   event: NostrEvent;
+  /** Author metadata (from Primal API, avoids extra fetches) */
+  authorMetadata?: {
+    pubkey: string;
+    metadata?: import('@nostrify/nostrify').NostrMetadata;
+  };
   /** Whether this is a private post (from Tribe) */
   isPrivate?: boolean;
   /** The tribe/group name if this is a private post */
@@ -122,6 +127,7 @@ function formatSats(sats: number): string {
 
 export function FeedPost({
   event,
+  authorMetadata,
   isPrivate = false,
   tribeName,
   stats,
@@ -135,9 +141,11 @@ export function FeedPost({
   onRemoveFromGroup,
   onDelete,
 }: FeedPostProps) {
-  const author = useAuthor(event.pubkey);
+  // Use provided author metadata (from Primal API) or fetch it
+  const author = useAuthor(authorMetadata?.metadata ? undefined : event.pubkey);
   const { user } = useCurrentUser();
-  const metadata = author.data?.metadata;
+  // Prefer Primal-provided metadata, fall back to fetched
+  const metadata = authorMetadata?.metadata || author.data?.metadata;
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);

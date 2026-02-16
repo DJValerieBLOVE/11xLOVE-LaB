@@ -275,15 +275,9 @@ export function NoteContent({
         </div>
       )}
       
-      {/* Media gallery */}
+      {/* Media gallery - Primal style: single column, natural sizing */}
       {mediaItems.length > 0 && (
-        <div className={cn(
-          "grid gap-2",
-          mediaItems.length === 1 ? "grid-cols-1" : 
-          mediaItems.length === 2 ? "grid-cols-2" :
-          mediaItems.length === 3 ? "grid-cols-2" :
-          "grid-cols-2"
-        )}>
+        <div className="space-y-2">
           {mediaItems.map((media, index) => (
             <MediaItem key={`media-${index}`} {...media} />
           ))}
@@ -293,15 +287,15 @@ export function NoteContent({
   );
 }
 
-// Media item component
+// Media item component - Primal-style image rendering
 function MediaItem({ url, type }: { url: string; type: 'image' | 'video' | 'audio' | 'youtube'; thumbnailUrl?: string }) {
   if (type === 'image') {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-xl">
         <img
           src={url}
           alt="Embedded media"
-          className="rounded-xl max-h-[400px] w-full object-cover hover:opacity-90 transition-opacity bg-gray-100"
+          className="max-w-full h-auto rounded-xl hover:opacity-90 transition-opacity bg-gray-100"
           loading="lazy"
           onError={(e) => {
             // Hide broken images
@@ -311,12 +305,7 @@ function MediaItem({ url, type }: { url: string; type: 'image' | 'video' | 'audi
             const parent = img.parentElement;
             if (parent) parent.style.display = 'none';
           }}
-          onLoad={(e) => {
-            // Ensure image is visible after loading
-            const img = e.target as HTMLImageElement;
-            img.style.opacity = '1';
-          }}
-          style={{ minHeight: '100px' }}
+          style={{ maxHeight: '500px', objectFit: 'contain' }}
         />
       </a>
     );

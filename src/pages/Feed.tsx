@@ -347,6 +347,7 @@ const Feed = () => {
                         <Card key={post.event.id} className="hover:shadow-md transition-shadow">
                           <FeedPost
                             event={post.event}
+                            authorMetadata={post.author}
                             isPrivate={post.isPrivate}
                             tribeName={post.tribeName}
                             stats={post.stats}
