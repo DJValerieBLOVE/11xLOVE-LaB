@@ -176,7 +176,6 @@ function parseBolt11Amount(bolt11: string): number {
 
 /**
  * Get the user's follow list (kind 3 contact list)
- * Optimized: single relay, cached for 10 minutes
  */
 export function useFollowList() {
   const { nostr } = useNostr();
@@ -188,11 +187,15 @@ export function useFollowList() {
       if (!user) return [];
       
       try {
-        // Use single fast relay
-        const fastRelay = nostr.relay('wss://relay.primal.net');
+        // Use multiple relays for better reliability
+        const relays = nostr.group([
+          'wss://relay.primal.net',
+          'wss://relay.damus.io',
+          'wss://nos.lol',
+        ]);
         
         // Query kind 3 (contact list) for the current user
-        const contactEvents = await fastRelay.query([
+        const contactEvents = await relays.query([
           {
             kinds: [3],
             authors: [user.pubkey],
@@ -200,7 +203,10 @@ export function useFollowList() {
           },
         ]);
 
-        if (contactEvents.length === 0) return [];
+        if (contactEvents.length === 0) {
+          console.log('[Feed] No contact list found for user');
+          return [];
+        }
         
         // Extract pubkeys from 'p' tags
         const follows = contactEvents[0].tags
@@ -208,6 +214,7 @@ export function useFollowList() {
           .map(([, pubkey]) => pubkey)
           .filter(Boolean);
         
+        console.log(`[Feed] Found ${follows.length} follows`);
         return follows;
       } catch (error) {
         console.warn('[Feed] Failed to fetch follow list:', error);
@@ -215,7 +222,7 @@ export function useFollowList() {
       }
     },
     enabled: !!user,
-    staleTime: 10 * 60 * 1000, // 10 minutes - follows don't change often
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
@@ -384,7 +391,7 @@ export function useTribePosts(limit: number = 50) {
 export function useFollowingPosts(limit: number = 50) {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
-  const { data: follows = [] } = useFollowList();
+  const { data: follows = [], isLoading: followsLoading } = useFollowList();
 
   return useQuery({
     queryKey: ['following-posts', user?.pubkey, follows.length, limit],
@@ -392,23 +399,32 @@ export function useFollowingPosts(limit: number = 50) {
       const posts: FeedPost[] = [];
       const seenIds = new Set<string>();
 
-      if (follows.length === 0) return posts;
+      if (follows.length === 0) {
+        console.log('[Feed] No follows to fetch posts from');
+        return posts;
+      }
+
+      console.log(`[Feed] Fetching posts from ${follows.length} follows`);
 
       try {
         // Use multiple relays for better coverage
         const relayGroup = nostr.group([
           'wss://relay.primal.net',
-          'wss://relay.damus.io',
+          'wss://relay.damus.io', 
+          'wss://nos.lol',
+          'wss://relay.nostr.band',
         ]);
         
         // Query latest posts from followed users
         const publicEvents = await relayGroup.query([
           {
             kinds: [1],
-            authors: follows.slice(0, 200),
-            limit: limit * 2, // Get more to account for deduplication
+            authors: follows.slice(0, 500), // More authors
+            limit: limit * 3, // Get more to account for deduplication
           },
         ]);
+
+        console.log(`[Feed] Received ${publicEvents.length} events from relays`);
 
         for (const event of publicEvents) {
           // Skip duplicates
@@ -428,9 +444,10 @@ export function useFollowingPosts(limit: number = 50) {
 
       // Sort by timestamp (newest first) and limit
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
+      console.log(`[Feed] Returning ${Math.min(posts.length, limit)} posts`);
       return posts.slice(0, limit);
     },
-    enabled: !!user,
+    enabled: !!user && !followsLoading && follows.length > 0,
     staleTime: 30000,
   });
 }
