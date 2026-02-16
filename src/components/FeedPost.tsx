@@ -198,7 +198,7 @@ export function FeedPost({
 
   return (
     <>
-      <div className="p-4 sm:p-6">
+      <div className="p-3 sm:p-4">
         <div className="flex gap-3">
           {/* Avatar */}
           <Link to={`/${npub}`}>
@@ -285,13 +285,13 @@ export function FeedPost({
             </div>
 
             {/* Content */}
-            <div className="mb-3">
+            <div className="mb-2">
               <NoteContent event={event} className="text-sm sm:text-base" />
             </div>
 
-            {/* Engagement Stats Bar */}
+            {/* Engagement Stats Bar - shows zappers with avatars */}
             {(likeCount > 0 || repostCount > 0 || replyCount > 0 || satsZapped > 0) && (
-              <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2 pb-2 border-b flex-wrap">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mb-1 pb-1 border-b flex-wrap">
                 {likeCount > 0 && (
                   <span>{formatCount(likeCount)} {likeCount === 1 ? 'like' : 'likes'}</span>
                 )}

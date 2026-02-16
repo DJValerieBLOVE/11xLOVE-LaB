@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useFeedPosts, useTribePosts, useFollowingPosts, useTrendingPosts } from '@/hooks/useFeedPosts';
+import { useFeedPosts, useTribePosts, useFollowingPosts } from '@/hooks/useFeedPosts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   Lock, 
@@ -27,17 +27,21 @@ import {
   Radio, 
   Users,
   UserCheck,
-  Sparkles,
   Loader2,
   RefreshCw,
-  TrendingUp,
   UserPlus,
+  ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FeedPost } from '@/components/FeedPost';
@@ -48,14 +52,13 @@ import { useLabPublish } from '@/hooks/useLabPublish';
 const Feed = () => {
   const { user, metadata } = useCurrentUser();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('tribes');
+  const [activeTab, setActiveTab] = useState('following');
   const [postContent, setPostContent] = useState('');
 
   // Real Nostr queries
   const { data: allPosts, isLoading: allLoading, refetch: refetchAll } = useFeedPosts(30);
   const { data: tribePosts, isLoading: tribeLoading, refetch: refetchTribe } = useTribePosts(30);
   const { data: followingPosts, isLoading: followingLoading, refetch: refetchFollowing } = useFollowingPosts(30);
-  const { data: trendingPosts, isLoading: trendingLoading, refetch: refetchTrending } = useTrendingPosts(30);
 
   // Publishing hook
   const { mutate: publishPost, isPending: isPosting } = useLabPublish();
@@ -72,8 +75,6 @@ const Feed = () => {
         return { posts: tribePosts || [], loading: tribeLoading };
       case 'following':
         return { posts: followingPosts || [], loading: followingLoading };
-      case 'trending':
-        return { posts: trendingPosts || [], loading: trendingLoading };
       case 'buddies':
         return { posts: [], loading: false }; // TODO: Implement buddy filtering
       case 'all':
@@ -92,9 +93,6 @@ const Feed = () => {
         break;
       case 'following':
         refetchFollowing();
-        break;
-      case 'trending':
-        refetchTrending();
         break;
       default:
         refetchAll();
@@ -209,7 +207,7 @@ const Feed = () => {
 
   return (
     <Layout>
-      <div className="container px-4 py-8">
+      <div className="container px-4 py-6">
         <div className="flex items-center justify-between mb-2">
           <h1>Your Feed</h1>
           <Button variant="ghost" size="sm" onClick={handleRefresh}>
@@ -217,13 +215,14 @@ const Feed = () => {
             Refresh
           </Button>
         </div>
-        <p className="text-muted-foreground mb-8">
+        <p className="text-muted-foreground mb-6">
           Updates from your Tribes, buddies, and the community
         </p>
 
-        <div className="grid lg:grid-cols-11 gap-6 max-w-5xl mx-auto">
-          {/* Main Feed Column - centered */}
-          <div className="lg:col-span-6 space-y-4">
+        {/* Flexbox layout for proper centering */}
+        <div className="flex justify-center gap-6">
+          {/* Main Feed Column - fixed width, centered */}
+          <div className="w-full max-w-xl space-y-3">
             {/* Post Composer */}
             <Card>
               <CardContent className="p-4">
@@ -272,64 +271,44 @@ const Feed = () => {
               </CardContent>
             </Card>
 
-            {/* Feed Tabs - Order: Tribes, Buddies, Following, All, Trending */}
+            {/* Feed Tabs - Simplified: Following (default), Tribes, Buddies, All */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto flex-wrap">
+              <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto">
+                <TabsTrigger 
+                  value="following" 
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-3"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Following
+                </TabsTrigger>
                 <TabsTrigger 
                   value="tribes" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-3"
                 >
                   <Users className="h-4 w-4" />
                   Tribes
-                  {tribePosts && tribePosts.length > 0 && (
-                    <Badge variant="secondary" className="ml-1 text-xs">
-                      {tribePosts.length}
-                    </Badge>
-                  )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="buddies" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-3"
                 >
                   <UserCheck className="h-4 w-4" />
                   Buddies
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="following" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Following
-                  {followingPosts && followingPosts.length > 0 && (
-                    <Badge variant="secondary" className="ml-1 text-xs">
-                      {followingPosts.length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="all" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  All
-                  {allPosts && allPosts.length > 0 && (
-                    <Badge variant="secondary" className="ml-1 text-xs">
-                      {allPosts.length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="trending" 
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-2"
-                >
-                  <TrendingUp className="h-4 w-4" />
-                  Trending
-                  {trendingPosts && trendingPosts.length > 0 && (
-                    <Badge variant="secondary" className="ml-1 text-xs">
-                      {trendingPosts.length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
+                {/* More dropdown for additional feeds */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-1 px-3 h-auto py-2">
+                      More
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => setActiveTab('all')}>
+                      All Posts
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TabsList>
 
               {/* Tab Content */}
@@ -406,8 +385,8 @@ const Feed = () => {
             </Tabs>
           </div>
 
-          {/* Right Sidebar */}
-          <div className="lg:col-span-5 space-y-2">
+          {/* Right Sidebar - narrower, hidden on mobile */}
+          <div className="hidden lg:block w-64 shrink-0 space-y-3">
             {/* My Tribes */}
             <Card>
               <CardHeader className="pb-3">
