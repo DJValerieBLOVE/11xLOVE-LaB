@@ -385,7 +385,7 @@ const Feed = () => {
             {/* My Tribes */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base text-black">
+                <CardTitle className="flex items-center gap-2 text-base text-black font-normal">
                   <Users className="h-4 w-4 text-[#6600ff]" />
                   My Tribes
                 </CardTitle>
@@ -416,7 +416,7 @@ const Feed = () => {
             {/* Live Now */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base text-black">
+                <CardTitle className="flex items-center gap-2 text-base text-black font-normal">
                   <Radio className="h-4 w-4 text-red-500" />
                   Live Now
                 </CardTitle>
@@ -428,7 +428,7 @@ const Feed = () => {
                       <AvatarFallback>{item.host.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm leading-tight text-black">{item.title}</p>
+                      <p className="font-normal text-sm leading-tight text-black">{item.title}</p>
                       <p className="text-xs text-gray-500">{item.host}</p>
                       <Badge variant="secondary" className="mt-1 text-xs">
                         {item.type}
@@ -442,12 +442,12 @@ const Feed = () => {
             {/* Upcoming Events */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base text-black">Upcoming Events</CardTitle>
+                <CardTitle className="text-base text-black font-normal">Upcoming Events</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {upcomingEvents.map((event, i) => (
                   <div key={i}>
-                    <p className="font-medium text-sm text-black">{event.title}</p>
+                    <p className="font-normal text-sm text-black">{event.title}</p>
                     <p className="text-xs text-gray-500">{event.date}</p>
                     {i < upcomingEvents.length - 1 && <Separator className="mt-3" />}
                   </div>
