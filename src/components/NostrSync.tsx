@@ -38,35 +38,38 @@ export function NostrSync() {
           { signal: AbortSignal.timeout(5000) }
         );
 
-        // Base relays we always include
-        const baseRelays = [
-          { url: 'wss://nostr-rs-relay-production-1569.up.railway.app', read: true, write: true },
-          { url: 'wss://relay.primal.net', read: true, write: false },
-          { url: 'wss://relay.damus.io', read: true, write: false },
-          { url: 'wss://nos.lol', read: true, write: false },
-        ];
+        // Railway relay is always read+write for LaB data
+        const railwayRelay = { 
+          url: 'wss://nostr-rs-relay-production-1569.up.railway.app', 
+          read: true, 
+          write: true 
+        };
 
-        let finalRelays = [...baseRelays];
+        let finalRelays: { url: string; read: boolean; write: boolean }[] = [railwayRelay];
 
         if (events.length > 0) {
-          // Add user's custom relays (read-only, skip Railway)
+          // Parse user's NIP-65 relay list with proper read/write markers
           const userRelays = events[0].tags
             .filter(([name]) => name === 'r')
             .map(([, url, marker]) => ({
               url,
+              // NIP-65: no marker = read+write, "read" = read only, "write" = write only
               read: !marker || marker === 'read',
-              write: false,
+              write: !marker || marker === 'write',
             }))
             .filter(r => !r.url.includes('railway.app'));
 
-          // Merge, avoiding duplicates
-          const urls = new Set(baseRelays.map(r => r.url));
+          // Add user's relays
           for (const relay of userRelays) {
-            if (!urls.has(relay.url)) {
-              finalRelays.push(relay);
-              urls.add(relay.url);
-            }
+            finalRelays.push(relay);
           }
+        } else {
+          // No NIP-65 list found, use defaults
+          finalRelays.push(
+            { url: 'wss://relay.primal.net', read: true, write: true },
+            { url: 'wss://relay.damus.io', read: true, write: true },
+            { url: 'wss://nos.lol', read: true, write: true },
+          );
         }
 
         updateConfig((current) => ({

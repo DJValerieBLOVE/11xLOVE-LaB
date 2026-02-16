@@ -37,10 +37,10 @@ const defaultConfig: AppConfig = {
     relays: [
       // Private Railway relay - 11x LOVE LaB data ONLY
       { url: 'wss://nostr-rs-relay-production-1569.up.railway.app', read: true, write: true },
-      // Fast public relays for social data
-      { url: 'wss://relay.primal.net', read: true, write: false },
-      { url: 'wss://relay.damus.io', read: true, write: false },
-      { url: 'wss://nos.lol', read: true, write: false },
+      // Public relays for social data (read + write for public posts)
+      { url: 'wss://relay.primal.net', read: true, write: true },
+      { url: 'wss://relay.damus.io', read: true, write: true },
+      { url: 'wss://nos.lol', read: true, write: true },
     ],
     updatedAt: 0,
   },
