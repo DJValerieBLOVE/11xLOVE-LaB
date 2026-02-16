@@ -7,34 +7,35 @@
 
 ## ✅ RESOLVED BUGS
 
-### ✅ BUG #1: TEXT COLORS RENDER GRAY — FIXED (commit 8dbafeb)
+### ✅ BUG #1: TEXT COLORS RENDER GRAY — FIXED (commits 8dbafeb, 9e41e5e)
 
-**Symptom**: ALL text (usernames, headings, sidebar items) rendered as gray/muted instead of black.
+**Symptom**: Text (usernames, headings, sidebar items) rendered as gray/muted/blurry instead of crisp black.
 
-**Root Cause**: Shakespeare's build system outputs CSS inside `<style type="text/tailwindcss">`, which triggers Tailwind's Play CDN to reprocess ALL CSS at runtime. The CDN generates its own `@layer base` with default shadcn/ui gray color variables, overriding all custom values set in `index.css`. Because the CDN reprocesses the entire `<style type="text/tailwindcss">` block, any CSS variable changes inside it were ineffective.
+**TWO Root Causes Found**:
 
-**Why 11+ Previous Attempts Failed**:
-All previous fixes modified code *inside* the `<style type="text/tailwindcss">` block (CSS variables, inline styles, !important classes, arbitrary values). The CDN regenerated its own defaults over top of everything. The key insight was that a **plain `<style>` tag** (without `type="text/tailwindcss"`) is **not processed by the CDN** at all.
+#### Cause A: Tailwind CDN overriding CSS variables (commit 8dbafeb)
+Shakespeare's build system outputs CSS inside `<style type="text/tailwindcss">`, which triggers Tailwind's Play CDN to reprocess ALL CSS at runtime. The CDN generates its own `@layer base` with default shadcn/ui gray color variables, overriding all custom values set in `index.css`.
 
-**Solution Applied**:
-1. Added a **plain `<style>` tag** in `index.html` (before the tailwindcss block) with `!important` overrides for all foreground CSS variables: `--foreground`, `--card-foreground`, `--popover-foreground`, `--secondary-foreground`, `--accent-foreground`, `--sidebar-foreground`, `--sidebar-primary`, `--sidebar-accent-foreground` — all set to `0 0% 0%` (pure black)
-2. Added `body { color: hsl(0 0% 0%) !important; }` in the same plain `<style>` tag
-3. Applied explicit `text-black` classes on key components (`Card`, `CardTitle`, `TabsList`, `TabsTrigger`, FeedPost username, Feed headings, Profile name/bio) as belt-and-suspenders
+#### Cause B: Marcellus font faux-bold rendering (commit 9e41e5e) ⚠️ STILL NEEDS SITE-WIDE FIX
+The **Marcellus** font only ships with **weight 400 (regular)**. It has NO bold, semibold, or medium weight files. When Tailwind classes like `font-semibold` (600), `font-bold` (700), or `font-medium` (500) are applied, the browser **synthesizes a fake bold** by slightly stretching/smearing the glyphs. This causes text to look **blurry, gray, and washed out** instead of crisp black — especially at smaller sizes (text-sm, text-base).
 
-**Files Changed**:
-- `index.html` — Plain `<style>` with `!important` variable overrides
-- `src/components/ui/card.tsx` — `text-black` on Card and CardTitle
-- `src/components/ui/tabs.tsx` — `text-black` on TabsList and TabsTrigger
-- `src/components/FeedPost.tsx` — `text-black` on username
-- `src/pages/Feed.tsx` — `text-black` on headings and sidebar text
-- `src/pages/Profile.tsx` — `text-black` on name and bio
-- `src/components/Layout.tsx` — `text-gray-500` replacing `text-muted-foreground`
+**Why text-black alone doesn't fix it**: The color IS black, but the faux-bold rendering makes it appear gray/blurry because the browser is artificially thickening strokes that weren't designed for it.
+
+**Solution for Cause A**:
+1. Plain `<style>` tag in `index.html` with `!important` CSS variable overrides
+2. Explicit `text-black` classes on key components
+
+**Solution for Cause B** (partially applied — Feed page only):
+Changed `font-semibold` and `font-medium` to `font-normal` on affected elements so Marcellus renders at its native weight 400 — crisp and clean.
+
+**⚠️ REMAINING WORK**: Cause B exists on EVERY page across the entire app. Only the Feed page was fixed. See `MARCELLUS_FONT_FIX.md` for the full list of files and lines that need `font-medium`/`font-semibold`/`font-bold` replaced with `font-normal`.
 
 **Important for Future Development**:
-- **NEVER rely on `text-foreground` or `text-card-foreground`** for critical text colors — these use CSS variables that the Tailwind CDN can override
-- **USE `text-black`** for text that must be black — this compiles to `color: rgb(0 0 0)` which the CDN cannot override
-- **The plain `<style>` tag in `index.html` MUST remain** — it is the primary defense against the CDN
-- **`text-muted-foreground` is unreliable** — use `text-gray-500` or `text-gray-600` instead
+- **NEVER use `font-medium`, `font-semibold`, or `font-bold`** on any text using the Marcellus font — it only has weight 400 and faux-bold looks blurry
+- **USE `font-normal`** for all Marcellus text that must look crisp
+- **If you need visual weight distinction**, use `text-lg`/`text-xl` (size) or `uppercase tracking-wide` (letter-spacing) instead of font-weight
+- **USE `text-black`** instead of `text-foreground` for critical text
+- **The plain `<style>` tag in `index.html` MUST remain**
 
 ---
 

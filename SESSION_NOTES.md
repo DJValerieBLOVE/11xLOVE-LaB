@@ -1,12 +1,19 @@
 # Session Notes - February 16, 2026
 
-> **STATUS: BOTH CRITICAL BUGS FIXED** ✅ (commit 8dbafeb)
+> **STATUS: Blurry text root cause IDENTIFIED** — Marcellus font only has weight 400. Feed page fixed. Rest of app still needs fix. See `MARCELLUS_FONT_FIX.md`.
 
 ---
 
-## CURRENT SESSION SUMMARY (Opus 4.6)
+## CURRENT SESSION SUMMARY (Opus 4.6 — Session 2)
 
 ### Bugs Fixed This Session
+
+3. ✅ **ROOT CAUSE FOUND: Blurry/gray text = Marcellus font faux-bold** (commit 9e41e5e)
+   - Marcellus only ships weight 400. `font-medium`/`font-semibold`/`font-bold` cause browser to synthesize fake bold = blurry gray text
+   - Fixed on Feed page: username, My Tribes, Live Now, Upcoming Events
+   - **REST OF APP STILL NEEDS FIX** — see `MARCELLUS_FONT_FIX.md` for complete list
+
+### Previous Session (Opus 4.6 — Session 1)
 
 1. ✅ **FIXED: Gray/muted text colors** — Added plain `<style>` tag in `index.html` with `!important` CSS variable overrides that the Tailwind Play CDN cannot process. Applied explicit `text-black` classes on key components. Root cause was CDN reprocessing `<style type="text/tailwindcss">` and overriding custom variables.
 
