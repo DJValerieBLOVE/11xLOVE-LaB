@@ -461,7 +461,7 @@ export function useFollowingPosts(limit: number = 50) {
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
       return posts.slice(0, limit);
     },
-    enabled: !!user && follows.length > 0,
+    enabled: !!user,
     staleTime: 30000,
   });
 }

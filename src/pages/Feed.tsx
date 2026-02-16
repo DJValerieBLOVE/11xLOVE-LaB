@@ -221,9 +221,9 @@ const Feed = () => {
           Updates from your Tribes, buddies, and the community
         </p>
 
-        <div className="grid lg:grid-cols-12 gap-6 max-w-6xl mx-auto">
-          {/* Main Feed Column - narrower (6 cols = 50%) */}
-          <div className="lg:col-span-6 lg:col-start-1 space-y-4">
+        <div className="grid lg:grid-cols-11 gap-6 max-w-5xl mx-auto">
+          {/* Main Feed Column - centered */}
+          <div className="lg:col-span-6 space-y-4">
             {/* Post Composer */}
             <Card>
               <CardContent className="p-4">
@@ -406,8 +406,8 @@ const Feed = () => {
             </Tabs>
           </div>
 
-          {/* Right Sidebar - 5 cols with offset for gap */}
-          <div className="lg:col-span-5 lg:col-start-8 space-y-2">
+          {/* Right Sidebar */}
+          <div className="lg:col-span-5 space-y-2">
             {/* My Tribes */}
             <Card>
               <CardHeader className="pb-3">
