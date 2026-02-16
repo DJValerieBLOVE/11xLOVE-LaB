@@ -99,9 +99,11 @@ export function NoteContent({
     const text = event.content;
     const media: Array<{ url: string; type: 'image' | 'video' | 'audio' | 'youtube'; thumbnailUrl?: string }> = [];
     
-    // Extract URLs from content
+    // Extract URLs from content - handle trailing punctuation
     const urlRegex = /https?:\/\/[^\s<>"]+/g;
-    const urls = text.match(urlRegex) || [];
+    const rawUrls = text.match(urlRegex) || [];
+    // Clean trailing punctuation that might be captured
+    const urls = rawUrls.map(url => url.replace(/[.,;:!?)\]]+$/, ''));
     
     // Check each URL for media type
     urls.forEach(url => {

@@ -379,7 +379,7 @@ export function useTribePosts(limit: number = 50) {
 
 /**
  * Fetch posts from followed users only
- * Optimized for fast initial load - stats loaded lazily
+ * Shows latest posts from people you follow
  */
 export function useFollowingPosts(limit: number = 50) {
   const { nostr } = useNostr();
@@ -390,22 +390,31 @@ export function useFollowingPosts(limit: number = 50) {
     queryKey: ['following-posts', user?.pubkey, follows.length, limit],
     queryFn: async (): Promise<FeedPost[]> => {
       const posts: FeedPost[] = [];
+      const seenIds = new Set<string>();
 
       if (follows.length === 0) return posts;
 
       try {
-        // Use single fast relay for speed
-        const fastRelay = nostr.relay('wss://relay.primal.net');
+        // Use multiple relays for better coverage
+        const relayGroup = nostr.group([
+          'wss://relay.primal.net',
+          'wss://relay.damus.io',
+        ]);
         
-        const publicEvents = await fastRelay.query([
+        // Query latest posts from followed users
+        const publicEvents = await relayGroup.query([
           {
             kinds: [1],
-            authors: follows.slice(0, 150), // Limit for speed
-            limit: limit,
+            authors: follows.slice(0, 200),
+            limit: limit * 2, // Get more to account for deduplication
           },
         ]);
 
         for (const event of publicEvents) {
+          // Skip duplicates
+          if (seenIds.has(event.id)) continue;
+          seenIds.add(event.id);
+          
           posts.push({
             event,
             isPrivate: false,
@@ -417,6 +426,7 @@ export function useFollowingPosts(limit: number = 50) {
         console.warn('[Feed] Failed to fetch following posts:', error);
       }
 
+      // Sort by timestamp (newest first) and limit
       posts.sort((a, b) => b.event.created_at - a.event.created_at);
       return posts.slice(0, limit);
     },
