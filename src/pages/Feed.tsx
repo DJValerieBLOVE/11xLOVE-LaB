@@ -442,7 +442,7 @@ const Feed = () => {
               </CardContent>
             </Card>
           </div>
-        </div>
+          </div>
         </div>
       </div>
     </Layout>
