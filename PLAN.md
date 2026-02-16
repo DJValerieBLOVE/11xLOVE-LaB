@@ -4,9 +4,9 @@
 
 ---
 
-## STATUS: SECURITY & FEED COMPLETE — READY FOR GAMIFICATION ⚡
+## STATUS: FEED SYSTEM ENHANCED — DEBUGGING IN PROGRESS 🔧
 
-**Last Updated:** February 15, 2026
+**Last Updated:** February 16, 2026
 
 **Infrastructure:**
 - ✅ Private Nostr relay deployed on Railway
@@ -26,10 +26,15 @@
 - ✅ Moderation system (mute, report, admin tools)
 - ✅ Experiment Builder for creators
 - ✅ 5-tier membership system
+- ✅ **Primal custom kinds documented (40+ kinds)**
+- ✅ **Link preview cards (kind 10000128)**
+- 🔧 **Feed content mismatch with Primal — investigating**
+- 🔧 **Stats display — needs testing**
 - ❌ **NOT connected to Magic Mentor AI yet**
 - ❌ **NO streak tracking or gamification**
 - ❌ **NO completion receipts for sats earning**
 
+**Current Priority:** Fix feed to match Primal exactly (same posts, same stats)
 **Next Priority:** Completion receipts → Streaks → Magic Mentor AI
 
 ---
@@ -167,12 +172,17 @@ A $1,000/year selective coaching community platform called **11x LOVE LaB** ("Le
 - ❌ 30-day history view (✅/❌)
 - ❌ Milestone celebrations (7/30/90 days)
 
-### ✅ Chunk 5: Feed System + Tribes — COMPLETE
+### 🔧 Chunk 5: Feed System + Tribes — DEBUGGING
 - ✅ Feed with 4 tabs: All, Tribes, Buddies, Public
 - ✅ Mixed public/private content (safe - client-side only)
 - ✅ Privacy badges on posts
 - ✅ Share button logic (not on private posts)
 - ✅ Moderation: mute, report, admin tools
+- ✅ Primal WebSocket client with zlib compression
+- ✅ All 40+ Primal custom kinds documented
+- ✅ Link preview cards (kind 10000128)
+- 🔧 Feed content mismatch with Primal app (investigating)
+- 🔧 Stats display not working reliably
 - ❌ Full NIP-29 tribe creation (planned)
 
 ### 🚧 Chunk 6: Zapping (NIP-57) — PARTIAL
@@ -330,6 +340,9 @@ dimensions: {
 ### Feed & Moderation
 - `/src/pages/Feed.tsx` - Feed with 4 tabs
 - `/src/components/FeedPost.tsx` - Post component
+- `/src/components/NoteContent.tsx` - Content renderer with link previews
+- `/src/lib/primalCache.ts` - Primal WebSocket client (40+ custom kinds)
+- `/src/hooks/useFeedPosts.ts` - Feed data hooks
 - `/src/hooks/useModeration.ts` - Mute, report, admin
 
 ### Experiments
