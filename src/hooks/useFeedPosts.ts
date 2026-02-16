@@ -404,15 +404,19 @@ export function useFollowingPosts(limit: number = 50) {
       }
 
       try {
-        // Use a single fast relay for speed
-        const relay = nostr.relay('wss://relay.primal.net');
+        // Use multiple relays for better coverage (like Primal does)
+        const relayGroup = nostr.group([
+          'wss://relay.primal.net',
+          'wss://relay.damus.io',
+          'wss://nos.lol',
+        ]);
         
         // Query latest posts from followed users
-        const publicEvents = await relay.query([
+        const publicEvents = await relayGroup.query([
           {
             kinds: [1],
-            authors: follows.slice(0, 200),
-            limit: limit * 2,
+            authors: follows.slice(0, 500), // More authors for better coverage
+            limit: limit * 3, // Get more to account for deduplication
           },
         ]);
 
