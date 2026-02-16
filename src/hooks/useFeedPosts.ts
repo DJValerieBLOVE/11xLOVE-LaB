@@ -85,9 +85,10 @@ export function useFollowingPosts(limit: number = 40) {
   const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: ['following-posts-primal-v3', user?.pubkey, limit],
+    queryKey: ['following-posts-v4', user?.pubkey, limit],
     queryFn: async ({ signal }): Promise<FeedPost[]> => {
-      console.log('[Feed] Starting feed fetch, user:', user?.pubkey?.slice(0, 8));
+      const now = Math.floor(Date.now() / 1000);
+      console.log('[Feed] Starting feed fetch, user:', user?.pubkey?.slice(0, 8), 'at:', now);
       if (!user) {
         console.log('[Feed] No user, returning empty');
         return [];
@@ -97,9 +98,10 @@ export function useFollowingPosts(limit: number = 40) {
       const seenIds = new Set<string>();
       
       // 1. Fetch from Primal's cache (fast, includes stats)
-      console.log('[Feed] Calling Primal...');
+      // Pass current timestamp to ensure we get latest posts
+      console.log('[Feed] Calling Primal with until:', now);
       console.time('[Feed] Primal fetch');
-      const primalResult = await fetchPrimalNetworkFeed(user.pubkey, limit, undefined, signal);
+      const primalResult = await fetchPrimalNetworkFeed(user.pubkey, limit, now, signal);
       console.timeEnd('[Feed] Primal fetch');
       console.log('[Feed] Got', primalResult.notes.length, 'notes from Primal');
       
@@ -214,7 +216,7 @@ export function useFollowingPosts(limit: number = 40) {
                   }
                 }
                 // Invalidate to trigger re-render with updated stats
-                queryClient.setQueryData(['following-posts-primal-v3', user.pubkey, limit], [...posts]);
+                queryClient.setQueryData(['following-posts-v4', user.pubkey, limit], [...posts]);
               }).catch(() => {
                 // Ignore - stats are optional
               });
@@ -231,10 +233,11 @@ export function useFollowingPosts(limit: number = 40) {
       return posts.slice(0, limit);
     },
     enabled: !!user,
-    staleTime: 10000, // 10 seconds
-    gcTime: 30000, // 30 seconds garbage collection
+    staleTime: 0, // Always consider stale - fetch fresh
+    gcTime: 60000, // 1 minute garbage collection
     refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: 'always',
+    networkMode: 'always', // Always fetch from network
   });
 }
 
