@@ -336,7 +336,7 @@ export function NoteContent({
     <div className={cn("space-y-3", className)}>
       {/* Text content - always use processedContent to render nostr references */}
       {processedContent.length > 0 && (
-        <div className={cn("whitespace-pre-wrap break-words text-foreground", needsTruncation && "line-clamp-6")}>
+        <div className={cn("whitespace-pre-wrap break-words", needsTruncation && "line-clamp-6")} style={{ color: '#1a1a1a' }}>
           {processedContent}
         </div>
       )}

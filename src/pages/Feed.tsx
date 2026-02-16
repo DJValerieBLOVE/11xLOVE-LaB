@@ -218,7 +218,7 @@ const Feed = () => {
         {/* Centered header */}
         <div className="max-w-[580px] mx-auto px-4 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-2xl font-bold">Your Feed</h1>
+            <h1 className="text-2xl font-bold" style={{ color: '#1a1a1a' }}>Your Feed</h1>
             <Button variant="ghost" size="sm" onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
@@ -378,7 +378,7 @@ const Feed = () => {
             {/* My Tribes */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base text-foreground">
+                <CardTitle className="flex items-center gap-2 text-base" style={{ color: '#1a1a1a' }}>
                   <Users className="h-4 w-4 text-[#6600ff]" />
                   My Tribes
                 </CardTitle>
@@ -391,7 +391,7 @@ const Feed = () => {
                         <Users className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-medium text-sm text-foreground">{tribe.name}</p>
+                        <p className="font-medium text-sm" style={{ color: '#1a1a1a' }}>{tribe.name}</p>
                         <p className="text-xs text-gray-500">{tribe.members} members</p>
                       </div>
                     </div>
@@ -409,7 +409,7 @@ const Feed = () => {
             {/* Live Now */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base text-foreground">
+                <CardTitle className="flex items-center gap-2 text-base" style={{ color: '#1a1a1a' }}>
                   <Radio className="h-4 w-4 text-red-500" />
                   Live Now
                 </CardTitle>
@@ -421,7 +421,7 @@ const Feed = () => {
                       <AvatarFallback>{item.host.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm leading-tight text-foreground">{item.title}</p>
+                      <p className="font-medium text-sm leading-tight" style={{ color: '#1a1a1a' }}>{item.title}</p>
                       <p className="text-xs text-gray-500">{item.host}</p>
                       <Badge variant="secondary" className="mt-1 text-xs">
                         {item.type}
@@ -440,7 +440,7 @@ const Feed = () => {
               <CardContent className="space-y-3">
                 {upcomingEvents.map((event, i) => (
                   <div key={i}>
-                    <p className="font-medium text-sm text-foreground">{event.title}</p>
+                    <p className="font-medium text-sm" style={{ color: '#1a1a1a' }}>{event.title}</p>
                     <p className="text-xs text-gray-500">{event.date}</p>
                     {i < upcomingEvents.length - 1 && <Separator className="mt-3" />}
                   </div>

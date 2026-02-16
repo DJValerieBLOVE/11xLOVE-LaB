@@ -7,23 +7,23 @@
   :root.light {
     /* LIGHT MODE - Simple, solid colors */
     --background: 0 0% 100%;           /* #FFFFFF - White */
-    --foreground: 0 0% 9%;             /* #171717 - DARK GRAY (Very readable) */
+    --foreground: 0 84% 10%;           /* #330505 - VERY DARK RED (nearly black but with red tint) */
 
     --card: 0 0% 100%;                 /* #FFFFFF - White */
-    --card-foreground: 0 0% 9%;        /* #171717 - DARK GRAY */
+    --card-foreground: 0 84% 10%;      /* #330505 - VERY DARK RED */
 
     --popover: 0 0% 100%;              /* #FFFFFF - White */
-    --popover-foreground: 0 0% 9%;     /* #171717 - DARK GRAY */
+    --popover-foreground: 0 84% 10%;   /* #330505 - VERY DARK RED */
 
     /* Purple primary color #6600ff */
     --primary: 252 100% 50%;           /* #6600ff - Purple */
     --primary-foreground: 0 0% 100%;   /* #FFFFFF - White */
 
     --secondary: 0 0% 96%;             /* #F5F5F5 - Light gray bg */
-    --secondary-foreground: 0 0% 9%;   /* #171717 - DARK GRAY */
+    --secondary-foreground: 0 84% 10%; /* #330505 - VERY DARK RED */
 
     --accent: 0 0% 96%;                /* #F5F5F5 - Light gray bg */
-    --accent-foreground: 0 0% 9%;      /* #171717 - DARK GRAY */
+    --accent-foreground: 0 84% 10%;    /* #330505 - VERY DARK RED */
 
     --destructive: 0 84% 60%;          /* Red */
     --destructive-foreground: 0 0% 100%; /* White */
@@ -35,11 +35,11 @@
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;    /* #FAFAFA */
-    --sidebar-foreground: 0 0% 9%;     /* #171717 - DARK GRAY */
-    --sidebar-primary: 0 0% 9%;        /* #171717 - DARK GRAY */
+    --sidebar-foreground: 0 84% 10%;   /* #330505 - VERY DARK RED */
+    --sidebar-primary: 0 84% 10%;      /* #330505 - VERY DARK RED */
     --sidebar-primary-foreground: 0 0% 100%; /* White */
     --sidebar-accent: 0 0% 96%;        /* #F5F5F5 */
-    --sidebar-accent-foreground: 0 0% 9%; /* #171717 - DARK GRAY */
+    --sidebar-accent-foreground: 0 84% 10%; /* #330505 - VERY DARK RED */
     --sidebar-border: 0 0% 90%;        /* #E5E5E5 */
     --sidebar-ring: 252 100% 50%;      /* #6600ff - Purple */
 
