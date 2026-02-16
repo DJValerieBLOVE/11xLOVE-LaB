@@ -41,6 +41,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
@@ -78,6 +79,18 @@ const Feed = () => {
         return { posts: followingPosts || [], loading: followingLoading };
       case 'buddies':
         return { posts: [], loading: false }; // TODO: Implement buddy filtering
+      case 'media':
+        // Filter to posts with media URLs
+        const mediaPosts = (followingPosts || []).filter(post => 
+          post.event.content.match(/https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|mp4|webm)/i)
+        );
+        return { posts: mediaPosts, loading: followingLoading };
+      case 'replies':
+        // Filter to posts that are replies (have 'e' tag)
+        const replyPosts = (followingPosts || []).filter(post =>
+          post.event.tags.some(([name]) => name === 'e')
+        );
+        return { posts: replyPosts, loading: followingLoading };
       case 'all':
       default:
         return { posts: allPosts || [], loading: allLoading };
@@ -220,10 +233,13 @@ const Feed = () => {
           Updates from your Tribes, buddies, and the community
         </p>
 
-        {/* Flexbox layout for proper centering */}
-        <div className="flex justify-center gap-6">
-          {/* Main Feed Column - fixed width, centered */}
-          <div className="w-full max-w-xl space-y-3">
+        {/* Grid layout - feed centered, sidebar on right */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(0,600px)_minmax(0,280px)_1fr] gap-4">
+          {/* Left spacer */}
+          <div className="hidden lg:block" />
+          
+          {/* Main Feed Column - centered */}
+          <div className="space-y-3">
             {/* Post Composer */}
             <Card>
               <CardContent className="p-4">
@@ -296,17 +312,31 @@ const Feed = () => {
                   <UserCheck className="h-4 w-4" />
                   Buddies
                 </TabsTrigger>
-                {/* More dropdown for additional feeds */}
+                {/* More dropdown for additional feeds - Primal style */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="gap-1 px-3 h-auto py-2">
+                    <Button variant="ghost" size="sm" className="gap-1 px-3 h-auto py-2 text-muted-foreground">
                       More
                       <ChevronDown className="h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
+                  <DropdownMenuContent align="start" className="w-56">
                     <DropdownMenuItem onClick={() => setActiveTab('all')}>
-                      All Posts
+                      <span className="flex-1">All Posts</span>
+                      <span className="text-xs text-muted-foreground">LaB + Following</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActiveTab('media')}>
+                      <span className="flex-1">Media</span>
+                      <span className="text-xs text-muted-foreground">Photos & Videos</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActiveTab('replies')}>
+                      <span className="flex-1">Replies</span>
+                      <span className="text-xs text-muted-foreground">Conversations</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem disabled className="text-muted-foreground">
+                      <span className="flex-1">Create Custom Feed</span>
+                      <span className="text-xs">Coming Soon</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -357,8 +387,10 @@ const Feed = () => {
                               ? 'No Tribe posts yet. Join a Tribe or create one to see messages here!'
                               : activeTab === 'following'
                               ? 'No posts from people you follow. Follow some amazing creators to see their updates!'
-                              : activeTab === 'trending'
-                              ? 'No trending posts right now. Check back later!'
+                              : activeTab === 'media'
+                              ? 'No media posts found. Follow people who share photos and videos!'
+                              : activeTab === 'replies'
+                              ? 'No reply threads to show.'
                               : 'No posts to show. Be the first to post something!'}
                           </p>
                         </CardContent>
@@ -386,8 +418,8 @@ const Feed = () => {
             </Tabs>
           </div>
 
-          {/* Right Sidebar - narrower, hidden on mobile */}
-          <div className="hidden lg:block w-64 shrink-0 space-y-3">
+          {/* Right Sidebar */}
+          <div className="hidden lg:block space-y-3">
             {/* My Tribes */}
             <Card>
               <CardHeader className="pb-3">
@@ -464,6 +496,9 @@ const Feed = () => {
               </CardContent>
             </Card>
           </div>
+          
+          {/* Right spacer */}
+          <div className="hidden lg:block" />
         </div>
       </div>
     </Layout>
