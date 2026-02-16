@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useFeedPosts, useTribePosts, useFollowingPosts } from '@/hooks/useFeedPosts';
+import { useFeedPosts, useTribePosts, useFollowingPosts, useLatestPosts } from '@/hooks/useFeedPosts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   Lock, 
@@ -55,13 +55,14 @@ import { useLabPublish } from '@/hooks/useLabPublish';
 const Feed = () => {
   const { user, metadata } = useCurrentUser();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('following');
+  const [activeTab, setActiveTab] = useState('latest');
   const [postContent, setPostContent] = useState('');
 
-  // Real Nostr queries
-  const { data: allPosts, isLoading: allLoading, refetch: refetchAll } = useFeedPosts(30);
-  const { data: tribePosts, isLoading: tribeLoading, refetch: refetchTribe } = useTribePosts(30);
-  const { data: followingPosts, isLoading: followingLoading, refetch: refetchFollowing } = useFollowingPosts(30);
+  // Real Nostr queries - all use user's configured relays
+  const { data: allPosts, isLoading: allLoading, refetch: refetchAll } = useFeedPosts(50);
+  const { data: tribePosts, isLoading: tribeLoading, refetch: refetchTribe } = useTribePosts(50);
+  const { data: followingPosts, isLoading: followingLoading, refetch: refetchFollowing } = useFollowingPosts(50);
+  const { data: latestPosts, isLoading: latestLoading, refetch: refetchLatest } = useLatestPosts(50);
 
   // Publishing hook
   const { mutate: publishPost, isPending: isPosting } = useLabPublish();
@@ -74,6 +75,8 @@ const Feed = () => {
   // Get posts for current tab
   const getCurrentPosts = () => {
     switch (activeTab) {
+      case 'latest':
+        return { posts: latestPosts || [], loading: latestLoading };
       case 'tribes':
         return { posts: tribePosts || [], loading: tribeLoading };
       case 'following':
@@ -82,16 +85,10 @@ const Feed = () => {
         return { posts: [], loading: false }; // TODO: Implement buddy filtering
       case 'media':
         // Filter to posts with media URLs
-        const mediaPosts = (followingPosts || []).filter(post => 
+        const mediaPosts = (latestPosts || []).filter(post => 
           post.event.content.match(/https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|mp4|webm)/i)
         );
-        return { posts: mediaPosts, loading: followingLoading };
-      case 'replies':
-        // Filter to posts that are replies (have 'e' tag)
-        const replyPosts = (followingPosts || []).filter(post =>
-          post.event.tags.some(([name]) => name === 'e')
-        );
-        return { posts: replyPosts, loading: followingLoading };
+        return { posts: mediaPosts, loading: latestLoading };
       case 'all':
       default:
         return { posts: allPosts || [], loading: allLoading };
@@ -103,6 +100,9 @@ const Feed = () => {
   // Handle refresh
   const handleRefresh = () => {
     switch (activeTab) {
+      case 'latest':
+        refetchLatest();
+        break;
       case 'tribes':
         refetchTribe();
         break;
@@ -288,31 +288,35 @@ const Feed = () => {
               </CardContent>
             </Card>
 
-            {/* Feed Tabs - Simplified: Following (default), Tribes, Buddies, All */}
+            {/* Feed Tabs - Primal style: Latest, Following, Tribes */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto">
+                <TabsTrigger 
+                  value="latest" 
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-3"
+                >
+                  Latest
+                </TabsTrigger>
                 <TabsTrigger 
                   value="following" 
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-3"
                 >
-                  <UserPlus className="h-4 w-4" />
                   Following
                 </TabsTrigger>
                 <TabsTrigger 
                   value="tribes" 
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-3"
                 >
-                  <Users className="h-4 w-4" />
+                  <Lock className="h-3 w-3" />
                   Tribes
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="buddies" 
+                  value="media" 
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#6600ff] data-[state=active]:text-[#6600ff] gap-1.5 px-3"
                 >
-                  <UserCheck className="h-4 w-4" />
-                  Buddies
+                  Media
                 </TabsTrigger>
-                {/* More dropdown for additional feeds - Primal style */}
+                {/* More dropdown for additional feeds */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="gap-1 px-3 h-auto py-2 text-muted-foreground">
@@ -325,17 +329,13 @@ const Feed = () => {
                       <span className="flex-1">All Posts</span>
                       <span className="text-xs text-muted-foreground">LaB + Following</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveTab('media')}>
-                      <span className="flex-1">Media</span>
-                      <span className="text-xs text-muted-foreground">Photos & Videos</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveTab('replies')}>
-                      <span className="flex-1">Replies</span>
-                      <span className="text-xs text-muted-foreground">Conversations</span>
+                    <DropdownMenuItem onClick={() => setActiveTab('buddies')}>
+                      <span className="flex-1">Buddies</span>
+                      <span className="text-xs text-muted-foreground">Coming Soon</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem disabled className="text-muted-foreground">
-                      <span className="flex-1">Create Custom Feed</span>
+                      <span className="flex-1">Custom Feeds</span>
                       <span className="text-xs">Coming Soon</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -381,17 +381,17 @@ const Feed = () => {
                       <Card className="border-dashed">
                         <CardContent className="py-12 text-center">
                           <p className="text-muted-foreground">
-                            {activeTab === 'buddies' 
+                            {activeTab === 'latest' 
+                              ? 'No posts found. Check your relay settings or try again later.'
+                              : activeTab === 'buddies' 
                               ? 'No posts from accountability buddies yet. Add some buddies to see their updates!'
                               : activeTab === 'tribes'
-                              ? 'No Tribe posts yet. Join a Tribe or create one to see messages here!'
+                              ? 'No Tribe posts yet. Join a Tribe or create one to see private messages here!'
                               : activeTab === 'following'
-                              ? 'No posts from people you follow. Follow some amazing creators to see their updates!'
+                              ? 'No posts from people you follow. Follow some creators to see their updates!'
                               : activeTab === 'media'
-                              ? 'No media posts found. Follow people who share photos and videos!'
-                              : activeTab === 'replies'
-                              ? 'No reply threads to show.'
-                              : 'No posts to show. Be the first to post something!'}
+                              ? 'No media posts found.'
+                              : 'No posts to show.'}
                           </p>
                         </CardContent>
                       </Card>
