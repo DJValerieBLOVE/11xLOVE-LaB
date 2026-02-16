@@ -66,8 +66,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <aside className="hidden md:flex md:w-52 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
         {/* Logo - Links to Big Dreams */}
         <div className="flex h-16 items-center border-b px-6">
-          <Link to="/big-dreams" className="flex items-center">
-            <img src="/logo.png" alt="11x LOVE LaB" className="h-10" />
+          <Link to="/big-dreams" className="flex items-center w-full">
+            <img src="/logo.png" alt="11x LOVE LaB" className="h-8 w-auto max-w-full object-contain" />
           </Link>
         </div>
 
@@ -100,7 +100,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex h-16 items-center justify-between px-4 md:px-6">
             {/* Mobile Logo (shows on mobile only) - Links to Big Dreams */}
             <Link to="/big-dreams" className="flex md:hidden items-center">
-              <img src="/logo.png" alt="11x LOVE LaB" className="h-8" />
+              <img src="/logo.png" alt="11x LOVE LaB" className="h-7 w-auto object-contain" />
             </Link>
 
             {/* Desktop: EQ Visualizer */}
