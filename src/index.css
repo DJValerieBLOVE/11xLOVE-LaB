@@ -21,8 +21,6 @@
     --secondary: 0 0% 96%;             /* #F5F5F5 - Light gray bg */
     --secondary-foreground: 0 0% 0%;   /* #000000 - Black */
 
-    --muted: 0 0% 96%;                 /* #F5F5F5 - Light gray bg */
-    --muted-foreground: 0 0% 27%;      /* #454545 - DARK GRAY (readable meta text) */
 
     --accent: 0 0% 96%;                /* #F5F5F5 - Light gray bg */
     --accent-foreground: 0 0% 0%;      /* #000000 - Black */
@@ -76,8 +74,6 @@
     --secondary: 0 0% 15%;             /* Dark gray bg */
     --secondary-foreground: 0 0% 100%; /* #FFFFFF - White */
 
-    --muted: 0 0% 15%;                 /* Dark gray bg */
-    --muted-foreground: 0 0% 73%;      /* #BABABA - LIGHT GRAY (readable meta text in dark mode) */
 
     --accent: 0 0% 15%;                /* Dark gray bg */
     --accent-foreground: 0 0% 100%;    /* #FFFFFF - White */
