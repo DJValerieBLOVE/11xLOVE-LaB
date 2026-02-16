@@ -26,7 +26,6 @@ import {
   Plus, 
   Radio, 
   Users,
-  Globe,
   UserCheck,
   Sparkles,
   Loader2,
