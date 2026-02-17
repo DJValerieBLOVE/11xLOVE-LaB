@@ -6,7 +6,11 @@ Copy and paste this into Shakespeare to start your next session.
 
 Read these files first: `PLAN.md`, `SESSION_NOTES.md`, and `AGENTS.md`
 
-**Phase 1A is COMPLETE** — Public catalog, SEO files (robots.txt, llms.txt, sitemap.xml), and login gates are done.
+**Phase 1 is COMPLETE** ✅ (1A + 1B + 1C all done)
+- Phase 1A: Public catalog, SEO files, login gates
+- Phase 1B: Big Dreams Dashboard with real Nostr integration
+- Phase 1C: Beta Onboarding with two-path modal
+
 **ESLint CI is CLEAN** — GitHub Actions passing (tsc + eslint --max-warnings 0 + vitest + build).
 
 ---
@@ -24,77 +28,78 @@ Read these files first: `PLAN.md`, `SESSION_NOTES.md`, and `AGENTS.md`
 
 ---
 
-## Phase 1A Manual Testing (DO FIRST)
+## Manual Testing (DO FIRST)
 
-Before building anything new, deploy and manually test Phase 1A on the live site:
+Deploy and manually test on the live site: https://11xlove-lab.shakespeare.wtf
 
-**Test 1: SEO Files**
-- [ ] Visit https://11xlove-lab.shakespeare.wtf/robots.txt
-- [ ] Visit https://11xlove-lab.shakespeare.wtf/llms.txt
-- [ ] Visit https://11xlove-lab.shakespeare.wtf/sitemap.xml
+**Phase 1A Testing:**
+- [ ] Visit /robots.txt, /llms.txt, /sitemap.xml
+- [ ] Visit /experiments (logged out) — should show catalog
+- [ ] Click experiment card — should show login gate
+- [ ] Log in and view experiment content
 
-**Test 2: Public Experiments Catalog (logged OUT)**
-- [ ] Visit /experiments — should show experiment cards without login
-- [ ] Search and filter should work
-- [ ] LoginArea shows at top
+**Phase 1B Testing:**
+- [ ] Visit / (home page) — should show Big Dreams dashboard
+- [ ] Verify all 11 dimension cards render with correct emoji, name, color
+- [ ] Click "Add Vision" on empty card — should show textarea
+- [ ] Type a Big Dream and click "Save Vision" — should encrypt and save to Railway relay
+- [ ] Refresh page — Big Dream should load back (decrypted)
+- [ ] Click "Edit" on existing dream — should allow editing
 
-**Test 3: Login Gate (logged OUT)**
-- [ ] Click any experiment card — should show login gate with title/description
-- [ ] Lock icon + "Login Required" message visible
-
-**Test 4: Experiment Content (logged IN)**
-- [ ] Log in with Nostr (must be on deployed site, not Shakespeare preview)
-- [ ] Navigate to /experiment/morning-miracle-3day — should show LessonViewer
-
----
-
-## Current Task: Phase 1B — Big Dreams Dashboard
-
-Read `PLAN.md` (Big Dreams Dashboard section and Chunk 4). Build the Big Dreams page as the homepage after login.
-
-**What to build:**
-1. Upgrade `/src/pages/BigDreams.tsx` — currently has mock data, needs real Nostr integration
-2. 11 dimension cards in Prosperity Pyramid order (use `DIMENSIONS` from `/src/lib/dimensions.ts`)
-3. Each card: Big Dream text (editable), dimension color border, emoji, progress indicator
-4. Data storage: kind 30078 Nostr events on Railway relay (one replaceable event per dimension, d-tag = `big-dream-${dimensionNumber}`)
-5. Encrypt content with NIP-44 (Big Dreams are PRIVATE BY DEFAULT)
-6. Widgets: Experiments in progress, Quick stats, Streak placeholder
-7. Big Dreams is already the default route (`/` in AppRouter.tsx)
-
-**Key files to read:**
-- `/src/lib/dimensions.ts` — dimension names, numbers, colors, emojis
-- `/src/hooks/useEncryptedStorage.ts` — NIP-44 encryption hooks
-- `/src/hooks/useLabPublish.ts` — publishing to Railway relay
-- `/src/lib/relays.ts` — privacy levels (kind 30078 = PRIVATE BY DEFAULT)
-- `/src/pages/BigDreams.tsx` — current page (has mock data, needs upgrade)
-
-**Testing checklist (REQUIRED before committing):**
-- [ ] Build passes with zero errors
-- [ ] ESLint passes (check all imports used, no conditional hooks)
-- [ ] Page renders correctly when logged in
-- [ ] All 11 dimension cards display in correct order
-- [ ] Cards show dimension emoji, name, and correct color
-- [ ] Empty state shows when no Big Dreams saved yet
-- [ ] Can type and save a Big Dream for each dimension
-- [ ] Data saves to Railway relay as kind 30078 (encrypted)
-- [ ] Data loads back on page refresh
-- [ ] Logged-out state shows login prompt
-- [ ] Responsive layout works on mobile/tablet/desktop
-- [ ] No font-bold/semibold/medium classes
-- [ ] No pink accent colors (only purple #6600ff for buttons/links)
+**Phase 1C Testing:**
+- [ ] Create new Nostr account (or use account with no Big Dreams)
+- [ ] Log in — onboarding modal should auto-show
+- [ ] Try "Quick Start" path — should show 11 dimension input cards
+- [ ] Fill in at least one dream and click "Save & Continue" — should save all and close modal
+- [ ] Try "Deep Dive" path — should redirect to /experiment/11x-love-code
 
 ---
 
-## After Phase 1B: Phase 1C — Beta Onboarding
+## Next Priority: Phase 2 — Magic Mentor AI
 
-Read `PLAN.md` (Two-Path Onboarding section).
+Read `docs/AI-ARCHITECTURE.md` for the full Magic Mentor spec.
 
 **What to build:**
-1. First-login detection (check if user has any kind 30078 Big Dream events)
-2. Welcome modal: "Quick Start" or "Deep Dive"
-3. Quick Start: 11 dimension cards with textarea inputs, save all at once
-4. Deep Dive: Redirect to `/experiment/11x-love-code`
-5. After either path, Big Dreams dashboard populated
+1. OpenRouter integration with Grok 4.1 Fast
+2. User memory system (loads Big Dreams, experiments, journals from Nostr)
+3. Encrypted conversation storage (kind 30078)
+4. References Big Dreams, experiments, journals in context
+5. Prompt caching for 90% cost savings
+6. BYOK support (user brings own OpenRouter API key)
+
+**Key files to create:**
+- `/src/hooks/useMagicMentor.ts` — Chat completions hook
+- `/src/components/MagicMentorChat.tsx` — Chat UI component
+- `/src/lib/openrouter.ts` — OpenRouter API client
+- Add Magic Mentor page to navigation
+
+**Testing checklist:**
+- [ ] Chat interface renders correctly
+- [ ] Messages send and receive
+- [ ] Conversation history persists (encrypted on Railway relay)
+- [ ] User memory loads (Big Dreams, experiments)
+- [ ] BYOK mode works (user provides API key)
+- [ ] Error handling for API failures
+- [ ] Loading states during API calls
+
+---
+
+## Alternative Priority: Experiment Progress + Streak Tracking
+
+If you prefer to defer AI integration, build these features instead:
+
+**Chunk 4: Daily Experiment Tracker + Streaks**
+- Daily experiment display
+- "I Did It!" check-in button
+- Streak counter (kind 30078 replaceable)
+- 30-day history view (✅/❌)
+- Milestone celebrations (7/30/90 days)
+
+**Chunk 9: Completion Receipts + Anti-Gaming**
+- One-time completion events per lesson (kind 30078 replaceable)
+- Sats earned tracking (replaceable event per user)
+- Anti-gaming: same d-tag = overwrite (can't earn twice)
+- Creator gets zapped on experiment completion
 
 ---
 
