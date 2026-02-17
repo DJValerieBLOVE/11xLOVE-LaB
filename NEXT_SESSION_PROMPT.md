@@ -1,109 +1,147 @@
 # Next Session Prompt
 
-Copy and paste this into Shakespeare to start your next session.
+Copy and paste everything below this line into Shakespeare to start your next session.
 
 ---
 
 Read these files first: `PLAN.md`, `SESSION_NOTES.md`, and `AGENTS.md`
 
 **Phase 1 is COMPLETE** ✅ (1A + 1B + 1C all done)
-- Phase 1A: Public catalog, SEO files, login gates
-- Phase 1B: Big Dreams Dashboard with real Nostr integration
-- Phase 1C: Beta Onboarding with two-path modal
+- Phase 1A: Public catalog, SEO files (robots.txt, llms.txt, sitemap.xml), login gates
+- Phase 1B: Big Dreams Dashboard — real Nostr/NIP-44 encrypted storage on Railway relay
+- Phase 1C: Beta Onboarding — two-path welcome modal (Quick Start / Deep Dive)
 
 **ESLint CI is CLEAN** — GitHub Actions passing (tsc + eslint --max-warnings 0 + vitest + build).
 
 ---
 
-## IMPORTANT: Pre-Commit Rules
+## GIT PUSH RULE — DO THIS AFTER EVERY SINGLE COMMIT
 
-**AGENTS.md has mandatory rules.** Before EVERY commit:
-1. For EACH file you changed, verify every imported name is actually used in the file body
+The `git_commit` tool only commits locally. After EVERY commit you MUST run:
+```
+git push origin main
+```
+No exceptions. If you forget, Shakespeare shows "X commits ahead" and the sync breaks.
+
+**Current correct git state:**
+- Only ONE remote: `origin` → `https://github.com/DJValerieBLOVE/11xLOVE-LaB.git`
+- Branch `main` tracks `origin/main`
+- Do NOT add an `upstream` remote — it breaks Shakespeare's Sync UI
+
+Verify before starting work:
+```
+git remote -v
+git status
+```
+Should show only `origin` and "nothing to commit".
+
+---
+
+## MANDATORY PRE-COMMIT CHECKLIST (from AGENTS.md)
+
+Before EVERY commit, verify:
+1. Every imported name in every changed file is actually used in the file body
 2. No hooks called after early returns
-3. No `any` types, no FIXME/TODO comments, no unused variables
-4. No `font-bold`, `font-semibold`, `font-medium` (Marcellus font = weight 400 only)
-5. No pink as brand accent (purple #6600ff only, pink is GOD/LOVE dimension color only)
-6. Build must pass before committing
-7. After every commit, immediately run: `git push origin main`
+3. No `any` types, no unused variables, no FIXME/TODO comments
+4. No `font-bold`, `font-semibold`, `font-medium` — Marcellus is weight 400 only
+5. No pink as brand accent — purple `#6600ff` only (pink = GOD/LOVE dimension color only)
+6. Build passes: use build_project tool to confirm zero errors
 
 ---
 
-## Manual Testing (DO FIRST)
+## STEP 1: MANUAL TESTING ON LIVE SITE (do before building anything new)
 
-Deploy and manually test on the live site: https://11xlove-lab.shakespeare.wtf
+**Browser extension login does NOT work in Shakespeare preview.** Test on the live site:
+**https://11xlove-lab.shakespeare.wtf**
 
-**Phase 1A Testing:**
-- [ ] Visit /robots.txt, /llms.txt, /sitemap.xml
-- [ ] Visit /experiments (logged out) — should show catalog
-- [ ] Click experiment card — should show login gate
-- [ ] Log in and view experiment content
+### Phase 1A Tests (logged OUT)
+- [ ] https://11xlove-lab.shakespeare.wtf/robots.txt — should show crawl rules
+- [ ] https://11xlove-lab.shakespeare.wtf/llms.txt — should show AI description
+- [ ] https://11xlove-lab.shakespeare.wtf/sitemap.xml — should show page list
+- [ ] /experiments — catalog visible without login, search/filter works
+- [ ] Click any experiment card — should show lock icon + "Login Required"
 
-**Phase 1B Testing:**
-- [ ] Visit / (home page) — should show Big Dreams dashboard
-- [ ] Verify all 11 dimension cards render with correct emoji, name, color
-- [ ] Click "Add Vision" on empty card — should show textarea
-- [ ] Type a Big Dream and click "Save Vision" — should encrypt and save to Railway relay
-- [ ] Refresh page — Big Dream should load back (decrypted)
-- [ ] Click "Edit" on existing dream — should allow editing
+### Phase 1B Tests (logged IN with Alby/nos2x)
+- [ ] Home page `/` shows Big Dreams dashboard (not login screen)
+- [ ] All 11 dimension cards visible with correct emoji + color border
+- [ ] Click "Add Vision" on empty card → textarea appears
+- [ ] Type a dream, click "Save Vision" → toast says "Big Dream Saved"
+- [ ] Hard refresh → dream loads back (proves encryption + Railway relay working)
+- [ ] Click "Edit" on saved dream → can edit and re-save
 
-**Phase 1C Testing:**
-- [ ] Create new Nostr account (or use account with no Big Dreams)
-- [ ] Log in — onboarding modal should auto-show
-- [ ] Try "Quick Start" path — should show 11 dimension input cards
-- [ ] Fill in at least one dream and click "Save & Continue" — should save all and close modal
-- [ ] Try "Deep Dive" path — should redirect to /experiment/11x-love-code
+### Phase 1C Tests (logged IN, fresh account with no Big Dreams)
+- [ ] Log in → onboarding modal auto-appears
+- [ ] "Quick Start" button → shows 11 dimension textarea cards
+- [ ] Fill in 2-3 dreams, click "Save & Continue" → modal closes, dreams visible on dashboard
+- [ ] Test "Back" button → returns to path selection
+- [ ] "Deep Dive" button → redirects to /experiment/11x-love-code
 
 ---
 
-## Next Priority: Phase 2 — Magic Mentor AI
+## STEP 2: BUILD PHASE 2 — CHOOSE ONE PATH
 
-Read `docs/AI-ARCHITECTURE.md` for the full Magic Mentor spec.
+### Option A: Magic Mentor AI (recommended — highest user value)
+
+Read `docs/AI-ARCHITECTURE.md` for full spec.
 
 **What to build:**
-1. OpenRouter integration with Grok 4.1 Fast
-2. User memory system (loads Big Dreams, experiments, journals from Nostr)
-3. Encrypted conversation storage (kind 30078)
-4. References Big Dreams, experiments, journals in context
-5. Prompt caching for 90% cost savings
-6. BYOK support (user brings own OpenRouter API key)
-
-**Key files to create:**
-- `/src/hooks/useMagicMentor.ts` — Chat completions hook
-- `/src/components/MagicMentorChat.tsx` — Chat UI component
-- `/src/lib/openrouter.ts` — OpenRouter API client
-- Add Magic Mentor page to navigation
+1. `/src/lib/openrouter.ts` — OpenRouter API client (Grok 3 Fast or similar)
+2. `/src/hooks/useMagicMentor.ts` — chat hook with user memory (loads Big Dreams + experiments)
+3. `/src/components/MagicMentorChat.tsx` — chat UI (message bubbles, input, send button)
+4. `/src/pages/MagicMentor.tsx` — full page with layout
+5. Add route `/magic-mentor` to AppRouter.tsx
+6. Add to navigation (Layout sidebar + mobile nav)
+7. Encrypted conversation storage (kind 30078, d-tag = `magic-mentor-history`)
+8. BYOK: user can paste their own OpenRouter API key (stored in localStorage)
 
 **Testing checklist:**
-- [ ] Chat interface renders correctly
-- [ ] Messages send and receive
-- [ ] Conversation history persists (encrypted on Railway relay)
-- [ ] User memory loads (Big Dreams, experiments)
-- [ ] BYOK mode works (user provides API key)
-- [ ] Error handling for API failures
-- [ ] Loading states during API calls
+- [ ] Chat page renders without errors
+- [ ] Can type and send a message
+- [ ] Response streams back from AI
+- [ ] Conversation persists on page refresh (Railway relay)
+- [ ] AI references user's Big Dreams in responses
+- [ ] BYOK mode: entering API key in settings works
+- [ ] Error state when API key missing/invalid
+- [ ] Mobile layout works
 
 ---
 
-## Alternative Priority: Experiment Progress + Streak Tracking
+### Option B: Streak Tracking + Check-ins (simpler, good for beta)
 
-If you prefer to defer AI integration, build these features instead:
+**What to build:**
+1. `/src/hooks/useStreaks.ts` — load/save streak data (kind 30078, d-tag = `streak-data`, NIP-44 encrypted)
+2. `/src/components/DailyPracticeButton.tsx` — "I Did It!" check-in button
+3. Update BigDreams.tsx streak card — replace mock data with real streak hook
+4. 30-day history calendar (real data instead of random colors)
+5. Milestone toasts: 7 days 🔥, 30 days 🎉, 90 days 💜
 
-**Chunk 4: Daily Experiment Tracker + Streaks**
-- Daily experiment display
-- "I Did It!" check-in button
-- Streak counter (kind 30078 replaceable)
-- 30-day history view (✅/❌)
-- Milestone celebrations (7/30/90 days)
+**Event structure:**
+```json
+{
+  "kind": 30078,
+  "tags": [["d", "streak-data"], ["t", "big-dreams"]],
+  "content": "NIP-44 encrypted JSON: { currentStreak, longestStreak, totalCheckins, lastCheckin, history: [dates] }"
+}
+```
 
-**Chunk 9: Completion Receipts + Anti-Gaming**
-- One-time completion events per lesson (kind 30078 replaceable)
-- Sats earned tracking (replaceable event per user)
-- Anti-gaming: same d-tag = overwrite (can't earn twice)
-- Creator gets zapped on experiment completion
+**Testing checklist:**
+- [ ] Click "I Did It!" → streak increments
+- [ ] Refresh → streak persists
+- [ ] Calendar shows real check-in dates
+- [ ] Milestone toast fires at 7 days
+- [ ] Streak resets if no check-in yesterday
 
 ---
 
-**Live Site:** https://11xlove-lab.shakespeare.wtf
-**GitHub:** https://github.com/DJValerieBLOVE/11xLOVE-LaB.git
-**Private Relay:** wss://nostr-rs-relay-production-1569.up.railway.app
-**Admin pubkey:** 3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767
+## KEY FACTS
+
+| Item | Value |
+|------|-------|
+| Live site | https://11xlove-lab.shakespeare.wtf |
+| GitHub | https://github.com/DJValerieBLOVE/11xLOVE-LaB.git |
+| Private relay | wss://nostr-rs-relay-production-1569.up.railway.app |
+| Admin pubkey | 3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767 |
+| Brand color | #6600ff (purple) — all buttons, links, tabs |
+| Font | Marcellus — weight 400 ONLY, never bold/semibold/medium |
+| Big Dreams storage | kind 30078, d-tag = big-dream-{1-11}, NIP-44 encrypted |
+| Privacy | All LaB data → Railway relay only. Never public relays. |
