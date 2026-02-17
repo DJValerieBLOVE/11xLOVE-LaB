@@ -4,9 +4,9 @@
 
 ---
 
-## STATUS: CRITICAL BUGS FIXED — READY FOR FEATURES ✅
+## STATUS: PHASE 1 COMPLETE — READY FOR BETA ✅
 
-**Last Updated:** February 17, 2026 (Opus 4.6 session — membership/onboarding/phase 1 spec confirmed)
+**Last Updated:** February 17, 2026 (Sonnet 4.5 session 7 — Phase 1B + 1C complete)
 
 **Infrastructure:**
 - ✅ Private Nostr relay deployed on Railway
@@ -30,12 +30,15 @@
 - ✅ **Link preview cards (kind 10000128)**
 - ✅ **FIXED: Gray text bug** — plain `<style>` override in index.html (commit 8dbafeb)
 - ✅ **FIXED: Feed freshness** — parallel relay queries + auto-refresh (commit 8dbafeb)
+- ✅ **Phase 1A: Public catalog + SEO files** (robots.txt, llms.txt, sitemap.xml)
+- ✅ **Phase 1B: Big Dreams Dashboard** — Real Nostr integration with NIP-44 encryption
+- ✅ **Phase 1C: Beta Onboarding** — Two-path welcome modal (Quick Start / Deep Dive)
 - 🟡 **Stats display** — sometimes shows 0 counts, needs testing
 - ❌ **NOT connected to Magic Mentor AI yet**
 - ❌ **NO streak tracking or gamification**
 - ❌ **NO completion receipts for sats earning**
 
-**Current Priority:** Phase 1B (Big Dreams Dashboard) → Phase 1C (Beta Onboarding) → Phase 2 (Magic Mentor AI)
+**Current Priority:** Phase 2 (Magic Mentor AI integration)
 **CI Status:** GitHub Actions passing ✅ (tsc + eslint --max-warnings 0 + vitest + build)
 **Known Issues:** See CRITICAL_BUGS.md for remaining non-critical items
 
@@ -452,23 +455,25 @@ Each card shows:
 1. ✅ Public `/experiments` catalog page (SEO optimized with semantic HTML, search/filter)
 2. ✅ `llms.txt`, `sitemap.xml`, `robots.txt` (comprehensive AI crawler documentation)
 3. ✅ Login redirect for experiment detail pages (Free tier requirement enforced)
-4. ⏭️ Membership tier checking system (deferred to Phase 1B)
-5. ⏭️ Feature gates: vault, Love Board, comments, Magic Mentor, analytics = paid only (deferred to Phase 1B)
+4. ⏭️ Membership tier checking system (deferred to Phase 2)
+5. ⏭️ Feature gates: vault, Love Board, comments, Magic Mentor, analytics = paid only (deferred to Phase 2)
 
-### Phase 1B: Big Dreams Dashboard (~2-3 hrs)
-1. Big Dreams page = homepage after login
-2. 11 dimension cards (Prosperity Pyramid order)
-3. Auto-populate from 11x LOVE Code answers
-4. Experiments in progress widget
-5. Quick stats
+### ✅ Phase 1B: Big Dreams Dashboard — COMPLETE
+1. ✅ Big Dreams page = homepage after login (already set as default route)
+2. ✅ 11 dimension cards (correct Prosperity Pyramid order from DIMENSIONS)
+3. ✅ Real Nostr integration with NIP-44 encryption (kind 30078, one per dimension)
+4. ✅ Editable cards with save/cancel functionality
+5. ✅ Loading states, empty states, toast notifications
+6. ⏭️ Experiments in progress widget (deferred to Phase 2)
+7. ⏭️ Quick stats (deferred to Phase 2)
 
-### Phase 1C: Beta Onboarding (~1-2 hrs)
-1. First login detection
-2. Welcome modal: "Quick Start or Deep Dive?"
-3. Quick Start: 11 dimension Big Dream cards
-4. Profile setup guide
-5. Redirect to 11x LOVE Code Experiment 1
-6. After completion → Big Dreams populated/updated
+### ✅ Phase 1C: Beta Onboarding — COMPLETE
+1. ✅ First login detection (checks if user has any Big Dreams)
+2. ✅ Welcome modal: "Quick Start or Deep Dive?"
+3. ✅ Quick Start: 11 dimension Big Dream cards (saves all at once)
+4. ✅ Deep Dive: Redirect to 11x LOVE Code experiment
+5. ✅ Beautiful card-based UI with responsive design
+6. ✅ After either path → Big Dreams dashboard populated
 
 ### Phase 2 (Later — Hand off to Opus)
 - Magic Mentor AI integration (Grok 4.1 Fast + OpenRouter)

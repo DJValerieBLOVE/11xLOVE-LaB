@@ -4,7 +4,53 @@
 
 ---
 
-## Latest Session: February 17, 2026 (Opus 4.6 — Session 6)
+## Latest Session: February 17, 2026 (Sonnet 4.5 — Session 7)
+
+### What Was Done
+
+**Phase 1B COMPLETE + Phase 1C COMPLETE** — Big Dreams Dashboard + Beta Onboarding (all features ✅)
+
+1. **Created useBigDreams hook** — Real Nostr integration for Big Dreams
+   - One kind 30078 event per dimension (d-tag = `big-dream-${dimensionId}`)
+   - NIP-44 encryption (PRIVATE BY DEFAULT)
+   - Stored on Railway relay only
+   - Query hook fetches all 11 dimensions
+   - Save hook encrypts and publishes to Railway relay
+   - `useHasCompletedOnboarding()` helper for first-login detection
+
+2. **Upgraded BigDreams.tsx** — Replaced all mock data with real hooks
+   - Loads Big Dreams from Railway relay with decryption
+   - Editable Big Dream cards (click to edit, save/cancel)
+   - Loading states with spinner
+   - Empty states with "Add Vision" button
+   - Toast notifications for save success/error
+   - Uses DIMENSIONS from lib/dimensions.ts (correct order, emojis, colors)
+   - Responsive grid layout
+
+3. **Created OnboardingModal component** — Two-path welcome experience
+   - **Quick Start**: Simple Big Dreams input for all 11 dimensions (saves all at once)
+   - **Deep Dive**: Redirects to full 11x LOVE Code experiment
+   - First-login detection (auto-shows if user has no Big Dreams)
+   - Beautiful card-based path selection UI
+   - Responsive design with scroll support
+   - Progress feedback with loading spinner
+   - Can navigate back between screens
+
+4. **All builds and tests passing** ✅
+   - Zero TypeScript errors
+   - Zero ESLint errors
+   - Zero console errors
+   - Build succeeded
+
+### Commits This Session
+```
+a521e0f - Phase 1B: Big Dreams Dashboard with real Nostr integration
+f8abed9 - Phase 1C: Beta Onboarding with two-path welcome modal
+```
+
+---
+
+## Previous Session: February 17, 2026 (Opus 4.6 — Session 6)
 
 ### What Was Done
 
