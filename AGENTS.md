@@ -1252,10 +1252,18 @@ This section contains project-specific guidelines for the 11x LOVE LaB applicati
 
 ### Git Push Rule — MANDATORY
 
-**CRITICAL: After EVERY `git_commit`, you MUST immediately run:**
+**CRITICAL: After EVERY `git_commit`, you MUST immediately run this exact sequence:**
 ```bash
-git push upstream main
+git remote remove origin 2>/dev/null; git push upstream main
 ```
+
+Run it as a single line — every single time — no exceptions.
+
+**Why `git remote remove origin` is needed EVERY time:**
+- The `git_commit` tool re-adds `origin` pointing to the same GitHub URL on every commit
+- Shakespeare's Sync UI uses `upstream` to compare with GitHub
+- If `origin` exists and `upstream` is behind, the Sync UI shows "X commits ahead"
+- Removing `origin` first ensures `upstream` is the only remote and the Sync UI stays clean
 
 **Why this matters:**
 - The `git_commit` tool only commits locally — it does NOT push to GitHub
@@ -1265,28 +1273,19 @@ git push upstream main
 
 **Git remote setup for this project:**
 - Only ONE remote: `upstream` → `https://github.com/DJValerieBLOVE/11xLOVE-LaB.git`
-- Do NOT add an `origin` remote — it causes confusion with two remotes pointing to the same URL
 - Branch `main` tracks `upstream/main`
 
-**Correct workflow:**
+**Correct workflow — copy this exactly:**
 ```bash
-# 1. Make changes and commit using the git_commit tool (or shell)
-git add .
-git commit -m "Your message"
-
-# 2. IMMEDIATELY push — do this every single time without exception
-git push upstream main
+# Step 1: Commit (using git_commit tool OR shell)
+# Step 2: IMMEDIATELY run this after EVERY commit:
+git remote remove origin 2>/dev/null; git push upstream main
 ```
 
 **Verify you are in sync:**
 ```bash
+git remote -v           # Should show ONLY upstream, not origin
 git status              # Should say "nothing to commit, working tree clean"
-git log --oneline -3    # Compare with upstream/main
-```
-
-If you ever see `git remote -v` showing both `origin` and `upstream` pointing to the same URL, remove the duplicate:
-```bash
-git remote remove origin
 ```
 
 ---
