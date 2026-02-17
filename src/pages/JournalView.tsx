@@ -33,13 +33,13 @@ export default function JournalView() {
     description: 'Your personal learning journal and transformation notes',
   });
   
+  // Hook must be called before any conditional returns
+  const { data: journal, isLoading } = useExperimentJournal(experiment);
+  
   // Redirect if experiment not found
   if (!experiment) {
     return <Navigate to="/experiments" replace />;
   }
-  
-  // Use journal hook (must be called before any conditional returns)
-  const { data: journal, isLoading } = useExperimentJournal(experiment);
   
   // Require login
   if (!user) {

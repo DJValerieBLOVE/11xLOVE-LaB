@@ -23,7 +23,6 @@ import {
   MapPin,
   Zap,
   MessageCircle,
-  Calendar,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -78,8 +77,8 @@ const mockListings = [
 ];
 
 const LoveBoard = () => {
-  const { user, metadata } = useCurrentUser();
-  const { isPaidMember, tierInfo } = useMembership();
+  const { user } = useCurrentUser();
+  const { isPaidMember } = useMembership();
   const [activeTab, setActiveTab] = useState('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 

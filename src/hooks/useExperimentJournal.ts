@@ -27,14 +27,14 @@ export interface ExperimentJournal {
 /**
  * Fetch and parse the user's journal for a specific experiment
  */
-export function useExperimentJournal(experiment: Experiment) {
+export function useExperimentJournal(experiment: Experiment | undefined) {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
 
   return useQuery({
-    queryKey: ['experiment-journal', experiment.id, user?.pubkey],
+    queryKey: ['experiment-journal', experiment?.id, user?.pubkey],
     queryFn: async () => {
-      if (!user) return null;
+      if (!user || !experiment) return null;
 
       // Query the journal event (kind 30023, addressable)
       const events = await nostr.query([
@@ -68,7 +68,7 @@ export function useExperimentJournal(experiment: Experiment) {
         rawContent: event.content,
       };
     },
-    enabled: !!user,
+    enabled: !!user && !!experiment,
   });
 }
 

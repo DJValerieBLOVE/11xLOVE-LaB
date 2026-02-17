@@ -51,7 +51,7 @@ const Feed = () => {
   const [postContent, setPostContent] = useState('');
   
   // Real Nostr queries - all use user's configured relays
-  const { data: allPosts, isLoading: allLoading, refetch: refetchAll } = useFeedPosts(50);
+  const { refetch: refetchAll } = useFeedPosts(50);
   const { data: tribePosts, isLoading: tribeLoading, refetch: refetchTribe } = useTribePosts(50);
   const { data: followingPosts, isLoading: followingLoading, refetch: refetchFollowing } = useFollowingPosts(50);
   

@@ -32,7 +32,6 @@ import {
   Server,
   Key,
   Sparkles,
-  Settings,
   AlertTriangle,
   CheckCircle2,
 } from 'lucide-react';
@@ -45,21 +44,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Separator } from '@/components/ui/separator';
 import type { NostrEvent } from '@nostrify/nostrify';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+
 
 const Vault = () => {
   const { user } = useCurrentUser();

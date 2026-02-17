@@ -4,7 +4,6 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, MessageCircle, PartyPopper, Heart, UserPlus, Users as UsersIcon } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 
 const Tribe = () => {
   const { user } = useCurrentUser();
