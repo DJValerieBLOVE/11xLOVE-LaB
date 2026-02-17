@@ -1,114 +1,86 @@
-# Session Notes - February 16, 2026
+# Session Notes — 11x LOVE LaB
 
-> **STATUS: Feed stats + content rendering FIXED** — Three root causes found and resolved. See AGENTS.md "Primal API Rules" and "NoteContent Rendering Rules" for prevention.
-
----
-
-## CURRENT SESSION SUMMARY (Opus 4.6 — Session 3)
-
-### Bugs Fixed This Session (commit 9562c31)
-
-1. **FIXED: Stats not showing (likes, reposts, zaps, replies)**
-   - **Root Cause A**: Primal's `events` endpoint needs `extended_response: true` to return stats (kind 10000100) and actions (kind 10000115). Without it, only events are returned.
-   - **Root Cause B**: Kind 6 reposts need stats looked up by the INNER event ID, not the repost wrapper ID. The inner event is embedded as JSON in the repost's `content` field.
-   - **Root Cause C**: Relay-sourced posts called `fetchPrimalEventStats()` but threw away the result with `.catch(() => {})`. Changed to await + merge.
-
-2. **FIXED: `naddr1` references showing as raw text**
-   - **Root Cause**: NoteContent's nostr regex was missing `naddr1` prefix. Only had `npub1|note1|nprofile1|nevent1`.
-   - **Fix**: Added `naddr1` to regex + handler that renders labeled link chips.
-
-3. **FIXED: Embedded/quoted notes showing raw URLs instead of images**
-   - **Root Cause**: `EmbeddedNote` component dumped `event.content` as plain text `<p>{content}</p>` with zero media processing.
-   - **Fix**: Created `EmbeddedNoteContent` component that extracts image URLs, renders `<img>` tags, and replaces nostr references with compact labels.
-
-### Prevention: AGENTS.md Updated
-
-Added three new CRITICAL sections to AGENTS.md to prevent regressions:
-- **Primal API Rules** — 4 rules with code examples
-- **NoteContent Rendering Rules** — 4 rules with code examples
-- **Feed File Reference** — dependency map of all feed files
-
-### Previous Sessions
-
-4. **Session 2 (Opus 4.6)**: Root cause of blurry text = Marcellus font faux-bold. Fixed on Feed page.
-5. **Session 1 (Opus 4.6)**: Fixed gray text from Tailwind CDN overrides. Added feed freshness improvements.
-6. **Earlier (Sonnet 4.5)**: Built feed system, added link previews, documented Primal kinds.
+> **Single source of truth for session history. See PLAN.md for the full spec.**
 
 ---
 
-## GIT HISTORY (Most Recent First)
+## Latest Session: February 17, 2026 (Opus 4.6 — Session 4)
 
+### What Was Done
+
+1. **PLAN.md fully updated** with confirmed specs:
+   - 6-tier membership system (Free / Core / Core Annual / Creator / Creator Annual / Creator BYOK)
+   - Two-Path Onboarding (Quick Start vs Deep Dive)
+   - Big Dreams Dashboard spec (homepage after login)
+   - Dashboards — Two Types (Member vs Creator Analytics)
+   - Beta Testing Plan (Tier 1: 30 people, Tier 2: creators)
+   - SEO & AI Optimization (llms.txt, sitemap.xml, robots.txt)
+   - Phase 1 Build Plan (1A → 1B → 1C)
+   - Tech Notes (Grok 4.1 Fast, BYOK, NIP-29, NIP-57)
+   - Fixed: pink accent references → purple (#6600ff)
+   - Fixed: dimension colors now match `/src/lib/dimensions.ts`
+
+2. **Documentation cleanup** — archived 17 obsolete .md files to `docs/archive/`
+   - Root now has only: `PLAN.md`, `SESSION_NOTES.md`, `NEXT_SESSION_PROMPT.md`, `AGENTS.md`
+   - Kept in docs/: curriculum, AI architecture, dream sheets, curriculum generation
+   - Everything else in `docs/archive/` (historical reference only)
+
+3. **NEXT_SESSION_PROMPT.md** — rewritten for Phase 1A (Sonnet-friendly)
+
+### Commits This Session
 ```
-9562c31 - fix: stats not showing + raw naddr/image URLs in feed posts
-f1f7ba2 - fix: eliminate all pink brand accents, enforce no-bold rules in AGENTS.md
-4769e36 - Fix blurry text site-wide: replace faux-bold with font-normal
-9e41e5e - Fix blurry gray text on Feed page - username, My Tribes, etc.
-8dbafeb - Fix gray text bug + improve feed freshness
+5a6bc94 - PLAN.md: Add confirmed specs (membership, onboarding, phase 1, tech notes)
+[pending] - Docs cleanup: archive 17 obsolete files, update session notes
 ```
 
 ---
 
-## REMAINING ISSUES
+## Previous Sessions (Summary)
 
-### All Clear
-
-- Stats: **RESOLVED** (extended_response + inner ID lookup + await stats)
-- naddr rendering: **RESOLVED** (regex + handler)
-- Embedded media: **RESOLVED** (EmbeddedNoteContent component)
-- Blurry text: **RESOLVED** (font-normal everywhere)
-- Gray text: **RESOLVED** (plain style tag + text-black)
-- Stale data: **MITIGATED** (Primal lag is by design, direct relays supplement)
-
-### Primal Cache Lag (20-30 min)
-
-**Status**: By design — Primal infrastructure limitation. Not fixable.
-**Mitigation**: Direct relay queries provide real-time fresh posts alongside Primal's cached data.
+| Date | AI | What Was Done |
+|------|-----|--------------|
+| Feb 16, Session 3 | Opus 4.6 | Fixed feed stats (extended_response + inner ID + await), naddr rendering, embedded media |
+| Feb 16, Session 2 | Opus 4.6 | Fixed blurry text (Marcellus faux-bold), eliminated pink accents |
+| Feb 16, Session 1 | Opus 4.6 | Fixed gray text (Tailwind CDN override), feed freshness |
+| Earlier | Sonnet 4.5 | Built feed system, link previews, Primal kinds, app shell |
 
 ---
 
-## FILES CHANGED THIS SESSION
+## All Known Bugs — Status
 
-| File | Changes |
-|------|---------|
-| `src/lib/primalCache.ts` | Added `extended_response: true` to events payload, always fetch stats separately as safety net, handle newline-separated compressed responses |
-| `src/hooks/useFeedPosts.ts` | Look up stats by inner event ID for kind 6 reposts, await stats for relay posts instead of fire-and-forget |
-| `src/components/NoteContent.tsx` | Added `naddr1` to nostr regex, added naddr decode handler, created `EmbeddedNoteContent` component for rich media in quoted notes |
-| `src/components/FeedPost.tsx` | Removed noisy debug logging |
-| `AGENTS.md` | Added Primal API Rules, NoteContent Rendering Rules, Feed File Reference |
-
----
-
-## KEY TECHNICAL LESSONS (Updated)
-
-### Primal API — The Three Rules That Matter
-
-1. **`extended_response: true`** on `events` endpoint or you get NO stats
-2. **Kind 6 inner ID** — stats belong to the original note, not the repost
-3. **Await stats** — never fire-and-forget, always merge into the data
-
-### NoteContent — Never Show Raw Text
-
-1. **Regex must have ALL NIP-19 prefixes** — `npub1|note1|nprofile1|nevent1|naddr1`
-2. **Every prefix needs a decode handler** — link chip, embedded card, etc.
-3. **Embedded notes MUST render media** — use `EmbeddedNoteContent`, not raw `{content}`
-4. **Image hosts list must be comprehensive** — Blossom subdomains, CDN URLs, hash filenames
-
-### Shakespeare + Tailwind CDN Workaround
-
-- Use `text-black` instead of `text-foreground` for critical text
-- Keep the plain `<style>` tag in `index.html` — CDN ignores it
-- NEVER use `font-bold`/`font-semibold`/`font-medium` — Marcellus only has weight 400
+| Bug | Status |
+|-----|--------|
+| Stats not showing | RESOLVED (extended_response + inner ID + await) |
+| naddr raw text | RESOLVED (regex + handler) |
+| Embedded media | RESOLVED (EmbeddedNoteContent) |
+| Blurry text | RESOLVED (font-normal everywhere) |
+| Gray text | RESOLVED (style tag + text-black) |
+| Stale feed data | MITIGATED (Primal lag by design, direct relays supplement) |
 
 ---
 
-## NEXT STEPS
+## Current Priority
 
-1. **Chunk 9: Completion Receipts** — One-time sats earning per lesson
-2. **Chunk 10: Streak Tracking** — Daily check-ins, calendar, milestones
-3. **Chunk 12: Magic Mentor AI** — OpenRouter/Grok integration
+**Phase 1A: Public Catalog + Membership Gates** — see PLAN.md and NEXT_SESSION_PROMPT.md
 
 ---
 
-**Last Updated:** February 16, 2026
+## Documentation Map
 
-**Peace, LOVE, & Warm Aloha**
+| File | Purpose | Status |
+|------|---------|--------|
+| `PLAN.md` | Full build spec, membership, phases | Current |
+| `AGENTS.md` | AI rules, Primal API rules, feed rules | Current |
+| `SESSION_NOTES.md` | This file — session history | Current |
+| `NEXT_SESSION_PROMPT.md` | Copy-paste prompt for next AI session | Current |
+| `docs/11x-LOVE-CODE-CURRICULUM.md` | Full 18-lesson curriculum content | Reference |
+| `docs/AI-ARCHITECTURE.md` | Magic Mentor AI / OpenRouter plans | Phase 2 |
+| `docs/ai-curriculum-generation.md` | Bloom's Taxonomy experiment design | Reference |
+| `docs/DREAM-SHEETS.md` | Dream Book journal worksheets | Reference |
+| `docs/archive/` | 17 archived files (historical only) | Archived |
+
+---
+
+**Last Updated:** February 17, 2026
+
+Peace, LOVE, & Warm Aloha 💜

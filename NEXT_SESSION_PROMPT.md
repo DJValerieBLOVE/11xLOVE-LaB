@@ -1,88 +1,35 @@
-# Prompt for Next Session
+# Next Session Prompt
 
-Copy and paste this entire message to start your next chat:
-
----
-
-## Context
-
-I'm building **11x LOVE LaB**, a private coaching platform on Nostr. Read these files first:
-
-1. `SESSION_NOTES.md` - What was done today
-2. `PLAN.md` - Full build spec  
-3. `TESTING_CHECKLIST.md` - Testing tasks
-4. `src/test/relay.test.ts` - Security tests
-
-## What's Built & Working
-
-### Core Features:
-- ✅ Nostr login (NIP-07/NIP-46)
-- ✅ Three-tier privacy system (Never/Private/Shareable)
-- ✅ Feed with REAL Nostr queries (4 tabs)
-- ✅ Moderation (mute, report, admin tools)
-- ✅ Love Board (paid members only posting)
-- ✅ Vault with Magic Mentor training + data export + BYOR
-- ✅ Experiments page with 6 tabs
-- ✅ Experiment Builder for creators
-- ✅ Membership tier system
-
-### Real Nostr Queries:
-- `useFeedPosts()` - All posts from LaB + public relays
-- `useTribePosts()` - Private Tribe messages only
-- `usePublicPosts()` - Public Nostr posts only
-- `useLabPublish()` - Secure publishing to LaB relay
-
-### Security Tests:
-- `src/test/relay.test.ts` - Tests for:
-  - Tribe messages NEVER go public
-  - Private data stays on Railway relay
-  - Public sharing only when user opts in
-
-## What Needs Testing
-
-1. **Login** on live site (https://11xLOVE.shakespeare.wtf)
-2. **Feed** - Should now show real posts from relays
-3. **Post something** - Should publish to LaB relay
-4. **Check Railway** - Verify posts appear on private relay
-
-## What's NOT Built Yet
-
-1. **Tribe public/private toggle** (1 hr)
-2. **Completion receipts** - anti-gaming (1 hr)
-3. **Streak tracking** - gamification (1 hr)
-4. **Magic Mentor AI** - OpenRouter/Grok (3-4 hrs)
-5. **Full curriculum** - 18 lessons (1 hr)
-
-## Technical Notes
-
-- **Private Railway relay:** `wss://nostr-rs-relay-production-1569.up.railway.app`
-- **Admin pubkey:** `3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767`
-- All LaB data stays on Railway (never public)
-- Users own their data (NIP-44 encryption)
-
-## Today I Want To
-
-1. Test the Feed with real Nostr posts
-2. Verify posts publish to the Railway relay
-3. Run the security tests
-4. [Add your specific goal here]
-
-## Key Files
-
-- `src/hooks/useFeedPosts.ts` - Real Nostr feed queries
-- `src/hooks/useLabPublish.ts` - Secure publishing
-- `src/lib/relays.ts` - Relay config & privacy helpers
-- `src/test/relay.test.ts` - Security tests
+Copy and paste this into Shakespeare to start your next session.
 
 ---
 
-**Live Site:** https://11xLOVE.shakespeare.wtf  
+Read these 2 files first: `PLAN.md` and `AGENTS.md`
+
+We're starting **Phase 1A: Public Catalog + Membership Gates**. Do these 5 things in order:
+
+1. Create `/public/robots.txt` (standard crawl permissions)
+2. Create `/public/llms.txt` (describe what 11x LOVE LaB is, what experiments are, how the platform works — for AI crawlers)
+3. Create `/public/sitemap.xml` (list public pages: /, /experiments, /feed)
+4. Make the `/experiments` page accessible WITHOUT login (public catalog — SEO optimized with semantic HTML)
+5. Add login redirect when a user clicks into an experiment detail page without being logged in
+
+Commit after each step. Don't touch the feed or any existing components.
+
+---
+
+## After Phase 1A is done, here are the next prompts:
+
+### Phase 1B: Big Dreams Dashboard
+
+> Read `PLAN.md` (Big Dreams Dashboard section). Build the Big Dreams page as the homepage after login. Show 11 dimension cards in Prosperity Pyramid order. Each card shows the Big Dream text, related experiments, and a progress indicator. Data comes from kind 30078 events (one per dimension). Add widgets for experiments in progress and quick stats. Don't touch the feed.
+
+### Phase 1C: Beta Onboarding
+
+> Read `PLAN.md` (Two-Path Onboarding section). Add first-login detection. Show a welcome modal with two choices: "Quick Start" or "Deep Dive". Quick Start shows 11 dimension cards where the user types a 1-2 sentence Big Dream per dimension, saves as kind 30078 events, then lands on Big Dreams dashboard. Deep Dive redirects to the 11x LOVE Code Experiment 1. Don't touch the feed.
+
+---
+
+**Live Site:** https://11xlove-lab.shakespeare.wtf
 **GitHub:** https://github.com/DJValerieBLOVE/11xLOVE-LaB.git
-
-## To Run Tests Locally
-
-```bash
-npm test
-# or
-npx vitest run src/test/relay.test.ts
-```
+**Private Relay:** wss://nostr-rs-relay-production-1569.up.railway.app
