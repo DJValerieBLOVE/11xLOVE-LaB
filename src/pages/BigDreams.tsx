@@ -1,29 +1,25 @@
+import { useState } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useBigDreams, useSaveBigDream } from '@/hooks/useBigDreams';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EQVisualizer } from '@/components/EQVisualizer';
-import { Lock } from 'lucide-react';
+import { Lock, Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-
-// Data defined outside component
-const dimensions = [
-    { id: 'god-love', title: 'GOD/LOVE', color: 'border-[#eb00a8]', realized: 85 },
-    { id: 'romance', title: 'Romance', color: 'border-red-500', realized: 60 },
-    { id: 'family', title: 'Family', color: 'border-orange-500', realized: 75 },
-    { id: 'community', title: 'Community', color: 'border-yellow-500', realized: 90 },
-    { id: 'mission', title: 'Mission', color: 'border-gray-500', realized: 0 },
-    { id: 'money', title: 'Money', color: 'border-gray-400', realized: 0 },
-    { id: 'time', title: 'Time', color: 'border-cyan-500', realized: 0 },
-    { id: 'environment', title: 'Environment', color: 'border-gray-300', realized: 0 },
-    { id: 'body', title: 'Body', color: 'border-gray-200', realized: 0 },
-    { id: 'mind', title: 'Mind', color: 'border-blue-500', realized: 0 },
-    { id: 'spirit', title: 'Spirit', color: 'border-purple-500', realized: 0 },
-];
+import { DIMENSIONS } from '@/lib/dimensions';
+import { useToast } from '@/hooks/useToast';
 
 const BigDreams = () => {
   const { user } = useCurrentUser();
+  const { data: bigDreams = [], isLoading: loadingDreams } = useBigDreams();
+  const { mutate: saveBigDream, isPending: savingDream } = useSaveBigDream();
+  const { toast } = useToast();
+  
+  // Local state for editing Big Dreams
+  const [editingDimension, setEditingDimension] = useState<number | null>(null);
+  const [dreamText, setDreamText] = useState<Record<number, string>>({});
 
   useSeoMeta({
     title: 'Big Dreams - 11x LOVE LaB',
@@ -50,6 +46,61 @@ const BigDreams = () => {
     { name: 'Sarah M.', streak: 14, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' },
     { name: 'Mike T.', streak: 7, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike' },
   ];
+
+  // Get Big Dream content for a dimension
+  const getBigDreamContent = (dimensionId: number): string => {
+    if (dreamText[dimensionId] !== undefined) {
+      return dreamText[dimensionId];
+    }
+    const dream = bigDreams.find((bd) => bd.dimensionId === dimensionId);
+    return dream?.content || '';
+  };
+
+  // Handle Big Dream edit
+  const handleEditDream = (dimensionId: number) => {
+    setEditingDimension(dimensionId);
+    const dream = bigDreams.find((bd) => bd.dimensionId === dimensionId);
+    setDreamText({
+      ...dreamText,
+      [dimensionId]: dream?.content || '',
+    });
+  };
+
+  // Handle Big Dream save
+  const handleSaveDream = (dimensionId: number) => {
+    const dimension = DIMENSIONS.find((d) => d.id === dimensionId);
+    if (!dimension) return;
+
+    const content = dreamText[dimensionId] || '';
+    
+    saveBigDream(
+      { dimension, content },
+      {
+        onSuccess: () => {
+          toast({
+            title: 'Big Dream Saved',
+            description: `Your vision for ${dimension.name} has been saved securely.`,
+          });
+          setEditingDimension(null);
+        },
+        onError: (error) => {
+          toast({
+            title: 'Failed to Save',
+            description: error instanceof Error ? error.message : 'Unknown error',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
+
+  // Handle textarea change
+  const handleDreamChange = (dimensionId: number, value: string) => {
+    setDreamText({
+      ...dreamText,
+      [dimensionId]: value,
+    });
+  };
 
   if (!user) {
     return (
@@ -192,32 +243,108 @@ const BigDreams = () => {
             <div>
               <h2 className="text-xl font-normal mb-4">My 11 Big Dreams</h2>
               <p className="text-sm text-muted-foreground mb-4">
-                Update your vision for each dimension
+                Update your vision for each dimension — your data is encrypted and private by default
               </p>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                {dimensions.map((dimension) => (
-                  <Card key={dimension.id} className={`border-t-4 ${dimension.color}`}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base">{dimension.title}</CardTitle>
-                        <span className="text-sm text-muted-foreground">{dimension.realized}% Realized</span>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <Textarea
-                        placeholder={`What is your big dream for your ${dimension.title.toLowerCase()}?`}
-                        className="min-h-[80px] resize-none text-sm"
-                      />
-                      <div className="flex justify-end">
-                        <Button size="sm">
-                          Save Vision
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              {loadingDreams ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#6600ff]" />
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {DIMENSIONS.map((dimension) => {
+                    const dreamContent = getBigDreamContent(dimension.id);
+                    const isEditing = editingDimension === dimension.id;
+                    const hasDream = dreamContent.length > 0;
+
+                    return (
+                      <Card 
+                        key={dimension.id} 
+                        className="border-t-4" 
+                        style={{ borderTopColor: dimension.color }}
+                      >
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-base flex items-center gap-2">
+                              <span>{dimension.emoji}</span>
+                              <span>{dimension.name}</span>
+                            </CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {isEditing ? (
+                            <>
+                              <Textarea
+                                value={dreamText[dimension.id] || ''}
+                                onChange={(e) => handleDreamChange(dimension.id, e.target.value)}
+                                placeholder={`What is your big dream for ${dimension.name.toLowerCase()}?`}
+                                className="min-h-[100px] resize-none text-sm"
+                                autoFocus
+                              />
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setEditingDimension(null);
+                                    setDreamText({
+                                      ...dreamText,
+                                      [dimension.id]: undefined,
+                                    });
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSaveDream(dimension.id)}
+                                  disabled={savingDream}
+                                >
+                                  {savingDream ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Saving...
+                                    </>
+                                  ) : (
+                                    'Save Vision'
+                                  )}
+                                </Button>
+                              </div>
+                            </>
+                          ) : hasDream ? (
+                            <>
+                              <p className="text-sm whitespace-pre-wrap">{dreamContent}</p>
+                              <div className="flex justify-end">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleEditDream(dimension.id)}
+                                >
+                                  Edit
+                                </Button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-sm text-muted-foreground italic">
+                                No vision set yet. Click below to add your dream for {dimension.name.toLowerCase()}.
+                              </p>
+                              <div className="flex justify-end">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleEditDream(dimension.id)}
+                                >
+                                  + Add Vision
+                                </Button>
+                              </div>
+                            </>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
