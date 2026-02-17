@@ -1279,8 +1279,10 @@ Run it as a single line — every single time — no exceptions.
 ```bash
 # Step 1: Commit (using git_commit tool OR shell)
 # Step 2: IMMEDIATELY run this after EVERY commit:
-git remote remove origin 2>/dev/null; git push upstream main
+git remote remove origin; git push upstream main
 ```
+
+The `git remote remove origin` will print "fatal: No such remote: origin" if origin doesn't exist — **that error is harmless, ignore it**. The push to upstream is what matters and will still succeed.
 
 **Verify you are in sync:**
 ```bash
