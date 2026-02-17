@@ -6,7 +6,7 @@
 
 ## STATUS: CRITICAL BUGS FIXED — READY FOR FEATURES ✅
 
-**Last Updated:** February 16, 2026 (Opus 4.6 session)
+**Last Updated:** February 17, 2026 (Opus 4.6 session — membership/onboarding/phase 1 spec confirmed)
 
 **Infrastructure:**
 - ✅ Private Nostr relay deployed on Railway
@@ -25,7 +25,7 @@
 - ✅ Feed with mixed public/private content
 - ✅ Moderation system (mute, report, admin tools)
 - ✅ Experiment Builder for creators
-- ✅ 5-tier membership system
+- ✅ 6-tier membership system (Free / Core / Core Annual / Creator / Creator Annual / Creator BYOK)
 - ✅ **Primal custom kinds documented (40+ kinds)**
 - ✅ **Link preview cards (kind 10000128)**
 - ✅ **FIXED: Gray text bug** — plain `<style>` override in index.html (commit 8dbafeb)
@@ -35,14 +35,14 @@
 - ❌ **NO streak tracking or gamification**
 - ❌ **NO completion receipts for sats earning**
 
-**Current Priority:** Completion receipts → Streaks → Magic Mentor AI
+**Current Priority:** Phase 1A (Public Catalog + Membership Gates) → Phase 1B (Big Dreams Dashboard) → Phase 1C (Beta Onboarding)
 **Known Issues:** See CRITICAL_BUGS.md for remaining non-critical items
 
 ---
 
 ## CONTEXT: What This Is
 
-A $1,000/year selective coaching community platform called **11x LOVE LaB** ("Lessons and Blessings") built on Nostr. Light mode default, pink accent (#eb00a8), mobile-first PWA. The private relay IS the database — no PostgreSQL, no Cloudflare Workers, no D1.
+A coaching community platform called **11x LOVE LaB** ("Lessons and Blessings") built on Nostr. Light mode default, purple accent (#6600ff), mobile-first PWA. The private relay IS the database — no PostgreSQL, no Cloudflare Workers, no D1. Tiered membership from Free to Creator ($25/mo).
 
 ---
 
@@ -291,29 +291,31 @@ A $1,000/year selective coaching community platform called **11x LOVE LaB** ("Le
 colors: {
   background: '#ffffff',       // Light mode default
   surface: '#f9f9f9',          // Card backgrounds
-  primary: '#eb00a8',          // PINK accent (brand)
-  secondary: '#6600ff',        // PURPLE accent
+  primary: '#6600ff',          // PURPLE accent (brand) — ALL buttons, links, tabs
+  secondary: '#9900ff',        // Lighter purple — gradient pair
   accent: '#f39c12',           // Gold - streaks
   success: '#2ecc71',          // Green - completions
-  text: '#1a1a1a',             // Primary text
+  text: '#1a1a1a',             // Primary text (Marcellus font, weight 400 ONLY)
   textMuted: '#666666',        // Secondary text
 }
+// NOTE: Pink (#eb00a8) is NOT a brand accent. It is the GOD/LOVE dimension color ONLY.
+// Gradient default: from-[#6600ff] to-[#9900ff] (purple pair)
 ```
 
-### 11 Dimensions Colors
+### 11 Dimensions Colors (from /src/lib/dimensions.ts)
 ```javascript
 dimensions: {
-  1: '#FF0080',   // GOD/LOVE - Hot Pink
-  2: '#FF00FF',   // Soul - Magenta
-  3: '#8B00FF',   // Mind - Purple
-  4: '#4B0082',   // Body - Indigo
-  5: '#FF0000',   // Romance - Red
-  6: '#FF8C00',   // Family - Orange
-  7: '#FFD700',   // Community - Yellow
-  8: '#7CFC00',   // Mission - Lime
-  9: '#00FF00',   // Money - Green
-  10: '#00FFFF',  // Time - Cyan
-  11: '#0000FF',  // Environment - Blue
+  1:  '#eb00a8',   // GOD/LOVE - Hot Pink (dimension color, NOT brand accent)
+  2:  '#cc00ff',   // Soul - Magenta
+  3:  '#9900ff',   // Mind - Purple
+  4:  '#6600ff',   // Body - Purple (also PRIMARY BRAND COLOR)
+  5:  '#e60023',   // Romance - Red
+  6:  '#ff6600',   // Family - Orange
+  7:  '#ffdf00',   // Community - Yellow
+  8:  '#a2f005',   // Mission - Lime Green
+  9:  '#00d81c',   // Money - Matrix Green
+  10: '#00ccff',   // Time - Cyan
+  11: '#0033ff',   // Environment - Blue
 }
 ```
 
@@ -321,13 +323,166 @@ dimensions: {
 
 ## MEMBERSHIP TIERS
 
-| Tier | Access | AI Tokens | Price |
-|------|--------|-----------|-------|
-| **Free** | Browse, limited | 0 | $0 |
-| **Member** | Full access | 2M/month | $11/mo |
-| **BYOK** | Full + own AI key | Unlimited | $11/mo |
-| **Creator** | Create experiments | 10M/month | $25/mo |
-| **Admin** | Everything | Unlimited | - |
+### Free Tier — $0
+- Browse public experiment catalog
+- Read experiments (after login)
+- Zap & Share
+
+### Core — $11/mo
+- Everything in Free, plus:
+- Track progress
+- Comments
+- Join tribes
+- Vault (save journals/experiments)
+- Post to Love Board
+- Magic Mentor AI (shared API key)
+- Accountability Buddies
+
+### Core — $99/yr (annual discount)
+- Everything in Core Monthly, plus:
+- Create tribes
+
+### Creator — $25/mo
+- Everything in Core, plus:
+- Create experiments
+- Analytics dashboard (views, completion rates, zap revenue)
+
+### Creator — $199/yr (annual discount)
+- Everything in Creator Monthly, plus:
+- Create tribes
+
+### Creator BYOK — $11/mo or $99/yr
+- Everything in Creator tier
+- Uses user's own OpenRouter API key for Magic Mentor AI
+- Create tribes (yearly only)
+
+### Admin — Internal
+- Everything above
+- Manage members, moderate content
+- Full relay access
+
+---
+
+## TWO-PATH ONBOARDING
+
+On first login, user chooses: **Quick Start** or **Deep Dive**
+
+### Path A: Quick Start
+1. Welcome screen
+2. Show 11 dimension cards — user types 1-2 sentence Big Dream per dimension
+3. Auto-save as kind 30078 events (one per dimension)
+4. Land on Big Dreams dashboard
+5. Show message: *"You can always dive deeper with the full 11x LOVE Code later"*
+
+### Path B: Deep Dive
+1. User enters full 11x LOVE Code curriculum (18 lessons, 5 modules)
+2. Module 4, Lesson 1 = "11x LOVE Code Vision Board" — detailed Big Dreams
+3. Detailed answers **overwrite** any Quick Start Big Dreams
+4. Module 5 = Daily Practice setup
+
+**Rule:** Path B answers always replace Path A answers for the same dimension.
+
+---
+
+## BIG DREAMS DASHBOARD
+
+This is the **homepage after login**. Shows 11 dimension cards in Prosperity Pyramid order:
+
+1. 💜 GOD/LOVE  2. 🎯 Mission  3. 💪 Body  4. 🧠 Mind  5. ✨ Soul  6. ❤️ Romance  7. 👨‍👩‍👧‍👦 Family  8. 🤝 Community  9. ₿ Money  10. ⏰ Time  11. 🏠 Environment
+
+Each card shows:
+- Big Dream text (from onboarding or curriculum)
+- Related experiments in that dimension
+- Progress indicator
+
+**Data:** kind 30078 Nostr events, one per dimension
+**Editable:** Users can edit/update Big Dreams anytime
+**Widgets:** Experiments in progress, Quick stats, Streak status
+
+---
+
+## DASHBOARDS — TWO TYPES
+
+### Member Dashboard (Big Dreams Page)
+- Every logged-in user sees their own
+- Shows: 11 Big Dreams, experiments in progress, completion stats, streak, quick actions
+
+### Creator Analytics Dashboard
+- Creator tier only, for experiments they created
+- Shows: Who's viewing, completion rates, zap revenue, most popular lessons
+
+---
+
+## BETA TESTING PLAN
+
+### Tier 1 Beta (30 people)
+- Manually assigned Core tier ($11/mo value)
+- Must complete 11x LOVE Code Experiment 1
+- Test: reading, progress tracking, comments, tribes, vault, Love Board
+- **REQUIRED:** Magic Mentor AI working + custom profile fields
+
+### Tier 2 Beta (later)
+- Manually assigned Creator tier ($25/mo value)
+- Test: experiment builder, templates, analytics dashboard
+
+### Custom Profile Fields for Beta
+- Rockstar Identity (DJ Hero Name, Villain, Kryptonite, Inner Child)
+- IKIGAI answers
+- Cosmic Council (5 spiritual advisors)
+- Hi-5 Vibe Tribe (5 human support contacts)
+
+---
+
+## SEO & AI OPTIMIZATION
+
+**Add these files for discoverability:**
+
+- `/public/llms.txt` — Describe what 11x LOVE LaB is, what experiments are, how it works (for AI crawlers)
+- `/public/sitemap.xml` — List all public experiment URLs
+- `/public/robots.txt` — Standard crawl permissions
+
+**Optimize `/experiments` public page:** semantic HTML, clear headings, structured data for maximum scannability.
+
+---
+
+## PHASE 1 BUILD PLAN
+
+### Phase 1A: Public Catalog + Membership Gates (~3 hrs)
+1. Public `/experiments` catalog page (SEO optimized)
+2. `llms.txt`, `sitemap.xml`, `robots.txt`
+3. Login redirect for experiment detail pages
+4. Membership tier checking system
+5. Feature gates: vault, Love Board, comments, Magic Mentor, analytics = paid only
+
+### Phase 1B: Big Dreams Dashboard (~2-3 hrs)
+1. Big Dreams page = homepage after login
+2. 11 dimension cards (Prosperity Pyramid order)
+3. Auto-populate from 11x LOVE Code answers
+4. Experiments in progress widget
+5. Quick stats
+
+### Phase 1C: Beta Onboarding (~1-2 hrs)
+1. First login detection
+2. Welcome modal: "Quick Start or Deep Dive?"
+3. Quick Start: 11 dimension Big Dream cards
+4. Profile setup guide
+5. Redirect to 11x LOVE Code Experiment 1
+6. After completion → Big Dreams populated/updated
+
+### Phase 2 (Later — Hand off to Opus)
+- Magic Mentor AI integration (Grok 4.1 Fast + OpenRouter)
+- Advanced prompt engineering for personalized coaching
+
+---
+
+## TECH NOTES
+
+- **AI:** Magic Mentor uses Grok 4.1 Fast via OpenRouter. No data sharing with xAI. BYOK tier uses user's own OpenRouter key.
+- **Backend:** Private Nostr relay on Railway (`wss://nostr-rs-relay-production-1569.up.railway.app`)
+- **Community:** NIP-29 Tribes for group messaging
+- **Payments:** NIP-57 Lightning zaps — native, no external integration
+- **Big Dreams storage:** kind 30078 events, one per dimension
+- **CRUD** = Create, Read, Update, Delete — the 4 basic database operations
 
 ---
 
