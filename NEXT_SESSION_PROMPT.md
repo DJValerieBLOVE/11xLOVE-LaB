@@ -24,7 +24,7 @@ Read these files first: `PLAN.md`, `SESSION_NOTES.md`, and `AGENTS.md`
 4. No `font-bold`, `font-semibold`, `font-medium` (Marcellus font = weight 400 only)
 5. No pink as brand accent (purple #6600ff only, pink is GOD/LOVE dimension color only)
 6. Build must pass before committing
-7. Push to BOTH `origin` and `upstream` after committing
+7. After every commit, immediately run: `git push origin main`
 
 ---
 
