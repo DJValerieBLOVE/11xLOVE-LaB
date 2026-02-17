@@ -4,7 +4,39 @@
 
 ---
 
-## Latest Session: February 17, 2026 (Sonnet 4.5 — Session 5)
+## Latest Session: February 17, 2026 (Opus 4.6 — Session 6)
+
+### What Was Done
+
+**Git sync fixed + ESLint CI cleanup + AGENTS.md hardened**
+
+1. **Fixed git sync** — main branch was behind fix-blurry-text by 18 commits. Deleted old main, created new main from fix-blurry-text, force-pushed to GitHub. Removed junk `&1` file from accidental shell redirect.
+2. **Fixed 30+ ESLint errors** across 4 rounds:
+   - TypeScript: `created_at` made optional in publish hooks, NoteContent string guard type narrowing
+   - Unused imports: Removed unused Lucide icons, destructured variables, type imports across 15+ files
+   - Conditional hooks: Restructured NoteContent (useMemo after early return), JournalView (useExperimentJournal after early return)
+   - Misc: `let` → `const` in NostrSync, removed unused hook export from ShareConfirmDialog, unused catch var in primalCache
+3. **Hardened AGENTS.md** — Added mandatory per-file verification rule: every import must be confirmed used before committing. Added to Pre-Commit Checklist.
+4. **GitHub Actions now passing** ✅ (tsc + eslint --max-warnings 0 + vitest + build)
+
+### What Was NOT Done (deferred)
+- Phase 1A manual testing (deploy + verify in browser)
+- Phase 1B: Big Dreams Dashboard
+- Phase 1C: Beta Onboarding
+
+### Commits This Session
+```
+58ea5c0 - Remove junk file '&1' created by shell redirect error
+1c53b96 - Fix 7 TypeScript errors: make created_at optional in publish hooks
+8adf6f4 - Fix 10 ESLint errors: remove unused imports, fix conditional hooks
+6b2f6f5 - Fix 10 ESLint errors: unused imports in Vault/Tribe/LoveBoard/Feed
+418c65b - Fix remaining ESLint errors: remove unused ArrowUp/ArrowDown from Layout
+a86259a - Fix last 2 ESLint errors + add mandatory per-file verification rule
+```
+
+---
+
+## Previous Session: February 17, 2026 (Sonnet 4.5 — Session 5)
 
 ### What Was Done
 
@@ -16,7 +48,7 @@
 4. **Made /experiments publicly accessible** — SEO-optimized catalog with semantic HTML, search/filter, no login required to browse
 5. **Added login gate for experiment details** — Users must log in to view lesson content (aligned with Free tier: "Read experiments after login")
 
-### Commits This Session
+### Commits Session 5
 ```
 a541904 - Phase 1A Step 1: Add robots.txt for search engine crawlers
 118b415 - Phase 1A Step 2: Add llms.txt for AI crawler optimization
@@ -104,6 +136,6 @@ bd4475e - Phase 1A Step 5: Add login requirement for experiment detail pages
 
 ---
 
-**Last Updated:** February 17, 2026 (Session 5 — Phase 1A Complete ✅)
+**Last Updated:** February 17, 2026 (Session 6 — ESLint CI cleanup + AGENTS.md hardened)
 
 Peace, LOVE, & Warm Aloha 💜
