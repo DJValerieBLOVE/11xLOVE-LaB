@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { DIMENSIONS } from '@/lib/dimensions';
 import { useToast } from '@/hooks/useToast';
+import { OnboardingModal } from '@/components/OnboardingModal';
 
 const BigDreams = () => {
   const { user } = useCurrentUser();
@@ -20,6 +21,18 @@ const BigDreams = () => {
   // Local state for editing Big Dreams
   const [editingDimension, setEditingDimension] = useState<number | null>(null);
   const [dreamText, setDreamText] = useState<Record<number, string>>({});
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
+
+  // Check if user needs onboarding (no Big Dreams yet)
+  useEffect(() => {
+    if (!loadingDreams && user && !hasCheckedOnboarding) {
+      setHasCheckedOnboarding(true);
+      if (bigDreams.length === 0) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [bigDreams, loadingDreams, user, hasCheckedOnboarding]);
 
   useSeoMeta({
     title: 'Big Dreams - 11x LOVE LaB',
@@ -138,6 +151,12 @@ const BigDreams = () => {
 
   return (
     <Layout>
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        open={showOnboarding}
+        onComplete={() => setShowOnboarding(false)}
+      />
+
       <div className="container px-4 py-8">
         <h1 className="mb-2">Big Dreams</h1>
         <p className="text-muted-foreground italic mb-8">
