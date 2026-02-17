@@ -1180,9 +1180,9 @@ describe('MyComponent', () => {
 
 ## Validating Your Changes
 
-**CRITICAL**: After making any code changes, you must validate your work by running available validation tools.
+**CRITICAL**: After making any code changes, you must validate your work by running available validation tools AND manually testing in the preview.
 
-**Your task is not considered finished until the code successfully type-checks and builds without errors.**
+**Your task is not considered finished until the code successfully type-checks, builds without errors, AND you have verified the UX works correctly in the preview.**
 
 ### Validation Priority Order
 
@@ -1192,15 +1192,51 @@ Run available tools in this priority order:
 2. **Building/Compilation** (Required): Verify the project builds successfully
 3. **Linting** (Recommended): Check code style and catch potential issues
 4. **Tests** (If Available): Run existing test suite
-5. **Git Commit** (Required): Create a commit with your changes when finished
+5. **Manual Testing** (Required): Test the changes in the preview to verify UX
+6. **Git Commit** (Required): Create a commit with your changes when finished
 
 **Minimum Requirements:**
 - Code must type-check without errors
 - Code must build/compile successfully
 - Fix any critical linting errors that would break functionality
+- **Manually test the feature in the preview** to ensure it works as expected
+- Verify responsive design on mobile/tablet/desktop viewports (if UI changes)
+- Test both logged-in and logged-out states (if authentication-related)
 - Create a git commit when your changes are complete
 
 The validation ensures code quality and catches errors before deployment, regardless of the development environment.
+
+### Manual Testing Checklist
+
+For each phase or feature, verify:
+
+**UI/UX Testing:**
+- Does the page/component render without errors?
+- Are all interactive elements (buttons, links, forms) clickable and functional?
+- Do hover states and animations work as expected?
+- Is the layout responsive across different screen sizes?
+- Are loading states and empty states displayed correctly?
+
+**Authentication Testing:**
+- Does logged-out state show appropriate prompts/gates?
+- Does logged-in state show personalized content?
+- Do login/logout flows work correctly?
+
+**Data Testing:**
+- Does data load and display correctly?
+- Are error states handled gracefully?
+- Do forms validate and submit properly?
+
+**Navigation Testing:**
+- Do all links navigate to the correct pages?
+- Does the back button work as expected?
+- Are route parameters handled correctly?
+
+**Phase-Specific Testing:**
+After completing each phase, test the specific features added:
+- **Phase 1A**: Verify public catalog is accessible without login, experiment details require login, SEO files exist
+- **Phase 1B**: Verify Big Dreams dashboard shows correctly, dimension cards render, data persists
+- **Phase 1C**: Verify onboarding modal shows on first login, both paths work correctly
 
 ### Using Git
 
