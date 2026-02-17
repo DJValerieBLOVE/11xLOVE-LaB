@@ -1250,55 +1250,66 @@ When your changes are complete and validated, create a git commit with a descrip
 
 This section contains project-specific guidelines for the 11x LOVE LaB application.
 
-### Git Push Rule — MANDATORY
+### COMPLETE COMMIT WORKFLOW — MANDATORY, IN ORDER, NO SHORTCUTS
 
-**CRITICAL: After EVERY `git_commit`, you MUST immediately push:**
+Every single commit must follow these 5 steps in order. Skipping any step wastes money debugging CI failures and sync errors.
+
+**STEP 1 — Verify imports in every changed file**
+For each file you modified, read its import section and confirm every imported name appears in the file body. This takes 30 seconds and prevents 100% of ESLint CI failures.
+- No unused imports (ESLint fails: `'X' is defined but never used`)
+- No hooks called after early returns (ESLint fails: `React Hook called conditionally`)
+- No `any` types, no unused variables, no FIXME/TODO comments
+
+**STEP 2 — Run the font and color checks**
+```bash
+cd /projects/11xlove-lab
+grep -rn "font-bold\|font-semibold\|font-medium" src/ --include="*.tsx" --include="*.ts"
+grep -rn "from-pink\|to-pink\|bg-pink\|text-pink\|border-pink" src/ --include="*.tsx" --include="*.ts"
+```
+Both commands must return **zero results**. If either returns anything, fix it before continuing.
+- Marcellus font is weight 400 only — any bold class = blurry gray text
+- Pink is the GOD/LOVE dimension color only — buttons/links/tabs must use purple `#6600ff`
+
+**STEP 3 — Run the build tool (REQUIRED before every commit)**
+Use the `build_project` tool. It must say ✅ Successfully built. If it fails, fix errors and retry. Do not commit broken code.
+
+**STEP 4 — Commit using git_commit tool**
+Write a clear commit message describing what changed and why.
+
+**STEP 5 — Push to GitHub immediately**
 ```bash
 git push origin main
 ```
+Run this in the shell tool immediately after every commit. No exceptions.
+- The `git_commit` tool only commits locally — it never pushes
+- Shakespeare's Sync UI uses `origin/main` on GitHub to compare
+- If you forget to push, the Sync button breaks and shows "X commits ahead"
 
-**Why this matters:**
-- The `git_commit` tool only commits locally — it does NOT push to GitHub
-- Shakespeare's Sync UI uses `origin` to compare local commits with GitHub
-- If you don't push, Shakespeare shows "X commits ahead" and the Sync button breaks
-- GitHub Actions CI (ESLint, tests, build) only runs when commits are pushed
-
-**Git remote setup for this project:**
-- One remote: `origin` → `https://github.com/DJValerieBLOVE/11xLOVE-LaB.git`
-- Branch `main` tracks `origin/main`
-- Do NOT add or use an `upstream` remote — Shakespeare's Sync UI uses `origin`
-
-**Correct workflow:**
+**Verify sync is clean after pushing:**
 ```bash
-# Step 1: Use the git_commit tool to commit
-# Step 2: IMMEDIATELY run this after EVERY commit — no exceptions:
-git push origin main
+git remote -v    # Must show ONLY origin (not upstream)
+git status       # Must say "nothing to commit, working tree clean"
 ```
 
-**Verify you are in sync:**
-```bash
-git remote -v    # Should show only origin → github.com/DJValerieBLOVE/11xLOVE-LaB.git
-git status       # Should say "nothing to commit, working tree clean"
-```
-
-**If you see an `upstream` remote, remove it:**
+**If you see an `upstream` remote, remove it immediately:**
 ```bash
 git remote remove upstream
 ```
+The `upstream` remote breaks Shakespeare's Sync UI. Only `origin` should exist.
 
 ---
 
-### Pre-Commit Checklist
+### Pre-Commit Code Checklist
 
-**CRITICAL**: Before committing any changes, verify the following:
+Before Step 4 (commit), verify each changed file passes ALL of these:
 
-1. **No unused imports** - ESLint will fail on unused imports. Remove any import that isn't used in the file.
-2. **React hooks are called unconditionally** - Hooks must be called at the top level of components, NEVER after early returns or inside conditionals.
-3. **No `any` types** - Use proper TypeScript interfaces instead of `any`. If you need a flexible type, create an interface.
-4. **Remove or convert FIXME/TODO comments** - ESLint flags these. Convert to regular comments or resolve the issue.
-5. **Check for unused variables** - Variables that are defined but never used will cause ESLint errors.
-6. **ZERO font-bold/font-semibold/font-medium** - Marcellus font only has weight 400. Any bold class = blurry gray text. Run: `grep -r "font-bold\|font-semibold\|font-medium" src/ --include="*.tsx" --include="*.ts"` — must return zero results.
-7. **ZERO pink as brand accent** - Buttons, links, tabs, gradients on cards = purple (#6600ff). Pink (#eb00a8) is ONLY for the GOD/LOVE dimension color. Run: `grep -r "from-pink\|to-pink\|bg-pink\|text-pink\|border-pink" src/ --include="*.tsx" --include="*.ts"` — must return zero results.
+1. **No unused imports** — every imported name actually used in the file body
+2. **Hooks called unconditionally** — no `use*` hook calls after any `if (...) return`
+3. **No `any` types** — use proper TypeScript interfaces
+4. **No FIXME/TODO comments** — ESLint flags these as errors
+5. **No unused variables** — defined but never referenced = ESLint error
+6. **No font-bold/semibold/medium** — Marcellus is weight 400 only
+7. **No pink brand accents** — purple `#6600ff` only for UI chrome
 
 ### MANDATORY: Verify Every Changed File Before Committing
 
