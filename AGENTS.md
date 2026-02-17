@@ -1252,42 +1252,38 @@ This section contains project-specific guidelines for the 11x LOVE LaB applicati
 
 ### Git Push Rule — MANDATORY
 
-**CRITICAL: After EVERY `git_commit`, you MUST immediately run this exact sequence:**
+**CRITICAL: After EVERY `git_commit`, you MUST immediately push:**
 ```bash
-git remote remove origin 2>/dev/null; git push upstream main
+git push origin main
 ```
-
-Run it as a single line — every single time — no exceptions.
-
-**Why `git remote remove origin` is needed EVERY time:**
-- The `git_commit` tool re-adds `origin` pointing to the same GitHub URL on every commit
-- Shakespeare's Sync UI uses `upstream` to compare with GitHub
-- If `origin` exists and `upstream` is behind, the Sync UI shows "X commits ahead"
-- Removing `origin` first ensures `upstream` is the only remote and the Sync UI stays clean
 
 **Why this matters:**
 - The `git_commit` tool only commits locally — it does NOT push to GitHub
-- Shakespeare's Sync UI compares local commits against `upstream/main` on GitHub
+- Shakespeare's Sync UI uses `origin` to compare local commits with GitHub
 - If you don't push, Shakespeare shows "X commits ahead" and the Sync button breaks
 - GitHub Actions CI (ESLint, tests, build) only runs when commits are pushed
 
 **Git remote setup for this project:**
-- Only ONE remote: `upstream` → `https://github.com/DJValerieBLOVE/11xLOVE-LaB.git`
-- Branch `main` tracks `upstream/main`
+- One remote: `origin` → `https://github.com/DJValerieBLOVE/11xLOVE-LaB.git`
+- Branch `main` tracks `origin/main`
+- Do NOT add or use an `upstream` remote — Shakespeare's Sync UI uses `origin`
 
-**Correct workflow — copy this exactly:**
+**Correct workflow:**
 ```bash
-# Step 1: Commit (using git_commit tool OR shell)
-# Step 2: IMMEDIATELY run this after EVERY commit:
-git remote remove origin; git push upstream main
+# Step 1: Use the git_commit tool to commit
+# Step 2: IMMEDIATELY run this after EVERY commit — no exceptions:
+git push origin main
 ```
-
-The `git remote remove origin` will print "fatal: No such remote: origin" if origin doesn't exist — **that error is harmless, ignore it**. The push to upstream is what matters and will still succeed.
 
 **Verify you are in sync:**
 ```bash
-git remote -v           # Should show ONLY upstream, not origin
-git status              # Should say "nothing to commit, working tree clean"
+git remote -v    # Should show only origin → github.com/DJValerieBLOVE/11xLOVE-LaB.git
+git status       # Should say "nothing to commit, working tree clean"
+```
+
+**If you see an `upstream` remote, remove it:**
+```bash
+git remote remove upstream
 ```
 
 ---
