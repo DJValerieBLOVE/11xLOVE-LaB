@@ -1,0 +1,119 @@
+# 11x LOVE LaB - AI Crawler Information
+
+## What is 11x LOVE LaB?
+
+11x LOVE LaB ("Lessons and Blessings") is a private coaching platform built on Nostr protocol for personal transformation through the 11x LOVE Method. The platform helps users design their Big Dreams across 11 life dimensions and provides structured experiments (courses) to achieve them.
+
+## The 11 Life Dimensions
+
+The 11x LOVE Method organizes life into 11 interconnected dimensions:
+
+1. GOD/LOVE - Spiritual connection and self-love
+2. Soul - Inner purpose and authenticity
+3. Mind - Mental clarity and beliefs
+4. Body - Physical health and vitality
+5. Romance - Intimate partnerships
+6. Family - Family relationships
+7. Community - Social connections
+8. Mission - Life purpose and career
+9. Money - Financial abundance
+10. Time - Time freedom and priorities
+11. Environment - Physical surroundings
+
+## What are Experiments?
+
+Experiments are structured learning experiences (similar to courses or workshops) that guide users through specific transformations. Each experiment includes:
+
+- Sequential lessons with text, video, and audio content
+- Reflection prompts and journal exercises
+- Progress tracking and completion milestones
+- Community discussions in Tribes
+- Value-for-value zaps (Bitcoin Lightning tips) for creators
+
+Users unlock lessons sequentially and track their progress across all 11 dimensions.
+
+## How the Platform Works
+
+### Identity & Privacy
+- Users log in with their Nostr keys (decentralized identity)
+- Private data is stored on a private Nostr relay
+- Users control what they share publicly
+- Three privacy levels: Never Shareable (Tribe messages), Private by Default (Big Dreams, journals), and Shareable (feed posts, completions)
+
+### Big Dreams Dashboard
+After login, users see their Big Dreams dashboard - the central hub showing:
+- Their written Big Dream for each of the 11 dimensions
+- Related experiments in progress
+- Completion statistics and streaks
+- Quick actions for daily practice
+
+### Learning Journey
+1. Browse the public experiment catalog
+2. Choose experiments aligned with Big Dreams
+3. Complete lessons sequentially
+4. Track progress with streaks and milestones
+5. Share wins and zap creators
+6. Connect with accountability buddies
+7. Get personalized coaching from Magic Mentor AI
+
+### Community Features
+- **Tribes**: Private groups for discussions (NIP-29 Nostr groups)
+- **Love Board**: Public celebration wall for wins and gratitude
+- **Vault**: Personal archive of saved lessons and journal entries
+- **Feed**: Mixed public/private activity stream with privacy badges
+- **Buddies**: Accountability partners matched by dimension focus
+
+### Value-for-Value Model
+- Creators publish experiments and earn Bitcoin zaps
+- Members zap creators on completion
+- No ads, no data mining
+- Tiered membership: Free (browse), Core ($11/mo - track progress), Creator ($25/mo - publish experiments)
+
+## Technology
+
+- **Built on Nostr**: Decentralized social protocol (Bitcoin's identity layer)
+- **Private Relay**: Railway-hosted relay for LaB-specific data
+- **Lightning Zaps**: Native Bitcoin micropayments (NIP-57)
+- **Magic Mentor AI**: Personalized coaching using Grok 4.1 Fast via OpenRouter
+- **NIP-29 Tribes**: Encrypted group messaging
+- **NIP-44 Encryption**: Client-side encryption for private data
+
+## Creator Features
+
+Creators can:
+- Build experiments with the Experiment Builder tool
+- Track analytics (views, completions, zap revenue)
+- Create private Tribes for their communities
+- Earn Bitcoin directly from learners
+- Use templates for faster content creation
+
+## SEO-Friendly Pages
+
+Public pages optimized for discovery:
+- Homepage: Platform overview and value proposition
+- Experiments Catalog: Browse all available experiments by category
+- Feed: Public activity and social proof
+
+## Contact & Links
+
+- **Live Site**: https://11xlove-lab.shakespeare.wtf
+- **GitHub**: https://github.com/DJValerieBLOVE/11xLOVE-LaB.git
+- **Creator**: DJ Valerie B LOVE (@djvalerieblove on Nostr)
+- **Method**: Based on the 11x LOVE Method - "Fall madly in love with life, 11 minutes a day"
+
+## Philosophy
+
+11x LOVE LaB combines ancient wisdom with modern technology to help people design and live their dream life across all 11 dimensions. It's built on principles of:
+
+- **Sovereignty**: Users own their data and identity
+- **Privacy**: Personal growth happens in a safe space
+- **Value-for-Value**: Direct creator support, no intermediaries
+- **Community**: Accountability buddies and Tribe support
+- **Practice**: Daily micro-habits for sustainable transformation
+- **Freedom**: Bitcoin-powered independence from traditional platforms
+
+---
+
+> "Your Big Dreams deserve a LaB. Welcome to the revolution." 💜
+
+Last Updated: February 17, 2026
