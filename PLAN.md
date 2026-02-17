@@ -447,12 +447,12 @@ Each card shows:
 
 ## PHASE 1 BUILD PLAN
 
-### Phase 1A: Public Catalog + Membership Gates (~3 hrs)
-1. Public `/experiments` catalog page (SEO optimized)
-2. `llms.txt`, `sitemap.xml`, `robots.txt`
-3. Login redirect for experiment detail pages
-4. Membership tier checking system
-5. Feature gates: vault, Love Board, comments, Magic Mentor, analytics = paid only
+### ✅ Phase 1A: Public Catalog + Membership Gates — COMPLETE
+1. ✅ Public `/experiments` catalog page (SEO optimized with semantic HTML, search/filter)
+2. ✅ `llms.txt`, `sitemap.xml`, `robots.txt` (comprehensive AI crawler documentation)
+3. ✅ Login redirect for experiment detail pages (Free tier requirement enforced)
+4. ⏭️ Membership tier checking system (deferred to Phase 1B)
+5. ⏭️ Feature gates: vault, Love Board, comments, Magic Mentor, analytics = paid only (deferred to Phase 1B)
 
 ### Phase 1B: Big Dreams Dashboard (~2-3 hrs)
 1. Big Dreams page = homepage after login
