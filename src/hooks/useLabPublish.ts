@@ -29,8 +29,11 @@ interface PublishOptions {
   shareToPublic?: boolean;
 }
 
+/** Partial event for publishing — only kind is required; created_at defaults to now */
+type PartialEvent = Omit<NostrEvent, 'id' | 'pubkey' | 'sig' | 'created_at'> & { created_at?: number };
+
 export interface LabPublishParams {
-  event: Omit<NostrEvent, 'id' | 'pubkey' | 'sig'>;
+  event: PartialEvent;
   options?: PublishOptions;
 }
 
@@ -107,12 +110,12 @@ export function useLabPublish(): UseMutationResult<NostrEvent, Error, LabPublish
  * Hook specifically for LaB-only data (never goes public)
  * Use this for experiments, progress, journals, Big Dreams, etc.
  */
-export function useLabOnlyPublish(): UseMutationResult<NostrEvent, Error, Omit<NostrEvent, 'id' | 'pubkey' | 'sig'>> {
+export function useLabOnlyPublish(): UseMutationResult<NostrEvent, Error, PartialEvent> {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
 
   return useMutation({
-    mutationFn: async (t: Omit<NostrEvent, 'id' | 'pubkey' | 'sig'>) => {
+    mutationFn: async (t: PartialEvent) => {
       if (!user) {
         throw new Error("User is not logged in");
       }

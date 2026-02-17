@@ -124,11 +124,12 @@ export function NoteContent({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAllMedia, setShowAllMedia] = useState(false);
   
-  // Debug: Check if event is actually an object
+  // Debug: Check if event is actually an object (runtime safety for bad data)
   if (typeof event === 'string') {
-    console.error('[NoteContent] Received string instead of event object:', event.slice(0, 100));
+    const raw = event as unknown as string;
+    console.error('[NoteContent] Received string instead of event object:', raw.slice(0, 100));
     try {
-      const parsed = JSON.parse(event);
+      const parsed = JSON.parse(raw);
       return <div className={className}>{parsed.content || 'Failed to parse event'}</div>;
     } catch {
       return <div className={className}>Invalid event data</div>;
