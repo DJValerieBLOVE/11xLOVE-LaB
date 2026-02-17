@@ -1262,6 +1262,25 @@ This section contains project-specific guidelines for the 11x LOVE LaB applicati
 6. **ZERO font-bold/font-semibold/font-medium** - Marcellus font only has weight 400. Any bold class = blurry gray text. Run: `grep -r "font-bold\|font-semibold\|font-medium" src/ --include="*.tsx" --include="*.ts"` — must return zero results.
 7. **ZERO pink as brand accent** - Buttons, links, tabs, gradients on cards = purple (#6600ff). Pink (#eb00a8) is ONLY for the GOD/LOVE dimension color. Run: `grep -r "from-pink\|to-pink\|bg-pink\|text-pink\|border-pink" src/ --include="*.tsx" --include="*.ts"` — must return zero results.
 
+### MANDATORY: Verify Every Changed File Before Committing
+
+**This is NON-NEGOTIABLE. Every time you modify a file, you MUST verify it before committing.**
+
+For EACH file you modified, check these three things:
+
+1. **Every imported name is used** — For each import in the file, verify the imported name actually appears in the component/function body (not just in the import line). Common culprits:
+   - Lucide icons imported but never rendered
+   - Destructured hook values (e.g., `const { isPaidMember } = useMembership()`) where the variable is never referenced
+   - Component imports from shadcn/ui that were removed from JSX but left in imports
+   - Type imports that are no longer needed
+
+2. **No hooks called after early returns** — Scan for any `if (...) return` that appears BEFORE a `useState`, `useMemo`, `useQuery`, `useMutation`, or any `use*` hook call.
+
+3. **Types match function signatures** — If you changed a hook's return type or function parameter, check all callers still match.
+
+**Quick verification method:**
+For each file you changed, read the import section and for EACH imported name, mentally confirm it appears in the file body. If you're unsure, search for it. This takes 30 seconds per file and prevents 100% of the "unused import" errors that have been failing CI.
+
 ### Common ESLint Errors and Fixes
 
 | Error | Fix |

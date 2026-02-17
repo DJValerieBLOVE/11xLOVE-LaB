@@ -16,7 +16,6 @@ import {
   canEverBeShared,
   shouldPublishToPublic,
   getPublishRelays,
-  NEVER_SHAREABLE_KINDS,
   PRIVATE_BY_DEFAULT_KINDS,
   SHAREABLE_KINDS,
 } from '@/lib/relays';

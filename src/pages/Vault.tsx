@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useMembership } from '@/hooks/useMembership';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Lock, 
@@ -51,7 +51,6 @@ import type { NostrEvent } from '@nostrify/nostrify';
 
 const Vault = () => {
   const { user } = useCurrentUser();
-  const { isPaidMember } = useMembership();
   const { nostr } = useNostr();
   const [customRelayUrl, setCustomRelayUrl] = useState('');
   const [mentorInstructions, setMentorInstructions] = useState('');
