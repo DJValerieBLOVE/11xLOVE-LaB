@@ -45,7 +45,7 @@ export function NostrSync() {
           write: true 
         };
 
-        let finalRelays: { url: string; read: boolean; write: boolean }[] = [railwayRelay];
+        const finalRelays: { url: string; read: boolean; write: boolean }[] = [railwayRelay];
 
         if (events.length > 0) {
           // Parse user's NIP-65 relay list with proper read/write markers

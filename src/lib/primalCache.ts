@@ -128,7 +128,7 @@ export interface PrimalFeedResult {
 function decompress(data: ArrayBuffer): string {
   try {
     return pako.inflate(new Uint8Array(data), { to: 'string' });
-  } catch (e) {
+  } catch {
     console.warn('[Primal] Decompress failed, trying as string');
     return '';
   }

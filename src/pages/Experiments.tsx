@@ -4,7 +4,7 @@ import { Layout } from '@/components/Layout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useMembership } from '@/hooks/useMembership';
 import { Card, CardDescription, CardHeader, CardContent } from '@/components/ui/card';
-import { Clock, Users, Heart, Sparkles, Plus, Lock, Bookmark, CheckCircle2, Play, Compass, Pencil } from 'lucide-react';
+import { Clock, Users, Heart, Sparkles, Plus, Bookmark, CheckCircle2, Play, Compass, Pencil } from 'lucide-react';
 import { experiments } from '@/data/experiments';
 import { morningMiracleExperiment } from '@/data/test-experiment';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,7 @@ import { DimensionCardImage } from '@/components/ui/card-image';
 
 const Experiments = () => {
   const { user } = useCurrentUser();
-  const { canCreate, isLoggedIn, tierInfo } = useMembership();
+  const { canCreate } = useMembership();
   const [searchQuery, setSearchQuery] = useState('');
   const [dimensionFilter, setDimensionFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('browse');

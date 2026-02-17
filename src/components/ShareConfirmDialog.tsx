@@ -16,7 +16,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { AlertTriangle, Globe, Lock, Share2 } from 'lucide-react';
-import { canEverBeShared, requiresShareWarning } from '@/lib/relays';
 
 interface ShareConfirmDialogProps {
   open: boolean;
@@ -124,19 +123,4 @@ export function ShareConfirmDialog({
   );
 }
 
-/**
- * Hook to determine if share warning is needed
- */
-export function useShareWarning(kind: number, tags: string[][]) {
-  const canShare = canEverBeShared(kind, tags);
-  const needsWarning = requiresShareWarning(kind, tags);
-  
-  return {
-    /** Whether this content can ever be shared (false for Tribe messages) */
-    canShare,
-    /** Whether a warning dialog should be shown before sharing */
-    needsWarning,
-    /** Reason why sharing is blocked (if canShare is false) */
-    blockReason: !canShare ? 'Tribe messages cannot be shared publicly for privacy.' : undefined,
-  };
-}
+

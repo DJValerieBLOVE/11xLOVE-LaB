@@ -13,7 +13,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser } from './useCurrentUser';
 import { useLabOnlyPublish } from './useLabPublish';
 import { LAB_RELAY_URL } from '@/lib/relays';
-import type { NostrEvent } from '@nostrify/nostrify';
 
 // Site admin pubkey (you - DJ Valerie)
 const SITE_ADMIN_PUBKEY = '3d70ec1ea586650a0474d6858454209d222158f4079e8db806f017ef5e30e767';

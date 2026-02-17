@@ -96,7 +96,7 @@ export default function ExperimentBuilder() {
   const { experimentId } = useParams();
   const navigate = useNavigate();
   const { user } = useCurrentUser();
-  const { canCreate, isLoggedIn } = useMembership();
+  const { canCreate } = useMembership();
   const { toast } = useToast();
   
   const isEditing = !!experimentId;
@@ -507,11 +507,10 @@ export default function ExperimentBuilder() {
                 </Card>
               ) : (
                 <>
-                  {experiment.modules.map((module, moduleIndex) => (
+                  {experiment.modules.map((module) => (
                     <ModuleEditor
                       key={module.id}
                       module={module}
-                      moduleIndex={moduleIndex}
                       onUpdate={(updates) => updateModule(module.id, updates)}
                       onRemove={() => removeModule(module.id)}
                       onAddLesson={() => addLesson(module.id)}
@@ -550,7 +549,6 @@ export default function ExperimentBuilder() {
 // Module Editor Component
 interface ModuleEditorProps {
   module: ModuleData;
-  moduleIndex: number;
   onUpdate: (updates: Partial<ModuleData>) => void;
   onRemove: () => void;
   onAddLesson: () => void;
@@ -560,7 +558,6 @@ interface ModuleEditorProps {
 
 function ModuleEditor({ 
   module, 
-  moduleIndex, 
   onUpdate, 
   onRemove, 
   onAddLesson,

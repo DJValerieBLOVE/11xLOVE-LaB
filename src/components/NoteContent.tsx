@@ -124,25 +124,14 @@ export function NoteContent({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAllMedia, setShowAllMedia] = useState(false);
   
-  // Debug: Check if event is actually an object (runtime safety for bad data)
-  if (typeof event === 'string') {
-    const raw = event as unknown as string;
-    console.error('[NoteContent] Received string instead of event object:', raw.slice(0, 100));
-    try {
-      const parsed = JSON.parse(raw);
-      return <div className={className}>{parsed.content || 'Failed to parse event'}</div>;
-    } catch {
-      return <div className={className}>Invalid event data</div>;
-    }
-  }
-  
-  if (!event || typeof event.content !== 'string') {
-    console.error('[NoteContent] Invalid event:', event);
-    return <div className={className}>Invalid event</div>;
-  }
+  // Runtime validity check — used by hooks below to return safe defaults
+  const isInvalidEvent = typeof event === 'string' || !event || typeof event.content !== 'string';
   
   // Collect media URLs and link URLs from content and imeta tags
   const { textContent, mediaItems, linkUrls } = useMemo(() => {
+    if (isInvalidEvent) {
+      return { textContent: '', mediaItems: [] as Array<{ url: string; type: 'image' | 'video' | 'audio' | 'youtube'; thumbnailUrl?: string }>, linkUrls: [] as string[] };
+    }
     const text = event.content;
     
     const media: Array<{ url: string; type: 'image' | 'video' | 'audio' | 'youtube'; thumbnailUrl?: string }> = [];
@@ -199,7 +188,7 @@ export function NoteContent({
     });
     
     return { textContent: cleanedText, mediaItems: media, linkUrls: links };
-  }, [event]);
+  }, [event, isInvalidEvent]);
   
   // Process the text content to render mentions, links, etc.
   const processedContent = useMemo(() => {
@@ -338,6 +327,11 @@ export function NoteContent({
     
     return parts;
   }, [textContent, mediaItems]);
+
+  // Early returns for invalid data — AFTER all hooks
+  if (isInvalidEvent) {
+    return <div className={className}>Invalid event data</div>;
+  }
 
   // Check if media needs limiting
   const hasMoreMedia = mediaItems.length > MAX_IMAGES_PREVIEW && !showAllMedia;
