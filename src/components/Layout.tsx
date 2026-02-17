@@ -3,7 +3,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useZapStats } from '@/hooks/useZapStats';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { CompactEQVisualizer } from '@/components/EQVisualizer';
-import { BookOpen, Users, User, Settings, LogOut, Bell, Calendar, Rss, Target, Lock, MessageSquare, ArrowUp, ArrowDown } from 'lucide-react';
+import { BookOpen, Users, User, Settings, LogOut, Bell, Calendar, Rss, Target, Lock, MessageSquare } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
