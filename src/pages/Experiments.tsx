@@ -56,36 +56,62 @@ const Experiments = () => {
   const suggestedExperiments = allExperiments.slice(0, 3); // AI suggestions (placeholder)
   const myCreatedExperiments: Experiment[] = []; // Created by user
 
-  // Require login
+  // Public catalog view (no login required)
   if (!user) {
     return (
       <Layout>
         <div className="container px-4 py-8">
-          <div className="max-w-lg mx-auto text-center">
-            <div className="mb-8">
-              <Sparkles className="h-16 w-16 mx-auto text-[#6600ff] mb-4" />
-              <h1 className="text-3xl font-normal mb-4">Experiments</h1>
-              <p className="text-muted-foreground mb-6">
-                Transform your life through guided experiments in the 11 dimensions of LOVE.
-                Log in to track your progress and join the community.
-              </p>
+          {/* SEO-optimized header */}
+          <header className="mb-8">
+            <h1 className="mb-3">Experiments</h1>
+            <p className="text-lg text-muted-foreground mb-4">
+              Transform your life through guided experiments in the 11 dimensions of LOVE
+            </p>
+            <div className="mb-6">
+              <LoginArea className="flex" />
             </div>
-            
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-center space-x-2">
-                  <Lock className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="font-normal">Login Required</h2>
-                </div>
-                <CardDescription>
-                  Create a free Nostr account to start your transformation journey
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <LoginArea className="flex justify-center" />
-              </CardContent>
-            </Card>
-          </div>
+          </header>
+
+          {/* Search and Filter */}
+          <section aria-label="Search and filter experiments" className="mb-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  type="search"
+                  placeholder="Search experiments..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search experiments"
+                />
+              </div>
+              <Select value={dimensionFilter} onValueChange={setDimensionFilter}>
+                <SelectTrigger className="w-full sm:w-[200px]" aria-label="Filter by dimension">
+                  <SelectValue placeholder="Filter by Dimension" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Dimensions</SelectItem>
+                  {DIMENSIONS.map((dim) => (
+                    <SelectItem key={dim.number} value={dim.number.toString()}>
+                      {dim.emoji} {dim.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </section>
+
+          {/* Public Catalog - SEO optimized */}
+          <section aria-label="Experiment catalog">
+            {filteredExperiments.length === 0 ? (
+              <EmptyState 
+                icon={<Compass className="h-12 w-12" />}
+                title="No experiments found"
+                description={searchQuery ? `No results for "${searchQuery}"` : "No experiments available"}
+              />
+            ) : (
+              <ExperimentGrid experiments={filteredExperiments} />
+            )}
+          </section>
         </div>
       </Layout>
     );
