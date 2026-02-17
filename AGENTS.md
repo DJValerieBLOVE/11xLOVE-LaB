@@ -1250,6 +1250,47 @@ When your changes are complete and validated, create a git commit with a descrip
 
 This section contains project-specific guidelines for the 11x LOVE LaB application.
 
+### Git Push Rule — MANDATORY
+
+**CRITICAL: After EVERY `git_commit`, you MUST immediately run:**
+```bash
+git push upstream main
+```
+
+**Why this matters:**
+- The `git_commit` tool only commits locally — it does NOT push to GitHub
+- Shakespeare's Sync UI compares local commits against `upstream/main` on GitHub
+- If you don't push, Shakespeare shows "X commits ahead" and the Sync button breaks
+- GitHub Actions CI (ESLint, tests, build) only runs when commits are pushed
+
+**Git remote setup for this project:**
+- Only ONE remote: `upstream` → `https://github.com/DJValerieBLOVE/11xLOVE-LaB.git`
+- Do NOT add an `origin` remote — it causes confusion with two remotes pointing to the same URL
+- Branch `main` tracks `upstream/main`
+
+**Correct workflow:**
+```bash
+# 1. Make changes and commit using the git_commit tool (or shell)
+git add .
+git commit -m "Your message"
+
+# 2. IMMEDIATELY push — do this every single time without exception
+git push upstream main
+```
+
+**Verify you are in sync:**
+```bash
+git status              # Should say "nothing to commit, working tree clean"
+git log --oneline -3    # Compare with upstream/main
+```
+
+If you ever see `git remote -v` showing both `origin` and `upstream` pointing to the same URL, remove the duplicate:
+```bash
+git remote remove origin
+```
+
+---
+
 ### Pre-Commit Checklist
 
 **CRITICAL**: Before committing any changes, verify the following:
