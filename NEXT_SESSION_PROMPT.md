@@ -6,27 +6,64 @@ Copy and paste this into Shakespeare to start your next session.
 
 Read these 2 files first: `PLAN.md` and `AGENTS.md`
 
-We're starting **Phase 1A: Public Catalog + Membership Gates**. Do these 5 things in order:
-
-1. Create `/public/robots.txt` (standard crawl permissions)
-2. Create `/public/llms.txt` (describe what 11x LOVE LaB is, what experiments are, how the platform works — for AI crawlers)
-3. Create `/public/sitemap.xml` (list public pages: /, /experiments, /feed)
-4. Make the `/experiments` page accessible WITHOUT login (public catalog — SEO optimized with semantic HTML)
-5. Add login redirect when a user clicks into an experiment detail page without being logged in
-
-Commit after each step. Don't touch the feed or any existing components.
+**Phase 1A is COMPLETE ✅** — Public catalog, SEO files, and login gates are done.
 
 ---
 
-## After Phase 1A is done, here are the next prompts:
+## Current Task: Phase 1B — Big Dreams Dashboard
 
 ### Phase 1B: Big Dreams Dashboard
 
-> Read `PLAN.md` (Big Dreams Dashboard section). Build the Big Dreams page as the homepage after login. Show 11 dimension cards in Prosperity Pyramid order. Each card shows the Big Dream text, related experiments, and a progress indicator. Data comes from kind 30078 events (one per dimension). Add widgets for experiments in progress and quick stats. Don't touch the feed.
+Read `PLAN.md` (Big Dreams Dashboard section). Build the Big Dreams page as the homepage after login. 
+
+**Build these components:**
+1. Big Dreams page component at `/src/pages/BigDreams.tsx`
+2. 11 dimension cards in Prosperity Pyramid order (GOD/LOVE → Environment)
+3. Each card shows: Big Dream text, related experiments, progress indicator
+4. Data storage: kind 30078 Nostr events (one replaceable event per dimension)
+5. Widgets: Experiments in progress, Quick stats, Streak status
+6. Make Big Dreams the default route after login (update AppRouter.tsx)
+
+**Testing checklist (REQUIRED before committing):**
+- [ ] Build passes with zero errors
+- [ ] Page renders correctly when logged in
+- [ ] All 11 dimension cards display in correct order
+- [ ] Cards show dimension emoji, name, and color
+- [ ] Empty state shows when no Big Dreams exist
+- [ ] Clicking "Edit" allows updating Big Dreams
+- [ ] Data persists to private Railway relay
+- [ ] Responsive layout works on mobile/tablet/desktop
+- [ ] No font-bold/semibold/medium classes used
+- [ ] No pink accent colors (only purple #6600ff)
+
+Don't touch the feed or existing experiment pages.
 
 ### Phase 1C: Beta Onboarding
 
-> Read `PLAN.md` (Two-Path Onboarding section). Add first-login detection. Show a welcome modal with two choices: "Quick Start" or "Deep Dive". Quick Start shows 11 dimension cards where the user types a 1-2 sentence Big Dream per dimension, saves as kind 30078 events, then lands on Big Dreams dashboard. Deep Dive redirects to the 11x LOVE Code Experiment 1. Don't touch the feed.
+Read `PLAN.md` (Two-Path Onboarding section). Add first-login detection and welcome flow.
+
+**Build these components:**
+1. First-login detection (check localStorage for `hasCompletedOnboarding`)
+2. Welcome modal with two buttons: "Quick Start" or "Deep Dive"
+3. Quick Start flow: 11 dimension cards with textarea inputs for Big Dreams
+4. Auto-save each Big Dream as kind 30078 event (one per dimension)
+5. Deep Dive flow: Redirect to `/experiment/11x-love-code` (Experiment 1)
+6. After completion, land on Big Dreams dashboard
+
+**Testing checklist (REQUIRED before committing):**
+- [ ] Build passes with zero errors
+- [ ] Modal shows ONLY on first login (not on subsequent logins)
+- [ ] Quick Start shows all 11 dimension cards
+- [ ] User can type Big Dreams (1-2 sentences per dimension)
+- [ ] Clicking "Save & Continue" publishes kind 30078 events to Railway relay
+- [ ] Deep Dive redirects to Experiment 1
+- [ ] After either path, modal doesn't show again
+- [ ] Big Dreams persist and display on dashboard
+- [ ] Responsive layout works on mobile
+- [ ] No font-bold/semibold/medium classes
+- [ ] No pink accent colors
+
+Don't touch the feed or existing components.
 
 ---
 
