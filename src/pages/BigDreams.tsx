@@ -228,9 +228,9 @@ const BigDreams = () => {
                 </div>
 
                 <div className="flex gap-6 mt-4 text-sm">
-                  <span>Year of practice: <strong>{completeDays} complete days</strong></span>
-                  <span>Longest streak: <strong>{longestStreak} days</strong></span>
-                  <span>Current streak: <strong>{currentStreak} days</strong></span>
+                  <span>Year of practice: <span className="font-normal text-[#6600ff]">{completeDays} complete days</span></span>
+                  <span>Longest streak: <span className="font-normal text-[#6600ff]">{longestStreak} days</span></span>
+                  <span>Current streak: <span className="font-normal text-[#6600ff]">{currentStreak} days</span></span>
                 </div>
               </CardContent>
             </Card>

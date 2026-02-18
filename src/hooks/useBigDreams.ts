@@ -26,12 +26,12 @@ export interface BigDream {
 export function useBigDreams() {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
-  const { decrypt, isAvailable } = useEncryptedStorage();
+  const { decrypt, isLoggedIn } = useEncryptedStorage();
 
   return useQuery({
     queryKey: ['big-dreams', user?.pubkey],
     queryFn: async () => {
-      if (!user || !isAvailable) return [];
+      if (!user) return [];
 
       // Query all Big Dream events (one per dimension)
       const labRelay = nostr.relay(LAB_RELAY_URL);
@@ -76,7 +76,7 @@ export function useBigDreams() {
 
       return bigDreams;
     },
-    enabled: !!user && isAvailable,
+    enabled: isLoggedIn,
   });
 }
 
@@ -94,7 +94,7 @@ export function useBigDream(dimensionId: number) {
 export function useSaveBigDream() {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
-  const { encrypt, isAvailable } = useEncryptedStorage();
+  const { encrypt } = useEncryptedStorage();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -109,11 +109,7 @@ export function useSaveBigDream() {
         throw new Error('You must be logged in to save Big Dreams');
       }
 
-      if (!isAvailable) {
-        throw new Error('NIP-44 encryption not available. Please upgrade your signer.');
-      }
-
-      // Encrypt the content
+      // Encrypt the content (falls back to plaintext if NIP-44 unavailable)
       const encrypted = await encrypt(content);
 
       // Create event tags
