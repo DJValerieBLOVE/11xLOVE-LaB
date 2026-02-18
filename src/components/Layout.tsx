@@ -116,7 +116,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <div className="hidden md:flex items-center gap-3 text-sm">
                     {/* Sent */}
                     <div className="flex items-center gap-1 text-orange-500" title={`${zapsSent.toLocaleString()} sats sent`}>
-                      <ArrowUp className="h-4 w-4" />
+                      <span className="text-base leading-none">↑</span>
                       <span className="font-normal">{formatSats(zapsSent)}</span>
                     </div>
                     
@@ -125,7 +125,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     
                     {/* Received */}
                     <div className="flex items-center gap-1 text-orange-500" title={`${zapsReceived.toLocaleString()} sats received`}>
-                      <ArrowDown className="h-4 w-4" />
+                      <span className="text-base leading-none">↓</span>
                       <span className="font-normal">{formatSats(zapsReceived)}</span>
                     </div>
                   </div>
