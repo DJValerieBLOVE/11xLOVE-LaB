@@ -3,11 +3,15 @@
  * 
  * Manages the user's experiment journal (Obsidian-style growing document)
  * Uses Nostr kind 30023 (long-form article) for each experiment
+ * 
+ * CRITICAL: Journals are PRIVATE by default and ONLY go to the Railway relay.
+ * They should NEVER be published to public relays.
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { LAB_RELAY_URL } from '@/lib/relays';
 import type { Experiment } from '@/types/experiment';
 
 export interface JournalEntry {
@@ -36,8 +40,9 @@ export function useExperimentJournal(experiment: Experiment | undefined) {
     queryFn: async () => {
       if (!user || !experiment) return null;
 
-      // Query the journal event (kind 30023, addressable)
-      const events = await nostr.query([
+      // CRITICAL: Query ONLY from Railway relay - journals are private
+      const labRelay = nostr.relay(LAB_RELAY_URL);
+      const events = await labRelay.query([
         {
           kinds: [30023],
           authors: [user.pubkey],
@@ -152,10 +157,11 @@ export function useSaveJournalEntry(experiment: Experiment) {
       const updatedContent = existingContent + newEntry;
 
       // Publish updated journal (kind 30023)
+      // CRITICAL: Include 'journal' tag so relays.ts identifies this as PRIVATE
       const tags = [
         ['d', `journal-${experiment.id}`], // Addressable identifier
         ['title', `${experiment.title} - My Journey`],
-        ['t', 'journal'],
+        ['t', 'journal'], // PRIVATE_TAGS includes 'journal' - this prevents public sharing
         ['t', 'experiment'],
         ['t', `experiment-${experiment.id}`],
       ];
@@ -172,8 +178,12 @@ export function useSaveJournalEntry(experiment: Experiment) {
         created_at: Math.floor(Date.now() / 1000),
       });
 
-      // Publish with timeout (5 seconds)
-      await nostr.event(event, { signal: AbortSignal.timeout(5000) });
+      // CRITICAL FIX: Publish ONLY to Railway private relay, NOT public relays!
+      // Journals are private by default and should NEVER go to public Nostr.
+      const labRelay = nostr.relay(LAB_RELAY_URL);
+      await labRelay.event(event, { signal: AbortSignal.timeout(5000) });
+      
+      console.log('[Journal] Published to Railway relay ONLY (private)');
 
       return event;
     },
